@@ -301,7 +301,9 @@ class RuntimeHaapiController: HaapiController {
         startTransition()
         
         let configuration = RuntimeHaapiController.makeUrlSessionConfiguration()
-        let session = URLSession(configuration: configuration)
+        let session = URLSession(configuration: configuration,
+                                 delegate: TrustAllCertsDelegate(),
+                                 delegateQueue: nil)
         
         let haapiClient = haapiTokenManager.createClient(urlSession: session)
         self.haapiClient = haapiClient
