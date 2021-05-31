@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "viewName": "views/select-authenticator/index"
+  },
+  "type": "authentication-step",
+  "actions": [
+    {
+      "template": "selector",
+      "kind": "authenticator-selector",
+      "title": "Select Authentication Method",
+      "model": {
+        "options": [
+          {
+            "template": "form",
+            "kind": "select-authenticator",
+            "title": "google1",
+            "properties": {
+              "authenticatorType": "google"
+            },
+            "model": {
+              "href": "/dev/authn/authenticate/google1",
+              "method": "GET"
+            }
+          },
+          {
+            "template": "form",
+            "kind": "select-authenticator",
+            "title": "username",
+            "properties": {
+              "authenticatorType": "username"
+            },
+            "model": {
+              "href": "/dev/authn/authenticate/username",
+              "method": "GET"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

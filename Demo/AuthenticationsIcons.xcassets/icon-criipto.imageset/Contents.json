@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "icon-criipto.pdf",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

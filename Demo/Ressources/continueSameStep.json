@@ -1,0 +1,14 @@
+{
+  "messages": [
+    {
+      "text": "SMS sent",
+      "classList": [
+        "info"
+      ]
+    }
+  ],
+  "metadata": {
+    "viewName": "authenticator/duo/authenticate/passcode-sent"
+  },
+  "type": "continue-same-step"
+}

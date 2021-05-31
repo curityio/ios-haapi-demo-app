@@ -1,0 +1,42 @@
+<config xmlns="http://tail-f.com/ns/config/1.0">
+  <facilities xmlns="https://curity.se/ns/conf/base">
+    <client-attestation>
+      <ios-policy xmlns="https://curity.se/ns/conf/client-attestation">
+        <id>development-policy</id>
+        <mode>non-production</mode>
+      </ios-policy>
+    </client-attestation>
+  </facilities>
+  <profiles xmlns="https://curity.se/ns/conf/base">
+  <profile>
+    <id>$ID$</id>
+    <type xmlns:as="https://curity.se/ns/conf/profile/oauth">as:oauth-service</type>
+      <settings>
+      <authorization-server xmlns="https://curity.se/ns/conf/profile/oauth">
+      <client-store>
+      <config-backed>
+      <client>
+        <id>haapi-ios-dev-client</id>
+        <no-authentication>true</no-authentication>
+        <redirect-uris>haapi:start</redirect-uris>
+        <user-authentication>
+        </user-authentication>
+        <capabilities>
+          <code/>
+          <haapi/>
+        </capabilities>
+        <attestation>
+          <disable-attestation-validation>true</disable-attestation-validation>
+          <ios>
+            <app-id>$APPID$</app-id>
+            <ios-policy>development-policy</ios-policy>
+          </ios>
+        </attestation>
+      </client>
+      </config-backed>
+      </client-store>
+      </authorization-server>
+      </settings>
+  </profile>
+  </profiles>
+</config>

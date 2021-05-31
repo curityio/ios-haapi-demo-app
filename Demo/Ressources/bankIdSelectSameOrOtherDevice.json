@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "viewName": "authenticator/bankid/enter-personalnumber/index"
+  },
+  "type": "authentication-step",
+  "actions": [
+    {
+      "template": "form",
+      "kind": "bankid-same-device",
+      "title": "Login with BankID installed on this device",
+      "model": {
+        "href": "https://d3dd92f30197.ngrok.io/dev/authn/authenticate/bankid1/index",
+        "method": "POST",
+        "type": "application/x-www-form-urlencoded",
+        "actionTitle": "Login",
+        "fields": [
+          {
+            "name": "usesamedevice",
+            "type": "hidden",
+            "value": "true"
+          }
+        ]
+      }
+    },
+    {
+      "template": "form",
+      "kind": "bankid-other-device",
+      "title": "Login with BankID installed on a different device",
+      "model": {
+        "href": "https://d3dd92f30197.ngrok.io/dev/authn/authenticate/bankid1/index",
+        "method": "POST",
+        "type": "application/x-www-form-urlencoded",
+        "actionTitle": "Login",
+        "fields": [
+          {
+            "name": "personalnumber",
+            "type": "username",
+            "label": "Personal number",
+            "placeholder": "yyyymmddnnnn"
+          },
+          {
+            "name": "usesamedevice",
+            "type": "hidden",
+            "value": "false"
+          }
+        ]
+      }
+    }
+  ]
+}

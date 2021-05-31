@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "icon-windows.pdf",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

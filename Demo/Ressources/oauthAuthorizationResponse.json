@@ -1,0 +1,16 @@
+{
+  "links": [
+    {
+      "href": "https://localhost:7777/client-callback?code=OZxymZHVjkEhf9fajYz0jNPOaJaQpXTg&state=foo",
+      "rel": "authorization-response"
+    }
+  ],
+  "metadata": {
+    "viewName": "templates/oauth/success-authorization-response"
+  },
+  "type": "oauth-authorization-response",
+  "properties": {
+    "code": "OZxymZHVjkEhf9fajYz0jNPOaJaQpXTg",
+    "state": "foo"
+  }
+}

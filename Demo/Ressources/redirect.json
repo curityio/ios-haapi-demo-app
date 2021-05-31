@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "viewName": "/templates/redirect"
+  },
+  "type": "redirection-step",
+  "actions": [
+    {
+      "template": "form",
+      "kind": "redirect",
+      "model": {
+        "href": "https://d3dd92f30197.ngrok.io/dev/authn/authenticate?serviceProviderId=oauth-dev&client_id=haapi-public-client&resumePath=%2Fdev%2Foauth%2Fauthorize&state=R_93L2ZIITQP95bbCqQyDPho1WM23I84Gu",
+        "method": "GET"
+      }
+    }
+  ]
+}

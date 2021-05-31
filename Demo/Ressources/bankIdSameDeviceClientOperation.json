@@ -1,0 +1,80 @@
+{
+  "metadata": {
+    "viewName": "authenticator/bankid/launch/index"
+  },
+  "type": "authentication-step",
+  "actions": [
+    {
+      "template": "client-operation",
+      "kind": "login",
+      "title": "Login with BankID",
+      "model": {
+        "name": "bankid",
+        "arguments": {
+          "href": "bankid:///?autostarttoken=04b7c1bd-6d7b-46c0-b8ed-00f5cf39688c&redirect=null",
+          "autoStartToken": "04b7c1bd-6d7b-46c0-b8ed-00f5cf39688c",
+          "redirect": "https%3A%2F%2Fdafe6dff0c1c.ngrok.io%2Fdev%2Fauthn%2Fauthenticate%2Fbankid1%2Flaunch"
+        },
+        "continueActions": [
+          {
+            "template": "form",
+            "kind": "redirect",
+            "title": "If you are not redirected automatically, click here to continue authenticating",
+            "model": {
+              "href": "https://dafe6dff0c1c.ngrok.io/dev/authn/authenticate/bankid1/poller",
+              "method": "GET"
+            }
+          }
+        ],
+        "errorActions": [
+          {
+            "template": "form",
+            "kind": "bankid-other-device",
+            "title": "Login with BankID installed on a different device",
+            "model": {
+              "href": "/dev/authn/authenticate/bankid1/launch",
+              "method": "POST",
+              "type": "application/x-www-form-urlencoded",
+              "actionTitle": "Login",
+              "fields": [
+                {
+                  "name": "personalnumber",
+                  "type": "username",
+                  "label": "Personal number",
+                  "placeholder": "yyyymmddnnnn"
+                },
+                {
+                  "name": "usesamedevice",
+                  "type": "hidden",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "template": "form",
+      "kind": "continue",
+      "title": "Start the BankID security app",
+      "model": {
+        "href": "https://dafe6dff0c1c.ngrok.io/dev/authn/authenticate/bankid1/poller",
+        "method": "GET",
+        "type": "application/x-www-form-urlencoded",
+        "actionTitle": "Start the BankID security app"
+      }
+    },
+    {
+      "template": "form",
+      "kind": "cancel",
+      "title": "Cancel this operation",
+      "model": {
+        "href": "https://dafe6dff0c1c.ngrok.io/dev/authn/authenticate/bankid1/cancel",
+        "method": "POST",
+        "type": "application/x-www-form-urlencoded",
+        "actionTitle": "Cancel"
+      }
+    }
+  ]
+}

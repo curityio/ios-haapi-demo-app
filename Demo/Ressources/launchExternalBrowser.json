@@ -1,0 +1,35 @@
+{
+  "metadata": {
+    "viewName": "authenticator/external-browser/launch"
+  },
+  "type": "authentication-step",
+  "actions": [
+    {
+      "template": "launch",
+      "kind": "external-browser",
+      "title": "The authentication process needs to use an external browser",
+      "model": {
+        "href": "https://d3dd92f30197.ngrok.io/dev/authn/authenticate/username?_launch_nonce=hpGzxOf7BgXE3dbftd7NFXHatPyD9Z2m",
+        "actionTitle": "The authentication process needs to use an external browser",
+        "continueActions": [
+          {
+            "template": "form",
+            "kind": "continue",
+            "title": "If you are not redirected automatically, click here to continue authenticating",
+            "model": {
+              "href": "https://d3dd92f30197.ngrok.io/dev/authn/authenticate/username",
+              "method": "GET",
+              "type": "application/x-www-form-urlencoded",
+              "fields": [
+                {
+                  "name": "_resume_nonce",
+                  "type": "context"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
