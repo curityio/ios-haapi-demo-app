@@ -24,6 +24,11 @@ struct StateView: View {
     @State var showHiddenFields = false
     @State var showParameters = false
 
+    private var gridItemLayout = [
+        GridItem(.fixed(15)),
+        GridItem(.fixed(15))
+    ]
+
     @ViewBuilder
     var body: some View {
         NavigationView {
@@ -37,17 +42,21 @@ struct StateView: View {
                     
                     contentView
 
-                    ForEach(flowViewModel.links, id: \.title) { link in
-                        LinkView(viewModel: LinkViewModel(link: link,
-                                                          imageLoader: imageLoader,
-                                                          selectHandler:
-                                                            { link in
-                                                                flowViewModel.followLink(link: link)
-                                                            }))
-                            .frame(minWidth: 0,
-                                   maxWidth: .infinity,
-                                   alignment: .center)
-                            .disabled(flowViewModel.isProcessing)
+                    if !flowViewModel.links.isEmpty {
+                        LazyHGrid(rows: gridItemLayout,
+                                  alignment: .top,
+                                  spacing: UIConstants.spacing)
+                        {
+                            ForEach(flowViewModel.links, id: \.self) { link in
+                                LinkView(viewModel: LinkViewModel(link: link,
+                                                                  imageLoader: imageLoader,
+                                                                  selectHandler:
+                                                                    { link in
+                                                                        flowViewModel.followLink(link: link)
+                                                                    }))
+                                    .disabled(flowViewModel.isProcessing)
+                            }
+                        }
                     }
                 }
                 .padding(.top, 32)

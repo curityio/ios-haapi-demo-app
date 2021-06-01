@@ -16,7 +16,7 @@
 
 import Foundation
 
-struct Link: Codable, Equatable {
+struct Link: Codable, Equatable, Hashable {
     let href: String
     let rel: String
     let title: String?

@@ -49,6 +49,10 @@ extension Font {
         return .curity(16, relativeTo: .body)
     }
 
+    static var link: Font {
+        return .curity(14.0, relativeTo: .footnote)
+    }
+
     static var actionText: Font {
         return Font.curity(16, relativeTo: .body).weight(.medium)
     }

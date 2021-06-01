@@ -26,23 +26,22 @@ struct LinkView: View {
     }
 
     var body: some View {
-        VStack {
-            Button(action: viewModel.select) {
-                VStack {
-                    if let image = viewModel.image {
-                        Image(uiImage: image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: UIScreen.main.bounds.width)
-                    } else if viewModel.hasImage {
-                        ArcSpinner(color: Color.primary)
-                            .aspectRatio(contentMode: .fit)
-                    }
-                    if let title = viewModel.title {
-                        Text(title)
-                            .padding([.leading, .trailing], 16)
-                            .padding([.bottom, .top], 4)
-                    }
+        Button(action: viewModel.select) {
+            VStack {
+                if let image = viewModel.image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: UIScreen.main.bounds.width)
+                        .background(Color.red)
+                } else if viewModel.hasImage {
+                    ArcSpinner(color: Color.primary)
+                        .aspectRatio(contentMode: .fit)
+                }
+                if let title = viewModel.title {
+                    Text(title)
+                        .font(.link)
+                        .foregroundColor(Color.links)
                 }
             }
         }
