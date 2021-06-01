@@ -58,6 +58,7 @@ struct StateView: View {
                         NSAttributedString.Key.font: UIFont.curityNavTitle
                     ]
                     navigationCtrl.navigationBar.backgroundColor = UIColor(Color.primaryDark)
+                    navigationCtrl.navigationBar.isTranslucent = false
                     navigationCtrl.navigationBar.prefersLargeTitles = false
                 }
                 .paddingContentView()
