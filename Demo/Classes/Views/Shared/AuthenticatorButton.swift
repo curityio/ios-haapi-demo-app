@@ -47,7 +47,7 @@ struct AuthenticatorButton: View {
                         .lineLimit(2)
                         .minimumScaleFactor(0.5)
                 } else {
-                    ArcSpinner(color: Color.primary)
+                    ArcSpinner(color: Color.primaryRegular)
                 }
             }
         }

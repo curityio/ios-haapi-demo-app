@@ -105,7 +105,7 @@ extension ProfileView: View {
             }) {
                 Text("Make active")
             }
-            .accentColor(.primary)
+            .accentColor(.primaryRegular)
         } else {
             EmptyView()
         }

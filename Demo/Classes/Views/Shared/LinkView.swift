@@ -35,7 +35,7 @@ struct LinkView: View {
                         .frame(maxWidth: UIScreen.main.bounds.width)
                         .background(Color.red)
                 } else if viewModel.hasImage {
-                    ArcSpinner(color: Color.primary)
+                    ArcSpinner(color: Color.primaryRegular)
                         .aspectRatio(contentMode: .fit)
                 }
                 if let title = viewModel.title {

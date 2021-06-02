@@ -30,7 +30,7 @@ extension Color {
         return Color("SpotYellow")
     }
 
-    static var primary: Color {
+    static var primaryRegular: Color {
         return Color("Primary")
     }
 

@@ -73,7 +73,7 @@ struct FormTextField: View {
             .cornerRadius(UIConstants.cornerRadius)
             .overlay(
                 RoundedRectangle(cornerRadius: UIConstants.cornerRadius)
-                    .stroke(isInvalid ? Color.red : colorScheme == .light ? Color.grey : Color.primary,
+                    .stroke(isInvalid ? Color.red : colorScheme == .light ? Color.grey : Color.primaryRegular,
                             lineWidth: UIConstants.lineWidth)
             )
         }
