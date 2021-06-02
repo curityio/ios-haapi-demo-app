@@ -38,6 +38,7 @@ struct Profile: Codable, Identifiable, Hashable {
     var automaticPolling = true
     var isDefaultAuthChallengeEnabled = false
     var supportedScopes: [String]?
+    var selectedScopes: [String]?
 
     var fetchedAt: Date?
 

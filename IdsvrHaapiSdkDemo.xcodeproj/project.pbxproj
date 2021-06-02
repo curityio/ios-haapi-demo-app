@@ -101,8 +101,8 @@
 		6634245D26394F24003DA575 /* CheckboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6634245B26394F24003DA575 /* CheckboxView.swift */; };
 		663424712639A3C8003DA575 /* AuthenticatorButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663424702639A3C8003DA575 /* AuthenticatorButton.swift */; };
 		663424722639A3C8003DA575 /* AuthenticatorButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663424702639A3C8003DA575 /* AuthenticatorButton.swift */; };
-		6638E4CF2615117E0022D0D9 /* ThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6638E4CE2615117E0022D0D9 /* ThumbnailView.swift */; };
-		6638E4D02615117E0022D0D9 /* ThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6638E4CE2615117E0022D0D9 /* ThumbnailView.swift */; };
+		6638E4CF2615117E0022D0D9 /* ScopesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6638E4CE2615117E0022D0D9 /* ScopesView.swift */; };
+		6638E4D02615117E0022D0D9 /* ScopesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6638E4CE2615117E0022D0D9 /* ScopesView.swift */; };
 		6638E4D9261527F30022D0D9 /* HaapiControllable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6638E4D8261527F30022D0D9 /* HaapiControllable.swift */; };
 		6638E4DA261527F30022D0D9 /* HaapiControllable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6638E4D8261527F30022D0D9 /* HaapiControllable.swift */; };
 		663D5C6E26243F7900885FBF /* Logger+HaapiDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663D5C6D26243F7900885FBF /* Logger+HaapiDemo.swift */; };
@@ -351,7 +351,7 @@
 		6634242D2637FB09003DA575 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		6634245B26394F24003DA575 /* CheckboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckboxView.swift; sourceTree = "<group>"; };
 		663424702639A3C8003DA575 /* AuthenticatorButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatorButton.swift; sourceTree = "<group>"; };
-		6638E4CE2615117E0022D0D9 /* ThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailView.swift; sourceTree = "<group>"; };
+		6638E4CE2615117E0022D0D9 /* ScopesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopesView.swift; sourceTree = "<group>"; };
 		6638E4D8261527F30022D0D9 /* HaapiControllable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HaapiControllable.swift; sourceTree = "<group>"; };
 		663D5C6D26243F7900885FBF /* Logger+HaapiDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logger+HaapiDemo.swift"; sourceTree = "<group>"; };
 		663DFC2B26414AFE0040B969 /* View+NavigationBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "View+NavigationBar.swift"; sourceTree = "<group>"; };
@@ -595,7 +595,7 @@
 				662807D9260B479000D4017C /* ProfileManager.swift */,
 				6604F6E6260A1D7B001AFCEB /* ProfileView.swift */,
 				662807DE260B47CA00D4017C /* ProfileViewModel.swift */,
-				6638E4CE2615117E0022D0D9 /* ThumbnailView.swift */,
+				6638E4CE2615117E0022D0D9 /* ScopesView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -1092,7 +1092,7 @@
 				66B3BBC92601071C001355C2 /* Resetable.swift in Sources */,
 				66B3BBC22601071C001355C2 /* SelectorView.swift in Sources */,
 				66181009262EF96A0039234E /* Color+Brand.swift in Sources */,
-				6638E4CF2615117E0022D0D9 /* ThumbnailView.swift in Sources */,
+				6638E4CF2615117E0022D0D9 /* ScopesView.swift in Sources */,
 				6687550C265329C40039EA45 /* HeaderView.swift in Sources */,
 				6651F7FE260A881600F6DDCE /* BarItemImage.swift in Sources */,
 				66B3BBCC2601071C001355C2 /* HashIdentifiable.swift in Sources */,
@@ -1196,7 +1196,7 @@
 				668754FE2652AC450039EA45 /* View+Curity.swift in Sources */,
 				66994D882615015500880758 /* Resetable.swift in Sources */,
 				66994D892615015500880758 /* SelectorView.swift in Sources */,
-				6638E4D02615117E0022D0D9 /* ThumbnailView.swift in Sources */,
+				6638E4D02615117E0022D0D9 /* ScopesView.swift in Sources */,
 				6618100A262EF96A0039234E /* Color+Brand.swift in Sources */,
 				6687550D265329C40039EA45 /* HeaderView.swift in Sources */,
 				66994D8B2615015500880758 /* BarItemImage.swift in Sources */,

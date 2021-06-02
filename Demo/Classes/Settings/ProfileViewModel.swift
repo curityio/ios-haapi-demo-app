@@ -27,6 +27,7 @@ class ProfileViewModel: ObservableObject {
             update()
         }
     }
+    @Published var scopeViewModel: ScopesViewModel?
 
     fileprivate weak var profileManager: ProfileManager?
     private let urlSession: URLSession
@@ -46,10 +47,22 @@ class ProfileViewModel: ObservableObject {
         self.profile = profile
         self.profileManager = profileManager
         self.urlSession = urlSession
+
+        updateScopeViewModel()
     }
 
     fileprivate func update() {
         profileManager?.updateActiveProfile(profile)
+    }
+
+    private func updateScopeViewModel() {
+        if let supportedScopes = profile.supportedScopes {
+            scopeViewModel = ScopesViewModel(supportedScopes,
+                                             selectedItems: profile.selectedScopes ?? [],
+                                             delegate: self)
+        } else {
+            scopeViewModel = nil
+        }
     }
 
     // MARK: 'Public'
@@ -91,6 +104,7 @@ class ProfileViewModel: ObservableObject {
                 self?.profile.supportedScopes = tuple.2
                 self?.profile.fetchedAt = Date()
                 self?.update()
+                self?.updateScopeViewModel()
             }
     }
 
@@ -104,6 +118,14 @@ class ProfileViewModel: ObservableObject {
 
     var errorAuthorizationEndpointString: String? {
         return profile.authorizationEndpointURI.errorInvalidURL
+    }
+}
+
+extension ProfileViewModel: ScopesViewModelDelegate {
+
+    func updateSelectedItems(_ items: [String]) {
+        profile.selectedScopes = items
+        update()
     }
 }
 

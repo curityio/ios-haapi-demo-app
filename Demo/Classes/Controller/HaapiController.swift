@@ -543,6 +543,12 @@ private extension Dictionary where Key == String, Value == String {
 
 private extension Profile {
 
+    private var processedScope: String? {
+        guard let selectedScope = selectedScopes, !selectedScope.isEmpty else { return nil }
+
+        return selectedScope.joined(separator: " ")
+    }
+
     var authorizationURL: URL? {
         guard let redirectURI = Bundle.main.haapiRedirectURI else { return nil }
 
@@ -552,6 +558,10 @@ private extension Profile {
             URLQueryItem(name: "response_type", value: "code"),
             URLQueryItem(name: "redirect_uri", value: redirectURI)
         ]
+
+        if let scope = processedScope {
+            urlComponents.queryItems?.append(URLQueryItem(name: "scope", value: scope))
+        }
 
         return urlComponents.url(relativeTo: URL(string: authorizationEndpointURI))
     }
