@@ -30,10 +30,6 @@ struct LinkView: View {
             VStack {
                 if let image = viewModel.image {
                     Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: UIScreen.main.bounds.width)
-                        .background(Color.red)
                 } else if viewModel.hasImage {
                     ArcSpinner(color: Color.primaryRegular)
                         .aspectRatio(contentMode: .fit)
