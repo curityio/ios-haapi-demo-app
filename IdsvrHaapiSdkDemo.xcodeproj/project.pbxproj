@@ -250,6 +250,7 @@
 		66CC7B692615BCFA00028FB7 /* TrustAllCertsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CC7B672615BCFA00028FB7 /* TrustAllCertsDelegate.swift */; };
 		66CC7B6E261605A500028FB7 /* HaapiControllerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CC7B6D261605A500028FB7 /* HaapiControllerError.swift */; };
 		66CC7B6F261605A500028FB7 /* HaapiControllerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CC7B6D261605A500028FB7 /* HaapiControllerError.swift */; };
+		66E1266B2667C63800326637 /* Bundle+HaapiRedirect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669FADA7263FF33C00BC4293 /* Bundle+HaapiRedirect.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1167,6 +1168,7 @@
 				66994D752615015500880758 /* Message.swift in Sources */,
 				6638E4DA261527F30022D0D9 /* HaapiControllable.swift in Sources */,
 				66994D762615015500880758 /* FormModel+Helpers.swift in Sources */,
+				66E1266B2667C63800326637 /* Bundle+HaapiRedirect.swift in Sources */,
 				6618103A263021410039234E /* URLSession+App.swift in Sources */,
 				66342421263703DE003DA575 /* StartAuthView.swift in Sources */,
 				66CC7B6F261605A500028FB7 /* HaapiControllerError.swift in Sources */,
