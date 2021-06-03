@@ -17,6 +17,7 @@
 import SwiftUI
 
 struct StateView: View {
+    @Environment(\.colorScheme) var colorScheme
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @EnvironmentObject var flowViewModel: FlowViewModel
     @EnvironmentObject var imageLoader: ImageLoader
@@ -66,7 +67,8 @@ struct StateView: View {
                         NSAttributedString.Key.foregroundColor: UIColor(Color.textHeadings),
                         NSAttributedString.Key.font: UIFont.curityNavTitle
                     ]
-                    navigationCtrl.navigationBar.backgroundColor = UIColor(Color.primaryDark)
+                    let backgroundColor = colorScheme == .light ? UIColor.white : UIColor(Color.primaryDark)
+                    navigationCtrl.navigationBar.backgroundColor = backgroundColor
                     navigationCtrl.navigationBar.isTranslucent = false
                     navigationCtrl.navigationBar.prefersLargeTitles = false
                 }
