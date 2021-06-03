@@ -17,6 +17,7 @@
 import Foundation
 import IdsvrHaapiSdk
 import os
+import Combine
 
 typealias HaapiCompletionHandler = (HaapiState) -> Void
 
@@ -41,6 +42,7 @@ class HaapiController: ObservableObject {
     private(set) var profile: Profile?
     private var haapiTokenManager: HaapiTokenManager?
     private var haapiClient: HaapiClient?
+    private var cancellable: AnyCancellable?
 
     init(_ notificationCenter: NotificationCenter = .default) {
         self.notificationCenter = notificationCenter
@@ -136,6 +138,8 @@ extension HaapiController: HaapiControllable {
         haapiTokenManager?.close()
         haapiTokenManager = nil
         haapiClient = nil
+        cancellable?.cancel()
+        cancellable = nil
         commitState(.none, completionHandler: nil)
     }
 
@@ -216,35 +220,33 @@ extension HaapiController: HaapiControllable {
         let config = URLSessionConfiguration.ephemeral
         let session = URLSession(configuration: config, delegate: TrustAllCertsDelegate(), delegateQueue: nil)
 
-        session.dataTask(with: request) { [weak self] data, _, error in
-            if let error = error {
-                self?.commitState(.systemError(error),
-                                  completionHandler: completionHandler)
-                return
+        cancellable = session.dataTaskPublisher(for: request)
+            .mapError{ error -> HaapiControllerError in
+                return HaapiControllerError.general(cause: error)
             }
+            .tryMap{ (data: Data, _) -> Data in
+                Logger.controllerFlow.debug("Representation received: \(String(data: data, encoding: .utf8) ?? "-")")
+                return data
+            }
+            .decode(type: TokensRepresentation.self, decoder: JSONDecoder())
+            .mapError { error -> HaapiControllerError in
+                return HaapiControllerError.general(cause: error)
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completions in
+                self?.cancellable = nil
 
-            guard let data = data,
-                  let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else
-            {
-                self?.commitState(.systemError(HaapiControllerError.noResponseData),
-                                  completionHandler: completionHandler)
-                return
-            }
-            let result = json.compactMapValues { value -> String? in
-                if let strValue = value as? String {
-                    return strValue
-                } else if let intValue = value as? Int {
-                    return intValue.description
-                } else {
-                    return nil
+                switch completions {
+                case .failure(let error):
+                    self?.commitState(.systemError(error),
+                                      completionHandler: completionHandler)
+                case .finished:
+                    break
                 }
-            }
-            DispatchQueue.main.async {
-                self?.commitState(.accessToken(result),
+            } receiveValue: { [weak self] tokenRepresentation in
+                self?.commitState(.accessToken(tokenRepresentation),
                                   completionHandler: completionHandler)
             }
-        }
-        .resume()
     }
 
     func followLink(link: Link,

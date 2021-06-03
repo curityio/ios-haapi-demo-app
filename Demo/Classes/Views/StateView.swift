@@ -112,8 +112,8 @@ struct StateView: View {
         } else if let code = flowViewModel.code {
             AuthorizedView(viewModel: AuthorizedViewModel(authorizationCode: code,
                                                           controller: flowViewModel.controller))
-        } else if let accessToken = flowViewModel.accessToken {
-            TokensView(TokensViewModel(accessToken))
+        } else if let tokensRepresentation = flowViewModel.tokensRepresentation {
+            TokensView(TokensViewModel(tokensRepresentation))
         } else if let selectorViewModel = flowViewModel.selectorViewModel {
             SelectorView(viewModel: selectorViewModel)
         } else if let formViewModel = flowViewModel.formViewModel {

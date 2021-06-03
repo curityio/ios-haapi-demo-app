@@ -33,9 +33,9 @@ struct TokensView: View {
                                       details: viewModel.details)
             }
             // ID Token
-            if viewModel.hasIDToken {
+            if let idToken = viewModel.idToken {
                 DisclosureView(title: "ID Token") {
-                    DisclosureContentView(text: viewModel.idToken)
+                    DisclosureContentView(text: idToken)
                 }
             }
             // Refresh Token
@@ -48,49 +48,44 @@ struct TokensView: View {
 
 struct AccessTokenView_Previews: PreviewProvider {
     static var previews: some View {
-        TokensView(TokensViewModel([
-            "expires_in": "300",
-            "refresh_token": "be9d3f8b-c18b-46b7-9asd-e0734d95c71d",
-            "token_type": "bearer",
-            "scope": "",
-            "access_token": "6adf18ca-9d77-4947-945d-c939c8890977"
-        ]))
+        TokensView(TokensViewModel(TokensRepresentation(accessToken: "6adf18ca-9d77-4947-945d-c939c8890977",
+                                                        tokenType: "bearer",
+                                                        scope: nil,
+                                                        expiresIn: 300,
+                                                        refreshToken: "be9d3f8b-c18b-46b7-9asd-e0734d95c71d",
+                                                        idToken: nil)))
     }
 }
 
 // MARK: - AccessTokenViewModel
 
 struct TokensViewModel {
-    let accessTokenRepresentation: [String: String]
+    let tokensRepresentation: TokensRepresentation
 
-    init(_ accessTokenRepresentation: [String: String]) {
-        self.accessTokenRepresentation = accessTokenRepresentation
-    }
-
-    var hasIDToken: Bool {
-        return accessTokenRepresentation["id_token"] != nil
+    init(_ tokensRepresentation: TokensRepresentation) {
+        self.tokensRepresentation = tokensRepresentation
     }
 
     var accessToken: String {
-        return accessTokenRepresentation["access_token"] ?? ""
+        return tokensRepresentation.accessToken
     }
 
     var details: [CardDetails] {
         return [
             CardDetails(header: "expires_in",
-                        value: accessTokenRepresentation["expires_in"] ?? ""),
+                        value: "\(tokensRepresentation.expiresIn)"),
             CardDetails(header: "token_type",
-                        value: accessTokenRepresentation["token_type"] ?? ""),
+                        value: tokensRepresentation.tokenType ?? ""),
             CardDetails(header: "scope",
-                        value: accessTokenRepresentation["scope"] ?? "")
+                        value: tokensRepresentation.scope ?? "")
         ]
     }
 
     var refreshToken: String {
-        return accessTokenRepresentation["refresh_token"] ?? ""
+        return tokensRepresentation.refreshToken
     }
 
-    var idToken: String {
-        return accessTokenRepresentation["id_token"] ?? ""
+    var idToken: String? {
+        return tokensRepresentation.idToken
     }
 }

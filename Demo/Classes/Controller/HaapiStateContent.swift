@@ -61,7 +61,7 @@ enum HaapiState: Equatable, CustomStringConvertible {
     /// The authorization code
     case authorizationResponse(String)
     /// The accessToken response; Final step
-    case accessToken([String: String])
+    case accessToken(TokensRepresentation)
     /// PollingStep
     case polling(PollingStep)
 

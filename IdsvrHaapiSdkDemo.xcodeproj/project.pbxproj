@@ -251,6 +251,8 @@
 		66CC7B6E261605A500028FB7 /* HaapiControllerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CC7B6D261605A500028FB7 /* HaapiControllerError.swift */; };
 		66CC7B6F261605A500028FB7 /* HaapiControllerError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CC7B6D261605A500028FB7 /* HaapiControllerError.swift */; };
 		66E1266B2667C63800326637 /* Bundle+HaapiRedirect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669FADA7263FF33C00BC4293 /* Bundle+HaapiRedirect.swift */; };
+		66E126732668D4C500326637 /* TokensRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E126722668D4C500326637 /* TokensRepresentation.swift */; };
+		66E126742668D4C500326637 /* TokensRepresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E126722668D4C500326637 /* TokensRepresentation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -415,6 +417,7 @@
 		66CC7B5E2615AF0600028FB7 /* HaapiStateContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HaapiStateContent.swift; sourceTree = "<group>"; };
 		66CC7B672615BCFA00028FB7 /* TrustAllCertsDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrustAllCertsDelegate.swift; sourceTree = "<group>"; };
 		66CC7B6D261605A500028FB7 /* HaapiControllerError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HaapiControllerError.swift; sourceTree = "<group>"; };
+		66E126722668D4C500326637 /* TokensRepresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokensRepresentation.swift; sourceTree = "<group>"; };
 		66E8AB3C2612167200AC1A5D /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -664,6 +667,7 @@
 				66B3BB762601071C001355C2 /* Representation.swift */,
 				661C1155260D28DE008FDAEE /* Steps */,
 				66B3BB792601071C001355C2 /* Template.swift */,
+				66E126722668D4C500326637 /* TokensRepresentation.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -1040,6 +1044,7 @@
 				663DFC2C26414AFE0040B969 /* View+NavigationBar.swift in Sources */,
 				66B602A7265FD7A7009B9F41 /* FlowViewModel.swift in Sources */,
 				662807E4260B4D0500D4017C /* CTextField.swift in Sources */,
+				66E126732668D4C500326637 /* TokensRepresentation.swift in Sources */,
 				663DFC3826417AA20040B969 /* DisclosureView.swift in Sources */,
 				66B3BBC12601071C001355C2 /* FormView.swift in Sources */,
 				66B3BBA12601071C001355C2 /* ClientOperationManager.swift in Sources */,
@@ -1145,6 +1150,7 @@
 				66994D652615015500880758 /* FormView.swift in Sources */,
 				66994D662615015500880758 /* ClientOperationManager.swift in Sources */,
 				6618105E263045B80039234E /* ArcSpinner.swift in Sources */,
+				66E126742668D4C500326637 /* TokensRepresentation.swift in Sources */,
 				663DFC2D26414AFE0040B969 /* View+NavigationBar.swift in Sources */,
 				66994D672615015500880758 /* PollingView.swift in Sources */,
 				66994D682615015500880758 /* StateView.swift in Sources */,
