@@ -175,13 +175,13 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
             messages = []
             links = []
             actions = []
-            title = "Success"
+            title = NSLocalizedString("success_title", comment: "Title for final step in the flow")
             self.state = state
         case .polling(let pollingStep):
             messages = pollingStep.representation.messages
             links = pollingStep.representation.links
             actions = pollingStep.auxiliaryActions
-            title = "Polling"
+            title = NSLocalizedString("polling_title", comment: "Title for polling view")
             if self.pollingStep == nil {
                 self.state = state // Manual redirect
             }
