@@ -28,6 +28,7 @@ class ProfileViewModel: ObservableObject {
         }
     }
     @Published var scopeViewModel: ScopesViewModel?
+    var error: Error?
 
     fileprivate weak var profileManager: ProfileManager?
     private let urlSession: URLSession
@@ -96,7 +97,13 @@ class ProfileViewModel: ObservableObject {
             }
             .eraseToAnyPublisher()
             .receive(on: DispatchQueue.main)
-            .sink { _ in
+            .sink { [weak self] completions in
+                switch completions {
+                case .failure(let error):
+                    self?.error = error
+                case .finished:
+                    break
+                }
                 completion()
             } receiveValue: { [weak self] tuple in
                 self?.profile.tokenEndpointURI = tuple.0
