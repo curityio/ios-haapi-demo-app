@@ -29,18 +29,18 @@ struct TokensView: View {
                 .padding()
             // Access Token
             DisclosureView(title: "Access token") {
-                CardView(text: viewModel.accessToken,
-                         details: viewModel.details)
+                DisclosureContentView(text: viewModel.accessToken,
+                                      details: viewModel.details)
             }
             // ID Token
             if viewModel.hasIDToken {
                 DisclosureView(title: "ID Token") {
-                    CardView(text: viewModel.idToken)
+                    DisclosureContentView(text: viewModel.idToken)
                 }
             }
             // Refresh Token
             DisclosureView(title: "Refresh Token") {
-                CardView(text: viewModel.refreshToken)
+                DisclosureContentView(text: viewModel.refreshToken)
             }
         }
     }

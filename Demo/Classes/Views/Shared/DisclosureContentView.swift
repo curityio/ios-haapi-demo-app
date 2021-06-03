@@ -16,7 +16,7 @@
 
 import SwiftUI
 
-struct CardView: View {
+struct DisclosureContentView: View {
     let text: String
     let details: [CardDetails]
 
@@ -40,46 +40,37 @@ struct CardView: View {
                 Text(text)
                     .font(.system(.body, design: .monospaced))
                     .fontWeight(.medium)
-                    .foregroundColor(colorScheme == .light ? .blue : .textParagraphs)
+                    .foregroundColor(colorScheme == .light ? .spotGreen : .white)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, UIConstants.spacing)
                 if !details.isEmpty {
                     LazyVGrid(columns: columns, alignment: .leading) {
                         ForEach(details, id: \.self) { item in
                             Text(item.header)
-                                .foregroundColor(colorScheme == .light ? .textParagraphs : .spotGreen)
+                                .foregroundColor(colorScheme == .light ? .primaryDark : .white)
                                 .fontWeight(.medium)
                             Text(item.value)
-                                .foregroundColor(.textParagraphs)
+                                .foregroundColor(colorScheme == .light ? .primaryDark : .white)
                                 .fontWeight(.medium)
                         }
                         .font(.system(.caption, design: .monospaced))
                     }
                 }
             }
-            .padding([.leading])
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .center)
-        .background(Color.primaryDark)
-        .cornerRadius(8.0)
-        .overlay(
-            RoundedRectangle(cornerRadius: 8.0)
-                .stroke(Color.buttonBorder,
-                        lineWidth: 2)
-        )
     }
 }
 
 struct CardView_Previews: PreviewProvider {
     static var previews: some View {
-        CardView(text: "Hello World",
-                 details: [
-                    CardDetails(header: "expires_on",
-                                value: "300")
-                 ])
-        CardView(text: "Hello World",
-                 details: [])
+        DisclosureContentView(text: "Hello World",
+                              details: [
+                                CardDetails(header: "expires_on",
+                                            value: "300")
+                              ])
+        DisclosureContentView(text: "Hello World",
+                              details: [])
     }
 }
 

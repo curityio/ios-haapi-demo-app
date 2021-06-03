@@ -113,8 +113,8 @@
 		663DFC33264179C40040B969 /* TokensView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663DFC31264179C40040B969 /* TokensView.swift */; };
 		663DFC3826417AA20040B969 /* DisclosureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663DFC3726417AA20040B969 /* DisclosureView.swift */; };
 		663DFC3926417AA20040B969 /* DisclosureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663DFC3726417AA20040B969 /* DisclosureView.swift */; };
-		663DFC3E264185DD0040B969 /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663DFC3D264185DD0040B969 /* CardView.swift */; };
-		663DFC3F264185DD0040B969 /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663DFC3D264185DD0040B969 /* CardView.swift */; };
+		663DFC3E264185DD0040B969 /* DisclosureContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663DFC3D264185DD0040B969 /* DisclosureContentView.swift */; };
+		663DFC3F264185DD0040B969 /* DisclosureContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663DFC3D264185DD0040B969 /* DisclosureContentView.swift */; };
 		663DFC9C26496ABC0040B969 /* FormTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663DFC9B26496ABC0040B969 /* FormTextField.swift */; };
 		663DFC9D26496ABC0040B969 /* FormTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663DFC9B26496ABC0040B969 /* FormTextField.swift */; };
 		6651F7FE260A881600F6DDCE /* BarItemImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6651F7FD260A881600F6DDCE /* BarItemImage.swift */; };
@@ -358,7 +358,7 @@
 		663DFC2B26414AFE0040B969 /* View+NavigationBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "View+NavigationBar.swift"; sourceTree = "<group>"; };
 		663DFC31264179C40040B969 /* TokensView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokensView.swift; sourceTree = "<group>"; };
 		663DFC3726417AA20040B969 /* DisclosureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisclosureView.swift; sourceTree = "<group>"; };
-		663DFC3D264185DD0040B969 /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
+		663DFC3D264185DD0040B969 /* DisclosureContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisclosureContentView.swift; sourceTree = "<group>"; };
 		663DFC9B26496ABC0040B969 /* FormTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormTextField.swift; sourceTree = "<group>"; };
 		6651F7FD260A881600F6DDCE /* BarItemImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarItemImage.swift; sourceTree = "<group>"; };
 		668754FC2652AC450039EA45 /* View+Curity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Curity.swift"; sourceTree = "<group>"; };
@@ -707,7 +707,7 @@
 		66B3BB8D2601071C001355C2 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				663DFC3D264185DD0040B969 /* CardView.swift */,
+				663DFC3D264185DD0040B969 /* DisclosureContentView.swift */,
 				66B3BB982601071C001355C2 /* MessageView.swift */,
 				66B3BB972601071C001355C2 /* LinkView.swift */,
 				6687550B265329C40039EA45 /* HeaderView.swift */,
@@ -1101,7 +1101,7 @@
 				668754FD2652AC450039EA45 /* View+Curity.swift in Sources */,
 				66B3BBB82601071C001355C2 /* RepresentationSamples.swift in Sources */,
 				66B3BBA22601071C001355C2 /* ExternalBrowserClientOperation.swift in Sources */,
-				663DFC3E264185DD0040B969 /* CardView.swift in Sources */,
+				663DFC3E264185DD0040B969 /* DisclosureContentView.swift in Sources */,
 				66B3BBC32601071C001355C2 /* FieldView.swift in Sources */,
 				6604F6EC260A4018001AFCEB /* ProfileListView.swift in Sources */,
 				66B3BBCA2601071C001355C2 /* StatefulPreviewWrapper.swift in Sources */,
@@ -1185,7 +1185,7 @@
 				66994D7F2615015500880758 /* PollingStep.swift in Sources */,
 				6687551326532FB00039EA45 /* SpacerV.swift in Sources */,
 				66994D802615015500880758 /* ImageLoader.swift in Sources */,
-				663DFC3F264185DD0040B969 /* CardView.swift in Sources */,
+				663DFC3F264185DD0040B969 /* DisclosureContentView.swift in Sources */,
 				66994D812615015500880758 /* Link.swift in Sources */,
 				66994D822615015500880758 /* Encodable+JSON.swift in Sources */,
 				66994D832615015500880758 /* Field.swift in Sources */,
