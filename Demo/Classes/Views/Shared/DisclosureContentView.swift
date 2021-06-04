@@ -48,12 +48,11 @@ struct DisclosureContentView: View {
                     LazyVGrid(columns: columns, alignment: .leading) {
                         ForEach(details, id: \.self) { item in
                             Text(item.header)
-                                .foregroundColor(colorScheme == .light ? .primaryDark : .white)
                                 .fontWeight(.medium)
                             Text(item.value)
-                                .foregroundColor(colorScheme == .light ? .primaryDark : .white)
                                 .fontWeight(.medium)
                         }
+                        .foregroundColor(Color.text)
                         .font(.system(.caption, design: .monospaced))
                     }
                 }

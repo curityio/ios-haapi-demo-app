@@ -50,6 +50,7 @@ struct DisclosureView<ChildView: View>: View {
         }
         .padding(.all, UIConstants.spacing)
         .frame(maxWidth: .infinity, alignment: .center)
+        .background(Color.primaryDark)
         .cornerRadius(UIConstants.cornerRadius)
         .overlay(
             RoundedRectangle(cornerRadius: UIConstants.cornerRadius)
