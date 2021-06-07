@@ -47,9 +47,9 @@ struct PollingView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             PollingView(viewModel: PollingViewModel(pollingStep: pollingStep,
-                                                    controller: HaapiController()))
+                                                    flowViewModel: FlowViewModel(controller: HaapiController())))
             PollingView(viewModel: PollingViewModel(pollingStep: pollingStepDone,
-                                                    controller: HaapiController()))
+                                                    flowViewModel: FlowViewModel(controller: HaapiController())))
         }
         .environmentObject(FlowViewModel(controller: HaapiController()))
     }
@@ -71,15 +71,15 @@ class PollingViewModel: ObservableObject {
 
     private let scheduler = Scheduler()
     private var pollingStep: PollingStep
-    private weak var controller: HaapiSubmitable?
+    private weak var flowViewModel: FlowViewModelActionnable?
 
     init(pollingStep: PollingStep,
-         controller: HaapiSubmitable?,
+         flowViewModel: FlowViewModelActionnable?,
          automaticPolling: Bool = false,
          interval: TimeInterval = 2)
     {
         self.pollingStep = pollingStep
-        self.controller = controller
+        self.flowViewModel = flowViewModel
 
         self.pollingStatus = pollingStep.status
         self.automaticPolling = automaticPolling
@@ -113,8 +113,9 @@ class PollingViewModel: ObservableObject {
            let formModel = action.model as? FormModel
         {
             result = FormViewModel(form: formModel,
-                                   isRedirect: action.isRedirect,
-                                   controller: controller)
+                                   action: action,
+                                   fieldViewModels: [],
+                                   flowViewModel: flowViewModel)
         } else {
             result = nil
             Logger.clientApp.debug("Actions is not handled: \(self.pollingStep.auxiliaryActions)")
@@ -135,7 +136,7 @@ class PollingViewModel: ObservableObject {
         }
 
         if let formModel = formModel {
-            controller?.submitForm(form: formModel)
+            flowViewModel?.submitForm(form: formModel)
         } else {
             fatalError("Not supported: \(pollingStatus)")
         }
@@ -152,7 +153,7 @@ class PollingViewModel: ObservableObject {
             return
         }
         
-        controller?.submitForm(form: formModel)
+        flowViewModel?.submitForm(form: formModel)
         { [unowned self] result in
             switch result {
             case .problem(let problem):

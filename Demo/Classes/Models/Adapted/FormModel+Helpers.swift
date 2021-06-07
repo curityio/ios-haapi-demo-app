@@ -16,13 +16,43 @@
 
 extension FormModel {
 
-    func isSimpleForm(includeHiddenFields: Bool = false) -> Bool {
-        if fields.isEmpty && actionTitle == nil {
-            return true
+    /// Returns a Boolean value indicating whether there is a `readonly` among the `fields`
+    var hasReadOnlyFields: Bool {
+        return fields.contains(where: { $0.readonly ?? false })
+    }
+
+    /// Returns a Boolean value indicating whether the `form` contains editable fields (`not hidden` and `not readonly`).
+    var hasEditedFields: Bool {
+        guard !fields.isEmpty else { return false }
+
+        let editableFields = fields.filter { $0.readonly != true }
+        let hasVisibleFields = editableFields.contains { !$0.isHidden }
+        
+        return hasVisibleFields
+    }
+
+    /// Returns an array of `visible` Fields. A `visible` Field is not hidden or can be readonly.
+    var visibleFields: [Field] {
+        return fields.filter { !$0.isHidden || ($0.readonly ?? false) }
+    }
+
+    /// Returns an array of `visible Fields` map into an array of  `FieldViewModel`.
+    var visibleFieldViewModels: [FieldViewModel] {
+        return visibleFields.fieldViewModels
+    }
+}
+
+private extension Array where Element == Field {
+
+    static var toFieldViewModel: (Field) -> FieldViewModel = { field in
+        if field.type == .checkbox {
+            return CheckboxViewModel(field: field)
+        } else {
+            return FieldViewModel(field: field)
         }
+    }
 
-        let hasNonHiddenFields = fields.contains { !$0.isHidden }
-
-        return !(hasNonHiddenFields || includeHiddenFields)
+    var fieldViewModels: [FieldViewModel] {
+        return map(Self.toFieldViewModel)
     }
 }

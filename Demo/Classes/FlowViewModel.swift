@@ -17,7 +17,14 @@
 import Foundation
 import os
 
-class FlowViewModel: ObservableObject, HaapiSubmitable {
+protocol ApplyActionnable: AnyObject {
+    func applyAction(_ action: Action)
+}
+
+/// A typealias that combines HaapiSubmitable & ApplyActionnable
+typealias FlowViewModelActionnable = HaapiSubmitable & ApplyActionnable
+
+class FlowViewModel: ObservableObject, FlowViewModelActionnable {
 
     static let isProcessingNotification = NSNotification.Name("flowViewModel.isProcessing")
 
@@ -49,9 +56,9 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
     private(set) var imageLogo = "Logo"
     private(set) var automaticPolling = false
 
-    private(set) var formViewModel: FormViewModel?
     private(set) var selectorViewModel: SelectorViewModel?
-    private(set) var formOptions: [FormOption]?
+    private(set) var helpMessages: [Message] = []
+    private(set) var formViewModels: [FormViewModel]?
 
     init(controller: HaapiControllable,
          notificationCenter: NotificationCenter = .default)
@@ -141,6 +148,9 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
     func applyAction(_ action: Action) {
         isProcessing = true
         actions = [action]
+        if let actionTitle = action.title {
+            title = actionTitle
+        }
         isProcessing = false
     }
 
@@ -154,7 +164,8 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
             self.state = state
         case .next(let content):
             haapiStateContent = content
-            messages = content.representation.messages
+            messages = content.representation.messages.filter { $0.messageType != .help }
+            helpMessages = content.representation.messages.filter { $0.messageType == .help }
             links = content.representation.links
             actions = content.actions
             let actionTitle = actions.first(where: { $0.title != nil })?.title
@@ -166,6 +177,7 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
             resetState()
         case .authorizationResponse(let code):
             messages = []
+            helpMessages = []
             links = []
             actions = []
             self.code = code
@@ -175,13 +187,15 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
             code = nil
             pollingStep = nil
             messages = []
+            helpMessages = []
             links = []
             actions = []
             title = NSLocalizedString("success_title", comment: "Title for final step in the flow")
             imageLogo = "Logo"
             self.state = state
         case .polling(let pollingStep):
-            messages = pollingStep.representation.messages
+            messages = pollingStep.representation.messages.filter { $0.messageType != .help }
+            helpMessages = pollingStep.representation.messages.filter { $0.messageType == .help }
             links = pollingStep.representation.links
             actions = pollingStep.auxiliaryActions
             title = NSLocalizedString("polling_title", comment: "Title for polling view")
@@ -197,8 +211,7 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
 
     private func processActions(_ actions: [Action]) {
         selectorViewModel = nil
-        formViewModel = nil
-        formOptions = []
+        formViewModels = nil
 
         guard !actions.isEmpty else { return }
 
@@ -210,24 +223,37 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
                                                       haapiSubmiter: self)
             }
             else if let formModel = action.model as? FormModel {
-                formViewModel = FormViewModel(form: formModel,
-                                              isRedirect: action.isRedirect,
-                                              controller: self)
+                formViewModels = []
+
+                formViewModels?.append(FormViewModel(form: formModel,
+                                                     action: action,
+                                                     fieldViewModels: formModel.visibleFieldViewModels,
+                                                     flowViewModel: self))
             }
             else {
                 Logger.clientApp.debug("Action.model is not handled (Not a FormModel or SelectorModel)")
             }
         }
         else {
+            formViewModels = []
             actions.forEach {
                 guard let formModel = $0.model as? FormModel else {
                     Logger.clientApp.debug("Action.model is not a FormModel(ignored)")
                     return
                 }
-                formOptions?.append(FormOption(title: $0.title ?? formModel.actionTitle ?? "N/A",
-                                               isSimpleForm: formModel.isSimpleForm(),
-                                               formModel: formModel,
-                                               action: $0))
+
+                let fieldViewModels: [FieldViewModel]
+
+                if formModel.hasReadOnlyFields {
+                    fieldViewModels = formModel.visibleFieldViewModels
+                } else {
+                    fieldViewModels = []
+                }
+
+                formViewModels?.append(FormViewModel(form: formModel,
+                                                     action: $0,
+                                                     fieldViewModels: fieldViewModels,
+                                                     flowViewModel: self))
             }
         }
     }
@@ -246,12 +272,4 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
         actions = []
         automaticPolling = false
     }
-}
-
-struct FormOption: Identifiable {
-    let id = UUID()
-    let title: String
-    let isSimpleForm: Bool
-    let formModel: FormModel
-    let action: Action
 }

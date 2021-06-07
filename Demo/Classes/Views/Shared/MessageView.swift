@@ -31,12 +31,15 @@ struct MessageView: View {
 
     var body: some View {
         HStack (alignment: text.hasMultiline(bySubtracting: UIConstants.spacing * 2 + 28.0) ? .top : .center) {
-            Image(messageType.imageName)
-                .foregroundColor(colorScheme == .dark ? .white : messageType.foregroundColor)
+            if let imageName = messageType.imageName {
+                Image(imageName)
+                    .foregroundColor(colorScheme == .dark ? .white : messageType.foregroundColor)
+            }
             Text(text)
-                .font(.curitySubheadline)
+                .font(messageType.font)
                 .foregroundColor(colorScheme == .dark ? .white : messageType.foregroundColor)
                 .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(messageType.textAlignment)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding([.leading, .trailing], 22)
@@ -53,6 +56,10 @@ struct MessageView_Previews: PreviewProvider {
                     messageType: .warning)
         MessageView(text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi molestie nisl.",
                     messageType: .info)
+        MessageView(text: "Help: Lorem ipsum dolor sit amet, consectetur.",
+                    messageType: .help)
+        MessageView(text: "Heading: Lorem ipsum dolor sit amet, consectetur.",
+                    messageType: .heading)
     }
 }
 

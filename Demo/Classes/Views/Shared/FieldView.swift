@@ -21,21 +21,16 @@ struct FieldView: View {
     
     var body: some View {
         VStack (spacing: 0) {
-            if viewModel.type == .password {
+            if let checkboxViewModel = viewModel as? CheckboxViewModel {
+                CheckboxView(checkboxViewModel.label,
+                             isChecked: checkboxViewModel.boolBinding)
+                    .disabled(checkboxViewModel.isReadOnly || checkboxViewModel.isDisabled)
+            }
+            else {
                 FormTextField(viewModel.label,
                               text: viewModel.textBinding,
                               isInvalid: .constant(viewModel.invalidField != nil),
-                              config: .password)
-                    .disabled(viewModel.isDisabled)
-            } else if viewModel.type == .checkbox {
-                CheckboxView(viewModel.label,
-                             isChecked: viewModel.boolBinding)
-                    .disabled(viewModel.isDisabled)
-            } else {
-                FormTextField(viewModel.label,
-                              text: viewModel.textBinding,
-                              isInvalid: .constant(viewModel.invalidField != nil),
-                              config: .default)
+                              config: viewModel.textInputConfiguration)
                     .disabled(viewModel.isDisabled)
             }
         }
@@ -49,10 +44,14 @@ struct FieldView_Previews: PreviewProvider {
                                                            type: .password,
                                                            label: "Password",
                                                            value: "",
-                                                           placeholder: "foobar")))
+                                                           placeholder: "foobar",
+                                                           checked: nil,
+                                                           readonly: false)))
         .previewLayout(.sizeThatFits)
     }
 }
+
+// MARK: - FieldViewModel
 
 class FieldViewModel: ObservableObject, Hashable {
 
@@ -60,12 +59,7 @@ class FieldViewModel: ObservableObject, Hashable {
     @Published var isDisabled = false
 
     let field: Field
-    private(set) var value: String
-
-    private enum Constants {
-        static let onValue = "on" // true
-        static let offValue = "off" // false
-    }
+    fileprivate(set) var value: String?
 
     init(field: Field) {
         self.field = field
@@ -74,10 +68,6 @@ class FieldViewModel: ObservableObject, Hashable {
 
     var name: String {
         return field.name
-    }
-
-    var type: FieldType {
-        return field.type
     }
 
     var label: String {
@@ -96,17 +86,8 @@ class FieldViewModel: ObservableObject, Hashable {
         return invalidField != nil
     }
 
-    // checkbox
-    var isOn: Bool {
-        return field.value == Constants.onValue
-    }
-
-    var boolBinding: Binding<Bool> {
-        Binding(get: { [weak self] () -> Bool in
-            self?.value == Constants.onValue
-        }, set: { [weak self] newValue in
-            self?.value = newValue ? Constants.onValue : Constants.offValue
-        })
+    final var textInputConfiguration: TextInputConfiguration {
+        return field.type == .password ? .password : .default
     }
 
     // MARK: Hashable
@@ -117,5 +98,43 @@ class FieldViewModel: ObservableObject, Hashable {
 
     static func == (lhs: FieldViewModel, rhs: FieldViewModel) -> Bool {
         return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+    }
+}
+
+// MARK: - CheckboxViewModel
+
+class CheckboxViewModel: FieldViewModel {
+    /// An incorrect value to pass to the server. Any values except "" or `onValue` would work.
+    /// With this value, the server considers a checkbox value as `false`
+    private let falseValue = "NO"
+
+    private(set) var checked = false {
+        didSet {
+            value = checked ? onValue : falseValue
+        }
+    }
+
+    /// Reference value to pass to the server. With this value, the server considers a checkbox value as `true`.
+    private let onValue: String
+
+    override init(field: Field) {
+        onValue = field.value ?? ""
+        super.init(field: field)
+        checked = field.checked ?? false
+        if !checked {
+            value = falseValue
+        }
+    }
+
+    var isReadOnly: Bool {
+        return field.readonly ?? false
+    }
+
+    var boolBinding: Binding<Bool> {
+        Binding(get: { [unowned self] () -> Bool in
+            self.checked
+        }, set: { [unowned self] newValue in
+            self.checked = newValue
+        })
     }
 }

@@ -34,6 +34,10 @@ extension Action {
         }
         return result
     }
+
+    var buttonType: ButtonType {
+        return kind == "cancel" ? .secondary : .primary
+    }
 }
 
 extension Action: Equatable {
