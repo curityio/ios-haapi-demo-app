@@ -25,6 +25,7 @@ enum RepresentationType: Codable, Equatable {
     case authenticationStep
     case continueSameStep
     case redirectionStep
+    case userConsentStep
     case oauthAuthorizationResponse
     case pollingStep
     case problem(value: String)
@@ -48,6 +49,7 @@ extension RepresentationType: RawRepresentable {
         static let authenticationStep = "authentication-step"
         static let continueSameStep = "continue-same-step"
         static let redirectionStep = "redirection-step"
+        static let userConsentStep = "user-consent-step"
         static let oauthAuthorizationResponse = "oauth-authorization-response"
         static let pollingStep = "polling-step"
         static let incorrectCredentialsProblem = "https://curity.se/problems/incorrect-credentials"
@@ -57,6 +59,7 @@ extension RepresentationType: RawRepresentable {
         static let problemPrefix = "https://curity.se/problems/"
     }
 
+    // swiftlint:disable:next cyclomatic_complexity
     init(rawValue: String) {
         switch rawValue {
         case Constants.authenticationStep:
@@ -65,6 +68,8 @@ extension RepresentationType: RawRepresentable {
             self = .continueSameStep
         case Constants.redirectionStep:
             self = .redirectionStep
+        case Constants.userConsentStep:
+            self = .userConsentStep
         case Constants.oauthAuthorizationResponse:
             self = .oauthAuthorizationResponse
         case Constants.pollingStep:
@@ -92,6 +97,8 @@ extension RepresentationType: RawRepresentable {
             return Constants.continueSameStep
         case .redirectionStep:
             return Constants.redirectionStep
+        case .userConsentStep:
+            return Constants.userConsentStep
         case .oauthAuthorizationResponse:
             return Constants.oauthAuthorizationResponse
         case .pollingStep:

@@ -46,6 +46,7 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
         }
     }
     private(set) var title: String = ""
+    private(set) var imageLogo = "Logo"
     private(set) var automaticPolling = false
 
     private(set) var formViewModel: FormViewModel?
@@ -158,6 +159,7 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
             actions = content.actions
             let actionTitle = actions.first(where: { $0.title != nil })?.title
             title = actionTitle ?? content.representation.title ?? content.representation.type.rawValue
+            imageLogo = content.representation.type.imageLogo
             pollingStep = nil
             self.state = state
         case .none:
@@ -176,12 +178,14 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
             links = []
             actions = []
             title = NSLocalizedString("success_title", comment: "Title for final step in the flow")
+            imageLogo = "Logo"
             self.state = state
         case .polling(let pollingStep):
             messages = pollingStep.representation.messages
             links = pollingStep.representation.links
             actions = pollingStep.auxiliaryActions
             title = NSLocalizedString("polling_title", comment: "Title for polling view")
+            imageLogo = pollingStep.representation.type.imageLogo
             if self.pollingStep == nil {
                 self.state = state // Manual redirect
             }

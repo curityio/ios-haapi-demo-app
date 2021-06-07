@@ -34,7 +34,7 @@ struct StateView: View {
         NavigationView {
             ScrollView {
                 VStack (spacing: UIConstants.spacing) {
-                    HeaderView(flowViewModel.title)
+                    HeaderView(flowViewModel.title, imageName: flowViewModel.imageLogo)
                     ForEach(flowViewModel.messages, id: \.self) { msg in
                         MessageView(text: msg.text,
                                     messageType: msg.messageType)
