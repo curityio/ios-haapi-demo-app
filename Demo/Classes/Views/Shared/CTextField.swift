@@ -18,9 +18,19 @@ import Foundation
 import SwiftUI
 import UIKit
 
+protocol PickerOptionnable {
+    var value: String { get }
+    var label: String { get }
+}
+
 struct CTextField: UIViewRepresentable {
     let placeholder: String?
-    @Binding var text: String
+    @Binding var text: String {
+        didSet {
+            textField.text = text
+        }
+    }
+    let options: [PickerOptionnable]?
     let textConfiguration: TextInputConfiguration
     let editingHandler: ((Bool) -> Void)?
 
@@ -29,11 +39,13 @@ struct CTextField: UIViewRepresentable {
 
     init(placeholder: String?,
          text: Binding<String>,
+         options: [PickerOptionnable]? = nil,
          textConfiguration: TextInputConfiguration = .default,
          editingHandler: ((Bool) -> Void)? = nil)
     {
         self.placeholder = placeholder
         self._text = text
+        self.options = options
         self.textConfiguration = textConfiguration
         self.editingHandler = editingHandler
     }
@@ -42,8 +54,9 @@ struct CTextField: UIViewRepresentable {
 
     typealias UIViewType = UITextField
 
+    fileprivate let textField = CurityTextField()
+
     func makeUIView(context: Context) -> UITextField {
-        let textField = CurityTextField()
         textField.font = UIFont.text
         textField.textColor = isInvalid ? UIColor(Color.error) : UIColor(Color.formLabels)
         textField.text = text
@@ -59,6 +72,18 @@ struct CTextField: UIViewRepresentable {
         textField.applyTextInputConfiguration(textConfiguration)
         textField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textField.setContentHuggingPriority(.required, for: .vertical)
+
+        if let options = options {
+            let pickerView = UIPickerView()
+            pickerView.delegate = context.coordinator
+            pickerView.dataSource = context.coordinator
+
+            let selectedRow = options.firstIndex(where: { $0.label == text }) ?? 0
+            pickerView.selectRow(selectedRow, inComponent: 0, animated: true)
+
+            textField.inputView = pickerView
+        }
+
         return textField
     }
 
@@ -79,7 +104,7 @@ struct CTextField: UIViewRepresentable {
 
     // MARK: Coordinator
 
-    final class Coordinator: NSObject, UITextFieldDelegate {
+    final class Coordinator: NSObject, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
         private let cTextField: CTextField
         private let editingHandler: ((Bool) -> Void)?
 
@@ -149,6 +174,8 @@ struct CTextField: UIViewRepresentable {
             self.editingHandler = editingHandler
         }
 
+        // MARK: UITextFieldDelegate
+
         func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
             isEditing = true
             nextFocus = textField.nextControlResponder()
@@ -177,6 +204,33 @@ struct CTextField: UIViewRepresentable {
             }
 
             return true
+        }
+
+        func textField(_ textField: UITextField,
+                       shouldChangeCharactersIn range: NSRange,
+                       replacementString string: String) -> Bool
+        {
+            guard cTextField.options == nil else { return false }
+
+            return true
+        }
+
+        // MARK: UIPickerViewDelegate, UIPickerViewDataSource
+
+        func numberOfComponents(in pickerView: UIPickerView) -> Int {
+            return 1
+        }
+
+        func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+            return cTextField.options?.count ?? 0
+        }
+
+        func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+            return cTextField.options?[row].label
+        }
+
+        func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+            cTextField.text = cTextField.options?[row].label ?? ""
         }
 
         // MARK: Actions

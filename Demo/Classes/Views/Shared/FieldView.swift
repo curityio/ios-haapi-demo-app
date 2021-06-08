@@ -26,6 +26,13 @@ struct FieldView: View {
                              isChecked: checkboxViewModel.boolBinding)
                     .disabled(checkboxViewModel.isReadOnly || checkboxViewModel.isDisabled)
             }
+            else if let optionsViewModel = viewModel as? OptionsViewModel {
+                FormTextField(optionsViewModel.label,
+                              text: optionsViewModel.textBinding,
+                              isInvalid: .constant(viewModel.invalidField != nil),
+                              options: optionsViewModel.options)
+                    .disabled(viewModel.isDisabled)
+            }
             else {
                 FormTextField(viewModel.label,
                               text: viewModel.textBinding,
@@ -46,7 +53,8 @@ struct FieldView_Previews: PreviewProvider {
                                                            value: "",
                                                            placeholder: "foobar",
                                                            checked: nil,
-                                                           readonly: false)))
+                                                           readonly: false,
+                                                           options: nil)))
         .previewLayout(.sizeThatFits)
     }
 }
@@ -103,7 +111,7 @@ class FieldViewModel: ObservableObject, Hashable {
 
 // MARK: - CheckboxViewModel
 
-class CheckboxViewModel: FieldViewModel {
+final class CheckboxViewModel: FieldViewModel {
 
     private(set) var checked = false {
         didSet {
@@ -132,6 +140,37 @@ class CheckboxViewModel: FieldViewModel {
             self.checked
         }, set: { [unowned self] newValue in
             self.checked = newValue
+        })
+    }
+}
+
+// MARK: - OptionsViewModel
+
+final class OptionsViewModel: FieldViewModel {
+
+    let options: [FieldOption]
+    var selectedText = "" {
+        didSet {
+            value = options.first(where: { $0.label == selectedText })?.value
+        }
+    }
+
+    override init(field: Field) {
+        if let fieldOptions = field.options {
+            options = fieldOptions
+        } else {
+            fatalError("Incorrect mapping, field does not have any options. \(field)")
+        }
+        super.init(field: field)
+        value = options.first(where: { $0.selected == true })?.value
+        selectedText = options.first(where: { $0.selected == true })?.label ?? ""
+    }
+
+    override var textBinding: Binding<String> {
+        Binding(get: { [unowned self] () -> String in
+            self.selectedText
+        }, set: { [unowned self] newValue in
+            self.selectedText = newValue
         })
     }
 }
