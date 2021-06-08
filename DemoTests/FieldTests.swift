@@ -52,7 +52,10 @@ class FieldTests: XCTestCase {
                           type: .username,
                           label: nil,
                           value: nil,
-                          placeholder: nil)
+                          placeholder: nil,
+                          checked: nil,
+                          readonly: nil,
+                          options: nil)
         do {
             let data = try JSONEncoder().encode(field)
             guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
