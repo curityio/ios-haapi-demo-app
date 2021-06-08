@@ -396,6 +396,11 @@ extension HaapiController {
                 throw HaapiControllerError.serverError(statusCode: statusCode)
             }
 
+            // Temporary solution due to server side behaviour
+            guard httpResponse.statusCode != 204 else {
+                throw HaapiControllerError.serverError(statusCode: httpResponse.statusCode)
+            }
+
             guard let data = responseAndData.data else {
                 throw HaapiControllerError.noResponseData
             }
