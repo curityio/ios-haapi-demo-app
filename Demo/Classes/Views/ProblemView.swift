@@ -23,6 +23,7 @@ struct ProblemView: View {
         VStack {
             Text(viewModel.title)
                 .foregroundColor(.error)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding([.top, .bottom], 11)
             
             if let messages = viewModel.messages, !messages.isEmpty {
