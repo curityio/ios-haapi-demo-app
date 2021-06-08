@@ -44,6 +44,10 @@ struct InvalidField: Codable, Equatable {
 final class AuthorizationProblem: Problem {
 
     var errorDescription: String {
+        if let errorDesc = representation.errorDescription {
+            return errorDesc
+        }
+
         var result = ""
         for (index, content) in representation.messages.enumerated() {
             result.append(content.text)
@@ -58,7 +62,8 @@ final class AuthorizationProblem: Problem {
     var error: HaapiControllerError? {
         guard representation.code == "authorization_failed" || // timeout
                 representation.code == "access_denied" || // bankid switching config while polling
-                representation.code == nil // polling timeout
+                representation.code == nil || // polling timeout
+                representation.error == "access_denied" // user_consent cancel
         else {
             return nil
         }
@@ -80,7 +85,7 @@ struct ProblemFactory {
             return Problem(representation: representation)
         case .invalidInputProblem:
             return InvalidInputProblem(representation: representation)
-        case .unexpected:
+        case .unexpected, .errorAuthorizationResponse:
             return AuthorizationProblem(representation: representation)
         default:
             return nil

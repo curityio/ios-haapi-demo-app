@@ -32,6 +32,7 @@ enum RepresentationType: Codable, Equatable {
     case incorrectCredentialsProblem
     case invalidInputProblem
     case unexpected
+    case errorAuthorizationResponse
     case unknown(value: String)
 
     init(from decoder: Decoder) throws {
@@ -52,9 +53,11 @@ extension RepresentationType: RawRepresentable {
         static let userConsentStep = "user-consent-step"
         static let oauthAuthorizationResponse = "oauth-authorization-response"
         static let pollingStep = "polling-step"
+
         static let incorrectCredentialsProblem = "https://curity.se/problems/incorrect-credentials"
         static let invalidInputProblem = "https://curity.se/problems/invalid-input"
-        static let unexpected = "https://curity.se/problems/unexpected"
+        static let unexpectedProblem = "https://curity.se/problems/unexpected"
+        static let authorizationResponseProblem = "https://curity.se/problems/error-authorization-response"
 
         static let problemPrefix = "https://curity.se/problems/"
     }
@@ -78,8 +81,10 @@ extension RepresentationType: RawRepresentable {
             self = .incorrectCredentialsProblem
         case Constants.invalidInputProblem:
             self = .invalidInputProblem
-        case Constants.unexpected:
+        case Constants.unexpectedProblem:
             self = .unexpected
+        case Constants.authorizationResponseProblem:
+            self = .errorAuthorizationResponse
         default:
             if rawValue.starts(with: Constants.problemPrefix) {
                 self = .problem(value: rawValue)
@@ -108,7 +113,9 @@ extension RepresentationType: RawRepresentable {
         case .invalidInputProblem:
             return Constants.invalidInputProblem
         case .unexpected:
-            return Constants.unexpected
+            return Constants.unexpectedProblem
+        case .errorAuthorizationResponse:
+            return Constants.authorizationResponseProblem
         case .problem(let value):
             return value
         case .unknown(let value):
@@ -127,6 +134,8 @@ struct Representation: Decodable {
     let invalidFields: [InvalidField]
     let title: String?
     let code: String?
+    let error: String?
+    let errorDescription: String?
 
     private enum CodingKeys: String, CodingKey {
         case type
@@ -138,6 +147,8 @@ struct Representation: Decodable {
         case invalidFields
         case title
         case code
+        case error
+        case errorDescription = "error_description"
     }
 
     init(from decoder: Decoder) throws {
@@ -152,5 +163,7 @@ struct Representation: Decodable {
         self.invalidFields = try container.decodeIfPresent([InvalidField].self, forKey: .invalidFields) ?? []
         self.title = try container.decodeIfPresent(String.self, forKey: .title)
         self.code = try container.decodeIfPresent(String.self, forKey: .code)
+        self.error = try container.decodeIfPresent(String.self, forKey: .error)
+        self.errorDescription = try container.decodeIfPresent(String.self, forKey: .errorDescription)
     }
 }
