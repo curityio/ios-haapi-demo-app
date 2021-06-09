@@ -504,7 +504,7 @@ extension HaapiController {
                 formParameters[name] = value
                 copyParameterOverrides[name] = nil
             }
-            else if let value = field.value {
+            else if let value = field.value, field.type != .checkbox {
                 formParameters[name] = value
             }
         }

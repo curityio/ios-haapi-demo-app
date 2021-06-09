@@ -104,13 +104,10 @@ class FieldViewModel: ObservableObject, Hashable {
 // MARK: - CheckboxViewModel
 
 class CheckboxViewModel: FieldViewModel {
-    /// An incorrect value to pass to the server. Any values except "" or `onValue` would work.
-    /// With this value, the server considers a checkbox value as `false`
-    private let falseValue = "NO"
 
     private(set) var checked = false {
         didSet {
-            value = checked ? onValue : falseValue
+            value = checked ? onValue : nil
         }
     }
 
@@ -122,7 +119,7 @@ class CheckboxViewModel: FieldViewModel {
         super.init(field: field)
         checked = field.checked ?? false
         if !checked {
-            value = falseValue
+            value = nil
         }
     }
 
