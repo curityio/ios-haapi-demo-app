@@ -496,16 +496,19 @@ extension HaapiController {
     private func curateFormParameters(form: FormModel, parameterOverrides: [String: String]) -> [String: String] {
         var formParameters = [String: String]()
         var copyParameterOverrides = parameterOverrides
-        
+
+        var allowedCharacters = NSCharacterSet.urlQueryAllowed
+        allowedCharacters.remove(charactersIn: ";/?:@&=+$, ")
+
         for field in form.fields {
             let name = field.name
             
             if let value = copyParameterOverrides[name] {
-                formParameters[name] = value
+                formParameters[name] = value.addingPercentEncoding(withAllowedCharacters: allowedCharacters)
                 copyParameterOverrides[name] = nil
             }
             else if let value = field.value, field.type != .checkbox {
-                formParameters[name] = value
+                formParameters[name] = value.addingPercentEncoding(withAllowedCharacters: allowedCharacters)
             }
         }
 
