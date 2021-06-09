@@ -64,13 +64,19 @@ struct FormView_Previews: PreviewProvider {
     }
 }
 
+struct SubmitHandler {
+    var preSubmit: (() -> Void)?
+    var postSubmit: HaapiCompletionHandler?
+}
+
 // MARK: - FormViewModel
 
 class FormViewModel: NSObject, ObservableObject {
 
     private var form: FormModel
-    private weak var flowViewModel: FlowViewModelActionnable?
     private var action: Action
+    private weak var flowViewModel: FlowViewModelActionnable?
+    private var submitHandler: SubmitHandler?
 
     private var observer: NSObjectProtocol?
     private let notificationCenter: NotificationCenter
@@ -83,12 +89,14 @@ class FormViewModel: NSObject, ObservableObject {
          action: Action,
          fieldViewModels: [FieldViewModel],
          flowViewModel: FlowViewModelActionnable?,
+         submitHandler: SubmitHandler? = nil,
          notificationCenter: NotificationCenter = .default)
     {
         self.form = form
+        self.action = action
         self.fieldViewModels = fieldViewModels
         self.flowViewModel = flowViewModel
-        self.action = action
+        self.submitHandler = submitHandler
         self.notificationCenter = notificationCenter
 
         super.init()
@@ -121,6 +129,8 @@ class FormViewModel: NSObject, ObservableObject {
     }
 
     func submit(completion: (() -> Void)?) {
+        submitHandler?.preSubmit?()
+        
         if fieldViewModels.isEmpty && form.hasEditedFields  {
             flowViewModel?.applyAction(action)
             completion?()
@@ -144,6 +154,7 @@ class FormViewModel: NSObject, ObservableObject {
                 default:
                     break
                 }
+                submitHandler?.postSubmit?(result)
                 completion?()
             })
         }
