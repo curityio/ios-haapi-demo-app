@@ -54,8 +54,7 @@ class FieldTests: XCTestCase {
                           value: nil,
                           placeholder: nil,
                           checked: nil,
-                          readonly: nil,
-                          options: nil)
+                          readonly: nil)
         do {
             let data = try JSONEncoder().encode(field)
             guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
@@ -66,6 +65,8 @@ class FieldTests: XCTestCase {
             XCTAssertEqual(json["label"] as? String, field.label, "field.label is not equal")
             XCTAssertEqual(json["value"] as? String, field.value, "field.value is not equal")
             XCTAssertEqual(json["placeholder"] as? String, field.placeholder, "field.placeholder is not equal")
+            XCTAssertEqual(json["checked"] as? Bool, field.checked, "field.checked is not equal")
+            XCTAssertEqual(json["readonly"] as? Bool, field.readonly, "field.readonly is not equal")
         } catch {
             XCTFail("Invalid flow: \(error.localizedDescription)")
         }
