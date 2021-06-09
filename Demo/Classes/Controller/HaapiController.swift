@@ -19,7 +19,7 @@ import IdsvrHaapiSdk
 import os
 import Combine
 
-typealias HaapiCompletionHandler = (HaapiState) -> Void
+typealias HaapiCompletionHandler = (HaapiState?) -> Void
 
 class HaapiController: ObservableObject {
 
@@ -27,7 +27,7 @@ class HaapiController: ObservableObject {
 
     // MARK: Properties
 
-    @Published private(set) var state = HaapiState.none {
+    @Published private(set) var state: HaapiState? = nil {
         didSet {
             notificationCenter.post(name: Self.stateNotification,
                                     object: state,
@@ -140,7 +140,7 @@ extension HaapiController: HaapiControllable {
         haapiClient = nil
         getAccessTokenPublisher?.cancel()
         getAccessTokenPublisher = nil
-        commitState(.none, completionHandler: nil)
+        commitState(nil, completionHandler: nil)
     }
 
     func submitForm(
@@ -348,7 +348,7 @@ extension HaapiController {
         }
     }
     
-    private func commitState(_ state: HaapiState,
+    private func commitState(_ state: HaapiState?,
                              completionHandler: HaapiCompletionHandler?)
     {
         clientOperation?.startOperation(haapiRedirect: self,
@@ -360,7 +360,11 @@ extension HaapiController {
         })
 
         isProcessing = false
-        Logger.controllerFlow.debug("Commit state: \(state)")
+        if let state = state {
+            Logger.controllerFlow.debug("Commit state: \(state)")
+        } else {
+            Logger.controllerFlow.debug("Commit state: nil")
+        }
         completionHandler?(state)
         if self.state != state {
             self.state = state

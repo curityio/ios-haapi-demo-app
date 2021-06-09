@@ -51,7 +51,6 @@ struct HaapiStateContent: Equatable {
 }
 
 enum HaapiState: Equatable, CustomStringConvertible {
-    case none
     /// The flow is interrupted due to a system Error
     case systemError(Error)
     /// A new representation that is not a problem/error/polling/authorizationResponse or accessToken; The UI will consume the HaapiStateContent
@@ -67,8 +66,6 @@ enum HaapiState: Equatable, CustomStringConvertible {
 
     static func == (lhs: HaapiState, rhs: HaapiState) -> Bool {
         switch (lhs, rhs) {
-        case (.none, .none):
-            return true
         case (.systemError(let err1 as NSError), .systemError(let err2 as NSError)):
             return err1 == err2
         case (.problem(let prob1), .problem(let prob2)):
@@ -89,8 +86,6 @@ enum HaapiState: Equatable, CustomStringConvertible {
     var description: String {
         let result: String
         switch self {
-        case .none:
-            result = "none"
         case .systemError:
             result = "systemError"
         case .next:

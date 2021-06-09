@@ -28,7 +28,7 @@ class FlowViewModel: ObservableObject, FlowViewModelActionnable {
 
     static let isProcessingNotification = NSNotification.Name("flowViewModel.isProcessing")
 
-    @Published var state: HaapiState = .none
+    @Published var state: HaapiState?
     @Published var isProcessing = false {
         didSet {
             notificationCenter.post(name: Self.isProcessingNotification,
@@ -156,7 +156,7 @@ class FlowViewModel: ObservableObject, FlowViewModelActionnable {
 
     // MARK: Private
 
-    private func processState(_ state: HaapiState) {
+    private func processState(_ state: HaapiState?) {
         switch state {
         case .systemError(let error):
             self.error = error
@@ -173,7 +173,7 @@ class FlowViewModel: ObservableObject, FlowViewModelActionnable {
             imageLogo = content.representation.type.imageLogo
             pollingStep = nil
             self.state = state
-        case .none:
+        case nil:
             resetState()
         case .authorizationResponse(let code):
             messages = []
@@ -259,7 +259,7 @@ class FlowViewModel: ObservableObject, FlowViewModelActionnable {
     }
 
     private func resetState() {
-        state = .none
+        state = nil
         isProcessing = false
 
         haapiStateContent = nil
