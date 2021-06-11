@@ -19,7 +19,7 @@ import SwiftUI
 struct TokensView: View {
     let viewModel: TokensViewModel
 
-    init(_ viewModel: TokensViewModel) {
+    init(viewModel: TokensViewModel) {
         self.viewModel = viewModel
     }
 
@@ -48,44 +48,44 @@ struct TokensView: View {
 
 struct AccessTokenView_Previews: PreviewProvider {
     static var previews: some View {
-        TokensView(TokensViewModel(TokensRepresentation(accessToken: "6adf18ca-9d77-4947-945d-c939c8890977",
-                                                        tokenType: "bearer",
-                                                        scope: nil,
-                                                        expiresIn: 300,
-                                                        refreshToken: "be9d3f8b-c18b-46b7-9asd-e0734d95c71d",
-                                                        idToken: nil)))
+        TokensView(viewModel: TokensViewModel(OAuthTokenResponse(accessToken: "6adf18ca-9d77-4947-945d-c939c8890977",
+                                                                 tokenType: "bearer",
+                                                                 scope: nil,
+                                                                 expiresIn: 300,
+                                                                 refreshToken: "be9d3f8b-c18b-46b7-9asd-e0734d95c71d",
+                                                                 idToken: nil)))
     }
 }
 
 // MARK: - AccessTokenViewModel
 
 struct TokensViewModel {
-    let tokensRepresentation: TokensRepresentation
+    let oauthTokenResponse: OAuthTokenResponse
 
-    init(_ tokensRepresentation: TokensRepresentation) {
-        self.tokensRepresentation = tokensRepresentation
+    init(_ oauthTokenResponse: OAuthTokenResponse) {
+        self.oauthTokenResponse = oauthTokenResponse
     }
 
     var accessToken: String {
-        return tokensRepresentation.accessToken
+        return oauthTokenResponse.accessToken
     }
 
     var details: [CardDetails] {
         return [
             CardDetails(header: "expires_in",
-                        value: "\(tokensRepresentation.expiresIn)"),
+                        value: "\(oauthTokenResponse.expiresIn)"),
             CardDetails(header: "token_type",
-                        value: tokensRepresentation.tokenType ?? ""),
+                        value: oauthTokenResponse.tokenType ?? ""),
             CardDetails(header: "scope",
-                        value: tokensRepresentation.scope ?? "")
+                        value: oauthTokenResponse.scope ?? "")
         ]
     }
 
     var refreshToken: String {
-        return tokensRepresentation.refreshToken
+        return oauthTokenResponse.refreshToken
     }
 
     var idToken: String? {
-        return tokensRepresentation.idToken
+        return oauthTokenResponse.idToken
     }
 }

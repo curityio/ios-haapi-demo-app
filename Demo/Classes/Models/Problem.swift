@@ -16,11 +16,32 @@
 
 import Foundation
 
-class Problem: NSObject{
+class Problem: NSObject, HaapiStateContenable{
     let representation: Representation
+    let actions: [Action] = []
     
     fileprivate init(representation: Representation) {
         self.representation = representation
+    }
+
+    var title: String {
+        return representation.title ?? "Error(s)"
+    }
+
+    /// The code of the Representation
+    var code: String? {
+        return representation.code
+    }
+
+    /// The array of messages of the Representation and based on the Representation.invalidFields
+    var messages: [Message] {
+        var messages: [Message] = representation.invalidFields.compactMap {
+            guard let detail = $0.detail else { return nil }
+            return Message.invalid(text: detail)
+        }
+        messages.append(contentsOf: representation.messages)
+
+        return messages
     }
 }
 
@@ -32,6 +53,10 @@ final class InvalidInputProblem: Problem {
     
     var invalidFields: [InvalidField] {
         return representation.invalidFields
+    }
+
+    var errorDescription: String? {
+        return representation.errorDescription
     }
 }
 

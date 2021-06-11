@@ -161,29 +161,8 @@ class FormViewModel: NSObject, ObservableObject {
     }
 
     private func processProblem(_ problem: Problem) {
-        if !problem.representation.invalidFields.isEmpty ||
-            !problem.representation.messages.isEmpty ||
-            problem.representation.type == .incorrectCredentialsProblem
-        {
-            let title = problem.representation.title ?? problem.representation.type.rawValue
-            var messages: [Message] = problem.representation.invalidFields.compactMap {
-                guard let detail = $0.detail else { return nil }
-                return Message.invalid(text: detail)
-            }
-            messages.append(contentsOf: problem.representation.messages)
-            problemViewModel = ProblemViewModel(title: title,
-                                                messages: messages)
-        }
-        else if let title = problem.representation.title {
-            problemViewModel = ProblemViewModel(title: "Error(s)",
-                                                messages: [
-                                                    Message(text: title,
-                                                            classList: [])
-                                                ])
-        }
-        else {
-            problemViewModel = nil
-        }
+        problemViewModel = ProblemViewModel(title: problem.title,
+                                            messages: problem.messages)
         
         fieldViewModels.forEach {
             $0.invalidField = nil

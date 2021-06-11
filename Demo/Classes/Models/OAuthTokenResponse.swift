@@ -16,8 +16,12 @@
 
 import Foundation
 
-/// Tokens Representation for the final step of the flow (AccessToken / RefreshToken or/and IDToken).
-struct TokensRepresentation: Codable, Equatable {
+/**
+ A model representing an OAuthTokenResponse. It is used for the final step of the Haapi flow (AccessToken / RefreshToken or/and IDToken).
+
+ Having this model enables the client to have access to the targeted resources.
+ */
+struct OAuthTokenResponse: Codable, Equatable {
     /// An `accessToken` is used to access your application resources
     let accessToken: String
     /// A `tokenType` like "bearer"
@@ -38,5 +42,19 @@ struct TokensRepresentation: Codable, Equatable {
         case expiresIn = "expires_in"
         case refreshToken = "refresh_token"
         case idToken = "id_token"
+    }
+}
+
+extension OAuthTokenResponse {
+
+    /// The title that can be used in your View.
+    var title: String {
+        return NSLocalizedString("success_title",
+                                 comment: "Title for final step in the flow")
+    }
+
+    /// The image name for building an UIImage(UIKit) or Image(SwiftUI) from your assetFolder.
+    var imageLogo: String {
+        return "Logo"
     }
 }

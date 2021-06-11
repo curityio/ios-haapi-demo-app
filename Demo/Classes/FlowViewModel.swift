@@ -18,15 +18,28 @@ import Foundation
 import os
 
 protocol ApplyActionnable: AnyObject {
+    /// Applies an `Action`
     func applyAction(_ action: Action)
 }
 
 /// A typealias that combines HaapiSubmitable & ApplyActionnable
 typealias FlowViewModelActionnable = HaapiSubmitable & ApplyActionnable
 
-class FlowViewModel: ObservableObject, FlowViewModelActionnable {
+/**
+ FlowViewModel is representing a ViewModel that is aware of all HaapiState from `HaapiController`. This class interacts directly with `HaapiController`
+ and has available methods to do that.
+
+ This class is mainly used with SwiftUI. `FlowViewModel.state` and `FlowViewModel.isProcessing` are **@Published** parameters.
+ With these parameters, you can be notified when a state has changed or when an interaction has been triggered.
+
+ For UI layer and cusomization, check the viewModels or the following parameters : `FlowViewModel.messages`,
+ `FlowViewModel.links`,  `FlowViewModel.title` or `FlowViewModel.imageLogo`.
+ */
+final class FlowViewModel: ObservableObject, FlowViewModelActionnable {
 
     static let isProcessingNotification = NSNotification.Name("flowViewModel.isProcessing")
+
+    // MARK: @Published
 
     @Published var state: HaapiState?
     @Published var isProcessing = false {
@@ -36,29 +49,67 @@ class FlowViewModel: ObservableObject, FlowViewModelActionnable {
         }
     }
 
-    private(set) weak var controller: HaapiControllable?
+    // MARK: Configurations
+
+    private var automaticPolling = false
+    private weak var controller: HaapiControllable?
     private let notificationCenter: NotificationCenter
     private var observer: NSObjectProtocol?
 
-    private(set) var haapiStateContent: HaapiStateContent?
-    private(set) var error: Error?
-    private(set) var code: String?
-    private(set) var tokensRepresentation: TokensRepresentation?
-    private(set) var pollingStep: PollingStep?
-    private(set) var messages: [Message] = []
-    private(set) var links: [Link] = []
-    private(set) var actions: [Action] = [] {
+    // MARK: Models
+
+    private var haapiStateContent: HaapiStateContenable? {
         didSet {
-            processActions(actions)
+            if let content = haapiStateContent {
+                processActions(content.actions)
+                title = content.title
+                imageLogo = content.imageLogo
+            } else {
+                authorizedViewModel = nil
+                pollingViewModel = nil
+                tokensViewModel = nil
+            }
         }
     }
+
+    private(set) var error: Error?
+
+    // MARK: Support UI
+
+    var messages: [Message] {
+        return haapiStateContent?.messages ?? []
+    }
+
+    private var problemLinks: [Link]?
+
+    var links: [Link] {
+        var results = [Link]()
+        if let contentLinks = haapiStateContent?.links {
+            results.append(contentsOf: contentLinks)
+        }
+        if let problemLinks = problemLinks {
+            results.append(contentsOf: problemLinks)
+        }
+        return results
+    }
+
     private(set) var title: String = ""
     private(set) var imageLogo = "Logo"
-    private(set) var automaticPolling = false
 
+    // MARK: ViewModels
+
+    /// A `SelectorViewModel`is generated from `[Action]`. This ViewModel is used by a `SelectorView`.
     private(set) var selectorViewModel: SelectorViewModel?
-    private(set) var helpMessages: [Message] = []
+    /// A `[FormViewModel]`is generated from `[Action]`. This ViewModel is used by a `FormView`.
     private(set) var formViewModels: [FormViewModel]?
+    /// A `PollingViewModel`is generated when HaapiState is `polling`. This ViewModel is used by a `PollingView`.
+    private(set) var pollingViewModel: PollingViewModel?
+    /// An `AuthorizedViewModel`is generated when HaapiState is `authorizationResponse`. This ViewModel is used by an `AuthorizedView`.
+    private(set) var authorizedViewModel: AuthorizedViewModel?
+    /// A `TokensViewModel`is generated when HaapiState is `accessToken`. This ViewModel is used by a `TokensView`.
+    private(set) var tokensViewModel: TokensViewModel?
+
+    // MARK: Init & Deinit
 
     init(controller: HaapiControllable,
          notificationCenter: NotificationCenter = .default)
@@ -82,6 +133,13 @@ class FlowViewModel: ObservableObject, FlowViewModelActionnable {
         }
     }
 
+    // MARK: Callable methods
+
+    /**
+     Starts the HaapiFlow according to the provided `Profile` and invokes the `completionHandler`.
+     - Parameter profile: A `Profile` that contains the configurations for Haapi.
+     - Parameter completionHandler: A closure that returns a `Boolean` indicating if the call was or not a success.
+     */
     func start(_ profile: Profile,
                completionHandler: @escaping (Bool) -> Void)
     {
@@ -100,11 +158,18 @@ class FlowViewModel: ObservableObject, FlowViewModelActionnable {
         }
     }
 
+    /// Resets the HaapiFlow by clearing the internal state and notify the controller to reset itself.
     func reset() {
         resetState()
         controller?.reset()
     }
 
+    /**
+     Submits a `FormModel`with a dictionary `parameterOverrides` and invokes the `completionHandler`.
+     - Parameter form: A `FormModel`
+     - Parameter parametersOverrides: A dictionary of String that will override any possible keys from `FormModel`.
+     - Parameter completionHAndler: A closure of `HaapiCompletionHandler` that returns an optional `HaapiState`.
+     */
     func submitForm(form: FormModel,
                     parameterOverrides: [String: String],
                     completionHandler: HaapiCompletionHandler?)
@@ -122,14 +187,11 @@ class FlowViewModel: ObservableObject, FlowViewModelActionnable {
         })
     }
 
-    func submitForm(_ form: FormModel, completion: (() -> Void)?) {
-        submitForm(form: form,
-                   parameterOverrides: [:])
-        { _ in
-            completion?()
-        }
-    }
-
+    /**
+     Follows a `Link` and invokes the `completionHandler`.
+     - Parameter link: A `Link`
+     - Parameter completionHandler: An optional closure of `HaapiCompletionHandler` that returns an optional `HappiState`
+     */
     func followLink(link: Link,
                     completionHandler: HaapiCompletionHandler? = nil)
     {
@@ -145,9 +207,10 @@ class FlowViewModel: ObservableObject, FlowViewModelActionnable {
         })
     }
 
+    /// Applies an `Action` according to the user interaction.
     func applyAction(_ action: Action) {
         isProcessing = true
-        actions = [action]
+        processActions([action])
         if let actionTitle = action.title {
             title = actionTitle
         }
@@ -156,59 +219,48 @@ class FlowViewModel: ObservableObject, FlowViewModelActionnable {
 
     // MARK: Private
 
+    /// Process the new `HaapiState` so the FlowViewModel can update its parameters and notifiy the View through the @Publisher (state)
     private func processState(_ state: HaapiState?) {
+        problemLinks = nil
+
         switch state {
         case .systemError(let error):
             self.error = error
-            pollingStep = nil
             self.state = state
         case .next(let content):
             haapiStateContent = content
-            messages = content.representation.messages.filter { $0.messageType != .help }
-            helpMessages = content.representation.messages.filter { $0.messageType == .help }
-            links = content.representation.links
-            actions = content.actions
-            let actionTitle = actions.first(where: { $0.title != nil })?.title
-            title = actionTitle ?? content.representation.title ?? content.representation.type.rawValue
-            imageLogo = content.representation.type.imageLogo
-            pollingStep = nil
+            pollingViewModel = nil
             self.state = state
         case nil:
             resetState()
-        case .authorizationResponse(let code):
-            messages = []
-            helpMessages = []
-            links = []
-            actions = []
-            self.code = code
+        case .authorizationResponse(let response):
+            haapiStateContent = response
+            authorizedViewModel = AuthorizedViewModel(authorizationCode: response.code,
+                                                      controller: controller)
             self.state = state
         case .accessToken(let tokensRepresentation):
-            self.tokensRepresentation = tokensRepresentation
-            code = nil
-            pollingStep = nil
-            messages = []
-            helpMessages = []
-            links = []
-            actions = []
-            title = NSLocalizedString("success_title", comment: "Title for final step in the flow")
-            imageLogo = "Logo"
+            haapiStateContent = nil
+            tokensViewModel = TokensViewModel(tokensRepresentation)
+            title = tokensRepresentation.title
+            imageLogo = tokensRepresentation.imageLogo
             self.state = state
         case .polling(let pollingStep):
-            messages = pollingStep.representation.messages.filter { $0.messageType != .help }
-            helpMessages = pollingStep.representation.messages.filter { $0.messageType == .help }
-            links = pollingStep.representation.links
-            actions = pollingStep.auxiliaryActions
-            title = NSLocalizedString("polling_title", comment: "Title for polling view")
-            imageLogo = pollingStep.representation.type.imageLogo
-            if self.pollingStep == nil {
-                self.state = state // Manual redirect
+            if (haapiStateContent as? PollingStep) != pollingStep {
+                pollingViewModel = PollingViewModel(pollingStep: pollingStep,
+                                                    flowViewModel: self,
+                                                    automaticPolling: automaticPolling)
             }
-            self.pollingStep = pollingStep
-        default: // problem
-            break
+            haapiStateContent = pollingStep
+            if self.state != state {
+                self.state = state
+            }
+        case .problem(let problem):
+            problemLinks = problem.links
+            self.state = state
         }
     }
 
+    /// Process the `actions` to generate the corresponding ViewModel: SelectorViewModel, FormViewModel or [FieldViewModels]
     private func processActions(_ actions: [Action]) {
         selectorViewModel = nil
         formViewModels = nil
@@ -258,18 +310,20 @@ class FlowViewModel: ObservableObject, FlowViewModelActionnable {
         }
     }
 
+    /// Resets the internal state of FlowViewModel
     private func resetState() {
         state = nil
         isProcessing = false
 
         haapiStateContent = nil
         error = nil
-        code = nil
-        tokensRepresentation = nil
-        pollingStep = nil
-        messages = []
-        links = []
-        actions = []
         automaticPolling = false
+        problemLinks = nil
+
+        selectorViewModel = nil
+        formViewModels = nil
+        pollingViewModel = nil
+        authorizedViewModel = nil
+        tokensViewModel = nil
     }
 }

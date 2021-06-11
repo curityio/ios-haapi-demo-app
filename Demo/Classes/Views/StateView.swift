@@ -48,13 +48,6 @@ struct StateView: View {
                                 .disabled(flowViewModel.isProcessing)
                         }
                     }
-
-                    if !flowViewModel.helpMessages.isEmpty {
-                        ForEach(flowViewModel.helpMessages, id: \.self) { msg in
-                            MessageView(text: msg.text,
-                                        messageType: msg.messageType)
-                        }
-                    }
                 }
                 .padding([.top, .bottom], 32)
                 .navigationBarItems(trailing: trailingBarItem)
@@ -100,16 +93,16 @@ struct StateView: View {
 
     @ViewBuilder
     private var contentView: some View {
-        if let pollingStep = flowViewModel.pollingStep {
-            PollingView(viewModel: PollingViewModel(pollingStep: pollingStep,
-                                                    flowViewModel: flowViewModel,
-                                                    automaticPolling: flowViewModel.automaticPolling))
-        } else if let code = flowViewModel.code {
-            AuthorizedView(viewModel: AuthorizedViewModel(authorizationCode: code,
-                                                          controller: flowViewModel.controller))
-        } else if let tokensRepresentation = flowViewModel.tokensRepresentation {
-            TokensView(TokensViewModel(tokensRepresentation))
-        } else if let selectorViewModel = flowViewModel.selectorViewModel {
+        if let pollingViewModel = flowViewModel.pollingViewModel {
+            PollingView(viewModel: pollingViewModel)
+        }
+        else if let authorizedViewModel = flowViewModel.authorizedViewModel {
+            AuthorizedView(viewModel: authorizedViewModel)
+        }
+        else if let tokensViewModel = flowViewModel.tokensViewModel {
+            TokensView(viewModel: tokensViewModel)
+        }
+        else if let selectorViewModel = flowViewModel.selectorViewModel {
             SelectorView(viewModel: selectorViewModel)
         }
         else if let formViewModels = flowViewModel.formViewModels {

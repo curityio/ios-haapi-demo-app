@@ -228,7 +228,7 @@ extension HaapiController: HaapiControllable {
                 Logger.controllerFlow.debug("Representation received: \(String(data: data, encoding: .utf8) ?? "-")")
                 return data
             }
-            .decode(type: TokensRepresentation.self, decoder: JSONDecoder())
+            .decode(type: OAuthTokenResponse.self, decoder: JSONDecoder())
             .mapError { error -> HaapiControllerError in
                 return HaapiControllerError.general(cause: error)
             }
@@ -473,12 +473,12 @@ extension HaapiController {
                 }
             }
             else if case .oauthAuthorizationResponse = representation.type,
-                    let code = representation.properties["code"]
+                    let authorizationContent = AuthorizationContent(representation: representation)
             {
                 Logger.controllerFlow.debug("Will commit authorization response")
 
                 clientOperation = ClientOperationManager.makeForActions(representation.actions)
-                commitState(.authorizationResponse(code),
+                commitState(.authorizationResponse(authorizationContent),
                             completionHandler: completionHandler)
             }
             else if let pollingStep = PollingStep(representation) {

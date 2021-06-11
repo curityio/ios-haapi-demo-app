@@ -16,36 +16,57 @@
 
 import Foundation
 
-struct HaapiStateContent: Equatable {
-    var problem: Problem?
-    let representation: Representation
-    let actions: [Action]
-    // TODO : add continueMessages to replace previous Representation's messages
+protocol HaapiStateContenable {
+    /// The Haapi Representation
+    var representation: Representation { get }
+    /// The array of actions of the Representation
+    var actions: [Action] { get }
 
-    init(
-        representation: Representation,
-        continueActions: [Action],
-        problem: Problem? = nil
-    ) {
-        self.representation = representation
-        self.actions = continueActions
-        self.problem = problem
+    /// The title that can be used in your View. It is based on the Representation or [Actions] or Representation.Type.
+    var title: String { get }
+    /// The image name for building an UIImage(UIKit) or Image(SwiftUI) from your assetFolder.
+    var imageLogo: String { get }
+}
+
+extension HaapiStateContenable {
+
+    /// The array of messages of the Representation
+    var messages: [Message] {
+        return representation.messages
     }
 
-    var actionModel: ActionModel? {
-        let result: ActionModel?
-        if actions.count == 1 {
-            result = actions.first?.model
-        } else {
-            result = nil
-        }
+    /// The array of links of the Representation
+    var links: [Link] {
+        return representation.links
+    }
 
-        return result
+    /// The Representation type
+    var type: RepresentationType {
+        return representation.type
+    }
+
+    var title: String {
+        return representation.title ?? actions.first(where: { $0.title != nil })?.title ?? representation.type.rawValue
+    }
+
+    var imageLogo: String {
+        return representation.type.imageLogo
+    }
+}
+
+struct HaapiStateContent: HaapiStateContenable, Equatable {
+    let representation: Representation
+    let actions: [Action]
+
+    init(representation: Representation,
+         continueActions: [Action])
+    {
+        self.representation = representation
+        self.actions = continueActions
     }
 
     static func == (lhs: HaapiStateContent, rhs: HaapiStateContent) -> Bool {
-        return lhs.problem == rhs.problem
-            && lhs.representation == rhs.representation
+        return lhs.representation == rhs.representation
             && lhs.actions == rhs.actions
     }
 }
@@ -58,9 +79,9 @@ enum HaapiState: Equatable, CustomStringConvertible {
     /// A problem from a representation
     case problem(Problem)
     /// The authorization code
-    case authorizationResponse(String)
+    case authorizationResponse(AuthorizationContent)
     /// The accessToken response; Final step
-    case accessToken(TokensRepresentation)
+    case accessToken(OAuthTokenResponse)
     /// PollingStep
     case polling(PollingStep)
 
