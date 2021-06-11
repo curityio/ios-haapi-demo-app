@@ -80,7 +80,7 @@ enum HaapiState: Equatable, CustomStringConvertible {
     /// A problem from a representation
     case problem(Problem)
     /// The authorization code
-    case authorizationResponse(OAuthAuthorizationResponse)
+    case authorizationResponse(AuthorizationContent)
     /// The accessToken response; Final step
     case accessToken(OAuthTokenResponse)
     /// PollingStep
