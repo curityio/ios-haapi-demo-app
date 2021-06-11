@@ -227,7 +227,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelActionnable {
         case .systemError(let error):
             self.error = error
             self.state = state
-        case .next(let content):
+        case .step(let content):
             haapiStateContent = content
             pollingViewModel = nil
             self.state = state

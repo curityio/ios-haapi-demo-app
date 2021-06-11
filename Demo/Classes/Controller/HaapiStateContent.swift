@@ -53,7 +53,8 @@ extension HaapiStateContenable {
         return representation.type.imageLogo
     }
 }
-
+/// A model representing the latest received Haapi Representation with relevent parameters, functions and methods to be consumed directly
+/// with a ViewModel or View.
 struct HaapiStateContent: HaapiStateContenable, Equatable {
     let representation: Representation
     let actions: [Action]
@@ -74,8 +75,8 @@ struct HaapiStateContent: HaapiStateContenable, Equatable {
 enum HaapiState: Equatable, CustomStringConvertible {
     /// The flow is interrupted due to a system Error
     case systemError(Error)
-    /// A new representation that is not a problem/error/polling/authorizationResponse or accessToken; The UI will consume the HaapiStateContent
-    case next(HaapiStateContent)
+    /// A new step that is not a problem/error/polling/authorizationResponse or accessToken; A HaapiStateContent is provided.
+    case step(HaapiStateContent)
     /// A problem from a representation
     case problem(Problem)
     /// The authorization code
@@ -93,7 +94,7 @@ enum HaapiState: Equatable, CustomStringConvertible {
             return prob1 == prob2
         case (.authorizationResponse(let code1), .authorizationResponse(let code2)):
             return code1 == code2
-        case (.next(let content1), .next(let content2)):
+        case (.step(let content1), .step(let content2)):
             return content1 == content2
         case (.accessToken(let dict1), .accessToken(let dict2)):
             return dict1 == dict2
@@ -109,7 +110,7 @@ enum HaapiState: Equatable, CustomStringConvertible {
         switch self {
         case .systemError:
             result = "systemError"
-        case .next:
+        case .step:
             result = "next"
         case .problem:
             result = "problem"

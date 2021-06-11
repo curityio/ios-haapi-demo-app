@@ -134,7 +134,7 @@ class PollingViewModel: ObservableObject {
         switch result {
         case .problem(let problem):
             Logger.clientApp.debug("A problem occurred when polling: \(problem)")
-        case .accessToken, .next, .systemError:
+        case .accessToken, .step, .systemError:
             break
         case .polling(let newStep):
             if self.pollingStep != newStep {

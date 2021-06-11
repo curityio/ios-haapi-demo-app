@@ -113,7 +113,7 @@ extension HaapiController: HaapiControllable {
                         }
                     } else {
                         DispatchQueue.main.async { [weak self] in
-                            self?.commitState(.next(HaapiStateContent(representation: representation,
+                            self?.commitState(.step(HaapiStateContent(representation: representation,
                                                                       continueActions: representation.actions)),
                                               completionHandler: completionHandler)
                         }
@@ -337,11 +337,11 @@ extension HaapiController {
     private func commitContinueState(continueActions: [Action],
                                      completionHandler: HaapiCompletionHandler?) throws
     {
-        if case .next(let content) = state {
+        if case .step(let content) = state {
             let newContent = HaapiStateContent(representation: content.representation,
                                                continueActions: continueActions)
             clientOperation = ClientOperationManager.makeForActions(continueActions)
-            commitState(.next(newContent), completionHandler: nil)
+            commitState(.step(newContent), completionHandler: nil)
         } else {
             assertionFailure("Not possible to handle gracefully")
             throw HaapiControllerError.noCurrentState
@@ -468,7 +468,7 @@ extension HaapiController {
                     Logger.controllerFlow.debug("Following display Form")
 
                     clientOperation = ClientOperationManager.makeForActions(representation.actions)
-                    commitState(.next(representation.haapiState),
+                    commitState(.step(representation.haapiState),
                                 completionHandler: completionHandler)
                 }
             }
@@ -491,7 +491,7 @@ extension HaapiController {
                 Logger.controllerFlow.debug("Will commit representation type: \(representation.type.rawValue)")
 
                 clientOperation = ClientOperationManager.makeForActions(representation.actions)
-                commitState(.next(representation.haapiState),
+                commitState(.step(representation.haapiState),
                             completionHandler: completionHandler)
            }
         } catch {
