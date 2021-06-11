@@ -32,6 +32,9 @@ struct PollingView: View {
                 }
                 SpacerV()
             }
+            if viewModel.automaticPolling, viewModel.pollingStatus == .pending {
+                ArcSpinner(color: Color.spotMagenta)
+            }
             if let formViewModel = viewModel.formViewModel {
                 FormView(formViewModel: formViewModel)
             }
