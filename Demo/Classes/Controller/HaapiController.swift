@@ -418,10 +418,9 @@ extension HaapiController {
             // Problem, ContinueActions, Polling
 
             if let problem = ProblemFactory.create(representation) {
-                if let authorizationProblem = problem as? AuthorizationProblem,
-                   let error = authorizationProblem.error
+                if let error = problem.haapiError
                 {
-                    Logger.controllerFlow.debug("AuthorizationProblem detected -> abort")
+                    Logger.controllerFlow.debug("Problem with haapiError detected -> abort")
                     throw error
                 }
 
@@ -495,7 +494,16 @@ extension HaapiController {
                             completionHandler: completionHandler)
            }
         } catch {
-            commitState(.systemError(ErrorInfo(error)),
+            let sysState: HaapiState
+            if let haapiCtrlError = error as? HaapiControllerError,
+               case .problem(let cause) = haapiCtrlError,
+               let haapiError = cause.haapiError
+            {
+                sysState = .systemError(ErrorInfo(title: cause.title, error: haapiError))
+            } else {
+                sysState = .systemError(ErrorInfo(error))
+            }
+            commitState(sysState,
                         completionHandler: completionHandler)
         }
     }
