@@ -66,7 +66,7 @@ extension HaapiController: HaapiControllable {
         do {
             try initializeTokenManager(for: profile)
         } catch {
-            commitState(.systemError(error),
+            commitState(.systemError(ErrorInfo(error)),
                         completionHandler: completionHandler)
             return
         }
@@ -80,7 +80,7 @@ extension HaapiController: HaapiControllable {
         haapiClient = haapiTokenManager?.createClient(urlSession: session)
 
         guard let authorizationUrl = profile.authorizationURL else {
-            commitState(.systemError(HaapiControllerError.invalidUrl),
+            commitState(.systemError(ErrorInfo(HaapiControllerError.invalidUrl)),
                         completionHandler: completionHandler)
             return
         }
@@ -123,7 +123,7 @@ extension HaapiController: HaapiControllable {
                 }
             } catch {
                 DispatchQueue.main.async { [weak self] in
-                    self?.commitState(.systemError(error),
+                    self?.commitState(.systemError(ErrorInfo(error)),
                                       completionHandler: completionHandler)
                 }
             }
@@ -152,7 +152,7 @@ extension HaapiController: HaapiControllable {
 
         guard let profile = profile else {
             assertionFailure("Programming error: profile should not be empty")
-            commitState(.systemError(HaapiControllerError.incorrectReset),
+            commitState(.systemError(ErrorInfo(HaapiControllerError.incorrectReset)),
                         completionHandler: completionHandler)
             return
         }
@@ -182,7 +182,7 @@ extension HaapiController: HaapiControllable {
                 completionHandler: completionHandler
             )
         } catch {
-            commitState(.systemError(error),
+            commitState(.systemError(ErrorInfo(error)),
                         completionHandler: completionHandler)
         }
     }
@@ -208,7 +208,7 @@ extension HaapiController: HaapiControllable {
         guard let url = urlComponents.url(relativeTo: URL(string: profile.tokenEndpointURI)),
               url.isHttpURL
         else {
-            commitState(.systemError(HaapiControllerError.invalidUrl), completionHandler: completionHandler)
+            commitState(.systemError(ErrorInfo(HaapiControllerError.invalidUrl)), completionHandler: completionHandler)
             return
         }
 
@@ -274,7 +274,7 @@ extension HaapiController: HaapiControllable {
                 completionHandler: completionHandler
             )
         } catch {
-            commitState(.systemError(error),
+            commitState(.systemError(ErrorInfo(error)),
                         completionHandler: completionHandler)
         }
     }
@@ -299,7 +299,7 @@ extension HaapiController: HaapiControllable {
                                         completionHandler: completionHandler)
             }
         } catch {
-            commitState(.systemError(error),
+            commitState(.systemError(ErrorInfo(error)),
                         completionHandler: completionHandler)
         }
     }
@@ -384,7 +384,7 @@ extension HaapiController {
                                           completionHandler: completionHandler)
                 case .failure(let error):
                     Logger.controllerFlow.error("HaapiClient error for performData: \(error.localizedDescription)")
-                    self.commitState(.systemError(error), completionHandler: completionHandler)
+                    self.commitState(.systemError(ErrorInfo(error)), completionHandler: completionHandler)
                 }
             }
         }
@@ -495,7 +495,7 @@ extension HaapiController {
                             completionHandler: completionHandler)
            }
         } catch {
-            commitState(.systemError(error),
+            commitState(.systemError(ErrorInfo(error)),
                         completionHandler: completionHandler)
         }
     }

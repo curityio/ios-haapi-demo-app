@@ -68,7 +68,7 @@ struct StateView: View {
         .navigationViewStyle(StackNavigationViewStyle())
         .alert(isPresented: .constant(flowViewModel.error != nil), content: {
             Alert(
-                title: Text("Client error"),
+                title: Text(flowViewModel.error?.title ?? ""),
                 message: Text(flowViewModel.error?.localizedDescription ?? ""),
                 dismissButton: .default(Text("Ok"), action: {
                     presentationMode.wrappedValue.dismiss()
