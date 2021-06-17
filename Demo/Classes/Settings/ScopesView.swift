@@ -35,7 +35,8 @@ struct ScopesView: View {
         {
             ForEach(viewModel.items, id: \.self) { item in
                 ColorButton(title: item,
-                            buttonType: viewModel.buttonTypeForItem(item))
+                            buttonType: viewModel.buttonTypeForItem(item),
+                            textPadding: .all)
                 { btn in
                     viewModel.toggleItem(item)
                     btn.reset()
