@@ -22,7 +22,7 @@ struct TokensRepresentation: Codable, Equatable {
     let accessToken: String
     /// A `tokenType` like "bearer"
     let tokenType: String?
-    /// A `scope` contains a list of scopes separated by a space. This list is configured in the initial request
+    /// A `scope` contains a list of granted scopes, separated by a space, which may be different from the requested scopes if the server decides it.
     let scope: String?
     /// `expiresIn` is the number of seconds the `accessToken` is valid
     let expiresIn: Int

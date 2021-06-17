@@ -42,7 +42,7 @@ class HaapiController: ObservableObject {
     private(set) var profile: Profile?
     private var haapiTokenManager: HaapiTokenManager?
     private var haapiClient: HaapiClient?
-    private var cancellable: AnyCancellable?
+    private var getAccessTokenPublisher: AnyCancellable?
 
     init(_ notificationCenter: NotificationCenter = .default) {
         self.notificationCenter = notificationCenter
@@ -138,8 +138,8 @@ extension HaapiController: HaapiControllable {
         haapiTokenManager?.close()
         haapiTokenManager = nil
         haapiClient = nil
-        cancellable?.cancel()
-        cancellable = nil
+        getAccessTokenPublisher?.cancel()
+        getAccessTokenPublisher = nil
         commitState(.none, completionHandler: nil)
     }
 
@@ -220,7 +220,7 @@ extension HaapiController: HaapiControllable {
         let config = URLSessionConfiguration.ephemeral
         let session = URLSession(configuration: config, delegate: TrustAllCertsDelegate(), delegateQueue: nil)
 
-        cancellable = session.dataTaskPublisher(for: request)
+        getAccessTokenPublisher = session.dataTaskPublisher(for: request)
             .mapError{ error -> HaapiControllerError in
                 return HaapiControllerError.general(cause: error)
             }
@@ -233,20 +233,23 @@ extension HaapiController: HaapiControllable {
                 return HaapiControllerError.general(cause: error)
             }
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] completions in
-                self?.cancellable = nil
+            .sink(
+                receiveCompletion: { [weak self] completions in
+                    self?.getAccessTokenPublisher = nil
 
-                switch completions {
-                case .failure(let error):
-                    self?.commitState(.systemError(error),
+                    switch completions {
+                    case .failure(let error):
+                        self?.commitState(.systemError(error),
+                                          completionHandler: completionHandler)
+                    case .finished:
+                        break
+                    }
+                },
+                receiveValue: { [weak self] tokenRepresentation in
+                    self?.commitState(.accessToken(tokenRepresentation),
                                       completionHandler: completionHandler)
-                case .finished:
-                    break
                 }
-            } receiveValue: { [weak self] tokenRepresentation in
-                self?.commitState(.accessToken(tokenRepresentation),
-                                  completionHandler: completionHandler)
-            }
+            )
     }
 
     func followLink(link: Link,
@@ -555,15 +558,17 @@ private extension Profile {
         guard let redirectURI = Bundle.main.haapiRedirectURI else { return nil }
 
         var urlComponents = URLComponents()
-        urlComponents.queryItems = [
+        var queryItems = [
             URLQueryItem(name: "client_id", value: clientId),
             URLQueryItem(name: "response_type", value: "code"),
             URLQueryItem(name: "redirect_uri", value: redirectURI)
         ]
 
         if let scope = processedScope {
-            urlComponents.queryItems?.append(URLQueryItem(name: "scope", value: scope))
+            queryItems.append(URLQueryItem(name: "scope", value: scope))
         }
+        
+        urlComponents.queryItems = queryItems
 
         return urlComponents.url(relativeTo: URL(string: authorizationEndpointURI))
     }
