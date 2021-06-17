@@ -24,11 +24,6 @@ struct StateView: View {
     @State var showHiddenFields = false
     @State var showParameters = false
 
-    private var gridItemLayout = [
-        GridItem(.fixed(15)),
-        GridItem(.fixed(15))
-    ]
-
     @ViewBuilder
     var body: some View {
         NavigationView {
@@ -43,19 +38,14 @@ struct StateView: View {
                     contentView
 
                     if !flowViewModel.links.isEmpty {
-                        LazyHGrid(rows: gridItemLayout,
-                                  alignment: .top,
-                                  spacing: UIConstants.spacing)
-                        {
-                            ForEach(flowViewModel.links, id: \.self) { link in
-                                LinkView(viewModel: LinkViewModel(link: link,
-                                                                  imageLoader: imageLoader,
-                                                                  selectHandler:
-                                                                    { link in
-                                                                        flowViewModel.followLink(link: link)
-                                                                    }))
-                                    .disabled(flowViewModel.isProcessing)
-                            }
+                        ForEach(flowViewModel.links, id: \.self) { link in
+                            LinkView(viewModel: LinkViewModel(link: link,
+                                                              imageLoader: imageLoader,
+                                                              selectHandler:
+                                                                { link in
+                                                                    flowViewModel.followLink(link: link)
+                                                                }))
+                                .disabled(flowViewModel.isProcessing)
                         }
                     }
                 }

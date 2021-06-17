@@ -16,6 +16,7 @@
 
 import SwiftUI
 import Combine
+import os
 
 struct LinkView: View {
     @ObservedObject var viewModel: LinkViewModel
@@ -38,9 +39,11 @@ struct LinkView: View {
                     Text(title)
                         .font(.link)
                         .foregroundColor(Color.links)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
+        .disabled(viewModel.isDisabled)
     }
 }
 
@@ -116,7 +119,19 @@ class LinkViewModel: ObservableObject {
     // MARK: Values + Actions
 
     var title: String? {
-        return link.title
+        let result: String?
+        if let linkTitle = link.title {
+            result = linkTitle
+        } else {
+            if isDataType {
+                result = nil
+            } else {
+                Logger.clientApp.debug("This link does not have a proper title. Fallback to href")
+                result = link.href
+            }
+        }
+
+        return result
     }
 
     func load() {
@@ -137,5 +152,13 @@ class LinkViewModel: ObservableObject {
 
     var hasImage: Bool {
         return link.imageUrl() != nil && image == nil
+    }
+
+    var isDisabled: Bool {
+        return isDataType
+    }
+
+    private var isDataType: Bool {
+        return link.hrefDataType() == .data
     }
 }
