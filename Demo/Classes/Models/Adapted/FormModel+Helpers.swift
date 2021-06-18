@@ -22,7 +22,7 @@ extension FormModel {
     }
 
     /// Returns a Boolean value indicating whether the `form` contains editable fields (`not hidden` and `not readonly`).
-    var hasEditedFields: Bool {
+    var hasEditableFields: Bool {
         guard !fields.isEmpty else { return false }
 
         let editableFields = fields.filter { $0.readonly != true }

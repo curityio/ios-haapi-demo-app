@@ -131,7 +131,7 @@ class FormViewModel: NSObject, ObservableObject {
     func submit(completion: (() -> Void)?) {
         submitHandler?.preSubmit?()
         
-        if fieldViewModels.isEmpty && form.hasEditedFields  {
+        if fieldViewModels.isEmpty && form.hasEditableFields  {
             flowViewModel?.applyAction(action)
             completion?()
         } else {

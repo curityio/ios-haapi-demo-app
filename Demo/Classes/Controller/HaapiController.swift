@@ -504,6 +504,8 @@ extension HaapiController {
                 formParameters[name] = value
                 copyParameterOverrides[name] = nil
             }
+            // 'value' from a field.type == checkbox, only indicates the value to return when it is checked !
+            // when checked is true, then the previous block will handle it
             else if let value = field.value, field.type != .checkbox {
                 formParameters[name] = value
             }
