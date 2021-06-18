@@ -126,8 +126,8 @@ class LinkViewModel: ObservableObject {
             if isDataType {
                 result = nil
             } else {
-                Logger.clientApp.debug("This link does not have a proper title. Fallback to href")
-                result = link.href
+                Logger.clientApp.debug("This link does not have a proper title. Fallback to rel")
+                result = link.rel
             }
         }
 
