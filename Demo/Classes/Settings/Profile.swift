@@ -37,7 +37,22 @@ struct Profile: Codable, Identifiable, Hashable {
     var followRedirects = true
     var automaticPolling = true
     var isDefaultAuthChallengeEnabled = false
-    var supportedScopes: [String]?
+    var supportedScopes: [String]? {
+        didSet {
+            guard let selectedScopes = selectedScopes, let supportedScopes = supportedScopes else {
+                return
+            }
+
+            var filteredScopes = [String]()
+            for scope in supportedScopes {
+                if selectedScopes.contains(scope) {
+                    filteredScopes.append(scope)
+                }
+            }
+
+            self.selectedScopes = filteredScopes
+        }
+    }
     var selectedScopes: [String]?
 
     var fetchedAt: Date?

@@ -19,8 +19,12 @@ import Foundation
 extension URLSession {
 
     static var dev: URLSession {
-        URLSession(configuration: .ephemeral,
-                   delegate: TrustAllCertsDelegate(),
-                   delegateQueue: nil)
+        let configuration = URLSessionConfiguration.ephemeral
+        // Note: Weird, there is a cache in .ephemeral and setting to nil is needed
+        configuration.urlCache = nil
+        let session = URLSession(configuration: configuration,
+                                 delegate: TrustAllCertsDelegate(),
+                                 delegateQueue: nil)
+        return session
     }
 }
