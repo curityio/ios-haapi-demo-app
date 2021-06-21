@@ -16,9 +16,14 @@
 
 import SwiftUI
 
+/// Constants for UI components
 enum UIConstants {
+    /// 6.0
     static let cornerRadius: CGFloat = 6.0
+    /// 1.0
     static let lineWidth: CGFloat = 1.0
+    /// 50.0
     static let buttonHeight: CGFloat = 50.0
+    /// 16.0
     static let spacing: CGFloat = 16.0
 }

@@ -36,7 +36,7 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
     private(set) var haapiStateContent: HaapiStateContent?
     private(set) var error: Error?
     private(set) var code: String?
-    private(set) var accessToken: [String: String]?
+    private(set) var tokensRepresentation: TokensRepresentation?
     private(set) var pollingStep: PollingStep?
     private(set) var messages: [Message] = []
     private(set) var links: [Link] = []
@@ -168,20 +168,20 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
             actions = []
             self.code = code
             self.state = state
-        case .accessToken(let json):
-            accessToken = json
+        case .accessToken(let tokensRepresentation):
+            self.tokensRepresentation = tokensRepresentation
             code = nil
             pollingStep = nil
             messages = []
             links = []
             actions = []
-            title = "Success"
+            title = NSLocalizedString("success_title", comment: "Title for final step in the flow")
             self.state = state
         case .polling(let pollingStep):
             messages = pollingStep.representation.messages
             links = pollingStep.representation.links
             actions = pollingStep.auxiliaryActions
-            title = "Polling"
+            title = NSLocalizedString("polling_title", comment: "Title for polling view")
             if self.pollingStep == nil {
                 self.state = state // Manual redirect
             }
@@ -235,7 +235,7 @@ class FlowViewModel: ObservableObject, HaapiSubmitable {
         haapiStateContent = nil
         error = nil
         code = nil
-        accessToken = nil
+        tokensRepresentation = nil
         pollingStep = nil
         messages = []
         links = []

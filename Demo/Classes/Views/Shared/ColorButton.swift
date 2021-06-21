@@ -20,15 +20,18 @@ import os
 struct ColorButton: View {
     let title: String
     let buttonType: ButtonType
+    let textPadding: Edge.Set
     private var action: (ColorButton) -> Void
     @State private var isSpinning = false
 
     init(title: String,
          buttonType: ButtonType = .primary,
+         textPadding: Edge.Set = [],
          action: @escaping ((ColorButton) -> Void))
     {
         self.title = title
         self.buttonType = buttonType
+        self.textPadding = textPadding
         self.action = action
     }
 
@@ -36,6 +39,7 @@ struct ColorButton: View {
         Button(action: didTapButton) {
             Text(LocalizedStringKey(title))
                 .opacity(isSpinning ? 0.0 : 1.0)
+                .padding(textPadding)
         }
         .opacity(isSpinning ? 0.7 : 1.0)
         .disabled(isSpinning)

@@ -34,9 +34,8 @@ struct DisclosureView<ChildView: View>: View {
         VStack {
             HStack {
                 Text(title)
-                    .font(.curityBody)
-                    .fontWeight(.bold)
-                    .padding([.leading])
+                    .font(.text)
+                    .fontWeight(.medium)
                 Spacer()
                 if isExpanded {
                     Image("ChevronActive")
@@ -44,23 +43,23 @@ struct DisclosureView<ChildView: View>: View {
                     Image("Chevron")
                 }
             }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .center)
-            .background(Color.primaryDark)
-            .cornerRadius(8.0)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8.0)
-                    .stroke(Color.buttonBorder,
-                            lineWidth: 2)
-            )
-            .contentShape(Rectangle())
-            .onTapGesture {
-                isExpanded = !isExpanded
-            }
             // childView
             if isExpanded {
                 childView
             }
+        }
+        .padding(.all, UIConstants.spacing)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .background(Color.primaryDark)
+        .cornerRadius(UIConstants.cornerRadius)
+        .overlay(
+            RoundedRectangle(cornerRadius: UIConstants.cornerRadius)
+                .stroke(Color.grey,
+                        lineWidth: UIConstants.lineWidth)
+        )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            isExpanded = !isExpanded
         }
     }
 }
@@ -68,13 +67,13 @@ struct DisclosureView<ChildView: View>: View {
 struct DisclosureView_Previews: PreviewProvider {
     static var previews: some View {
         DisclosureView(title: "Access Token") {
-            CardView(text: "Hello World",
-                     details: [
-                        CardDetails(header: "expires_on",
-                                    value: "300")
-                     ])
+            DisclosureContentView(text: "Hello World",
+                                  details: [
+                                    CardDetails(header: "expires_on",
+                                                value: "300")
+                                  ])
         }
-            .preferredColorScheme(.dark)
-            .padding([.leading, .trailing])
+        .preferredColorScheme(.light)
+        .paddingContentView()
     }
 }

@@ -66,8 +66,8 @@ extension ProfileView: View {
                              errorMessage: viewModel.errorAuthorizationEndpointString)
                 }
                 Section(header: Text("Supported Scopes")) {
-                    if let scopes = $viewModel.profile.supportedScopes.wrappedValue {
-                        ThumbnailView(items: scopes)
+                    if let scopeViewModel = viewModel.scopeViewModel {
+                        ScopesView(viewModel: scopeViewModel)
                     } else {
                         Text("Unknown")
                     }
@@ -91,7 +91,12 @@ extension ProfileView: View {
         if let date = viewModel.profile.fetchedAt {
             Text("Last fetched: \(date.dateFormatted)")
                 .italic()
-        } else {
+        }
+        else if let error = viewModel.error {
+            Text("Error fetching configuration: \(error.localizedDescription)")
+                .italic()
+        }
+        else {
             EmptyView()
         }
     }
