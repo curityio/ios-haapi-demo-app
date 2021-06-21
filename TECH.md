@@ -57,9 +57,9 @@ From this StateView, different content views will be rendered. These content vie
 
 ## HaapiController and ios-idsvr-haapi-sdk-dist
 
-![demo_haapiControllerAndStates](images/demo_haapiControllerAndStates.png)
+![curity-haapi-state](images/curity-haapi-state.png)
 
 ## Flow and HaapiState
 
-![demo_flowState](images/demo_flowState.png)
+![curity-haapi](images/curity-haapi.png)
 
