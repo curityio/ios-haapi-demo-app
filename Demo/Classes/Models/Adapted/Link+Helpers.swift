@@ -16,7 +16,7 @@
 
 import UIKit
 
-enum LinkHrefDataType {
+enum LinkHrefDataType: Equatable {
     case data
     case url
     case unknown(string: String)

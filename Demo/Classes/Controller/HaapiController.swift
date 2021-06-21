@@ -320,7 +320,7 @@ extension HaapiController {
                                     delegate: authenticationChallengeHandler,
                                     delegateQueue: nil)
 
-        let haapiTokenManager = HaapiTokenManager.Builder(
+        let haapiTokenManager = HaapiTokenManagerBuilder(
             tokenEndpoint: tokenUrl,
             clientId: profile.clientId
         )

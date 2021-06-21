@@ -91,7 +91,7 @@ enum ButtonType {
         switch self {
         case .primary:
             result = ButtonTheme(foregroundColor: foregroundColor,
-                                 backgroundColor: .primary)
+                                 backgroundColor: .primaryRegular)
         case .secondary:
             result = ButtonTheme(foregroundColor: foregroundColor,
                                  backgroundColor: .secondaryAction,

@@ -73,7 +73,7 @@ struct ProfileListView: View {
                 .navigationBarItems(trailing: Button(action: add, label: {
                     BarItemImage(systemName: "plus",
                                  isLeading: false)
-                        .accentColor(.primary)
+                        .accentColor(.primaryRegular)
                 }))
 
                 // Hidden Link

@@ -37,17 +37,16 @@ struct StateView: View {
                     
                     contentView
 
-                    ForEach(flowViewModel.links, id: \.title) { link in
-                        LinkView(viewModel: LinkViewModel(link: link,
-                                                          imageLoader: imageLoader,
-                                                          selectHandler:
-                                                            { link in
-                                                                flowViewModel.followLink(link: link)
-                                                            }))
-                            .frame(minWidth: 0,
-                                   maxWidth: .infinity,
-                                   alignment: .center)
-                            .disabled(flowViewModel.isProcessing)
+                    if !flowViewModel.links.isEmpty {
+                        ForEach(flowViewModel.links, id: \.self) { link in
+                            LinkView(viewModel: LinkViewModel(link: link,
+                                                              imageLoader: imageLoader,
+                                                              selectHandler:
+                                                                { link in
+                                                                    flowViewModel.followLink(link: link)
+                                                                }))
+                                .disabled(flowViewModel.isProcessing)
+                        }
                     }
                 }
                 .padding(.top, 32)
@@ -58,6 +57,7 @@ struct StateView: View {
                         NSAttributedString.Key.font: UIFont.curityNavTitle
                     ]
                     navigationCtrl.navigationBar.backgroundColor = UIColor(Color.primaryDark)
+                    navigationCtrl.navigationBar.isTranslucent = false
                     navigationCtrl.navigationBar.prefersLargeTitles = false
                 }
                 .paddingContentView()

@@ -21,23 +21,21 @@ struct SelectorView: View {
     @ObservedObject var viewModel: SelectorViewModel
     
     var body: some View {
-        ScrollView {
-            LazyVStack {
-                ForEach(viewModel.options, id: \.id) { option in
-                    if let form = option.model as? FormModel {
-                        AuthenticatorButton(imageName: option.authenticatorTypeImageName,
-                                            title: LocalizedStringKey(option.title ?? "N/A"))
-                        { btn in
-                            viewModel.submitForm(form: form) {
-                                btn.reset()
-                            }
+        LazyVStack {
+            ForEach(viewModel.options, id: \.id) { option in
+                if let form = option.model as? FormModel {
+                    AuthenticatorButton(imageName: option.authenticatorTypeImageName,
+                                        title: LocalizedStringKey(option.title ?? "N/A"))
+                    { btn in
+                        viewModel.submitForm(form: form) {
+                            btn.reset()
                         }
-                        .disabled(viewModel.isProcessing)
                     }
+                    .disabled(viewModel.isProcessing)
                 }
             }
-            .paddingContentView([.top, .bottom])
         }
+        .paddingContentView([.top, .bottom])
         .onAppear(perform: {
             viewModel.isViewVisible = true
         })
