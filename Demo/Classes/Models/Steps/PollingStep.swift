@@ -42,7 +42,7 @@ enum PollingStatus: CustomStringConvertible {
 
  Polling step requires a client to poll using one of the provided actions. The client may use a polling interval of its choosing, usually a few seconds. While polling, the client should display any links or messages provided in the response from the server, as well as a visual indicator to make it clear that the server is performing some work while waiting for some external action to be completed.
  */
-struct PollingStep: HaapiStateContenable, Equatable {
+struct PollingStep: HaapiStateContentable, Equatable {
     let representation: Representation
     let actions: [Action]
     

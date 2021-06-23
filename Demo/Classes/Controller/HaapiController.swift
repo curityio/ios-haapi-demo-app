@@ -473,7 +473,7 @@ extension HaapiController {
                 }
             }
             else if case .oauthAuthorizationResponse = representation.type,
-                    let authorizationContent = AuthorizationContent(representation: representation)
+                    let authorizationContent = OAuthAuthorizationResponse(representation: representation)
             {
                 Logger.controllerFlow.debug("Will commit authorization response")
 

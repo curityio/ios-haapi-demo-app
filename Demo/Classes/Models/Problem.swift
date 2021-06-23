@@ -16,7 +16,7 @@
 
 import Foundation
 
-class Problem: NSObject, HaapiStateContenable{
+class Problem: NSObject, HaapiStateContentable{
     let representation: Representation
     let actions: [Action] = []
     

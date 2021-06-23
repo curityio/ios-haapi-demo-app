@@ -58,7 +58,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelActionnable {
 
     // MARK: Models
 
-    private var haapiStateContent: HaapiStateContenable? {
+    private var haapiStateContent: HaapiStateContentable? {
         didSet {
             if let content = haapiStateContent {
                 processActions(content.actions)

@@ -16,7 +16,7 @@
 
 import Foundation
 
-protocol HaapiStateContenable {
+protocol HaapiStateContentable {
     /// The Haapi Representation
     var representation: Representation { get }
     /// The array of actions of the Representation
@@ -28,7 +28,7 @@ protocol HaapiStateContenable {
     var imageLogo: String { get }
 }
 
-extension HaapiStateContenable {
+extension HaapiStateContentable {
 
     /// The array of messages of the Representation
     var messages: [Message] {
@@ -46,7 +46,7 @@ extension HaapiStateContenable {
     }
 
     var title: String {
-        return representation.title ?? actions.first(where: { $0.title != nil })?.title ?? representation.type.rawValue
+        return actions.first(where: { $0.title != nil })?.title ?? representation.type.rawValue
     }
 
     var imageLogo: String {
@@ -55,7 +55,7 @@ extension HaapiStateContenable {
 }
 /// A model representing the latest received Haapi Representation with relevent parameters, functions and methods to be consumed directly
 /// with a ViewModel or View.
-struct HaapiStateContent: HaapiStateContenable, Equatable {
+struct HaapiStateContent: HaapiStateContentable, Equatable {
     let representation: Representation
     let actions: [Action]
 
@@ -80,7 +80,7 @@ enum HaapiState: Equatable, CustomStringConvertible {
     /// A problem from a representation
     case problem(Problem)
     /// The authorization code
-    case authorizationResponse(AuthorizationContent)
+    case authorizationResponse(OAuthAuthorizationResponse)
     /// The accessToken response; Final step
     case accessToken(OAuthTokenResponse)
     /// PollingStep

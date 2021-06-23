@@ -17,7 +17,7 @@
 import Foundation
 
 /// A model representing `HaapiState.authorizationResponse`. The relevant parameter of this model is **code**.
-struct AuthorizationContent: HaapiStateContenable, Equatable {
+struct OAuthAuthorizationResponse: HaapiStateContentable, Equatable {
     let representation: Representation
     let actions: [Action]
     /// The code that represents the authorization code. With it, you can retrieve the `OAuthTokenResponse`.
