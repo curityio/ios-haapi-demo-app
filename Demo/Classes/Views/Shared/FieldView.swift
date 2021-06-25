@@ -23,7 +23,9 @@ struct FieldView: View {
         VStack (spacing: 0) {
             if let checkboxViewModel = viewModel as? CheckboxViewModel {
                 CheckboxView(checkboxViewModel.label,
-                             isChecked: checkboxViewModel.boolBinding)
+                             isChecked: checkboxViewModel.boolBinding,
+                             checkboxSize: checkboxViewModel.checkboxSize,
+                             rightCheckedImage: checkboxViewModel.rightCheckedImage)
                     .disabled(checkboxViewModel.isReadOnly || checkboxViewModel.isDisabled)
             }
             else {
@@ -134,4 +136,20 @@ class CheckboxViewModel: FieldViewModel {
             self.checked = newValue
         })
     }
+
+    var rightCheckedImage: Image? {
+        guard isConsent else { return nil }
+
+        return Image("CheckboxCheckedRight")
+    }
+
+    var checkboxSize: CGSize {
+        guard isConsent else { return CGSize(width: 36, height: 36) }
+
+        return CGSize(width: 18.5, height: 18.5)
+    }
+
+    private lazy var isConsent: Bool = {
+        return field.name.hasPrefix("consent")
+    }()
 }

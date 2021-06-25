@@ -19,35 +19,53 @@ import SwiftUI
 struct CheckboxView: View {
     private let localizedStringKey: LocalizedStringKey
     @Binding var isChecked: Bool
+    private let checkboxSize: CGSize
+    private let rightCheckedImage: Image?
 
     // Internal reference in order to update the View
     @State private var checked = false
 
     init(_ localizedStringKey: LocalizedStringKey,
-         isChecked: Binding<Bool>)
+         isChecked: Binding<Bool>,
+         checkboxSize: CGSize,
+         rightCheckedImage: Image?)
     {
         self.localizedStringKey = localizedStringKey
         self._isChecked = isChecked
+        self.checkboxSize = checkboxSize
+        self.rightCheckedImage = rightCheckedImage
     }
 
     init(_ strValue: String,
-         isChecked: Binding<Bool>)
+         isChecked: Binding<Bool>,
+         checkboxSize: CGSize = CGSize(width: 36, height: 36),
+         rightCheckedImage: Image? = nil)
     {
         self.init(LocalizedStringKey(strValue),
-                  isChecked: isChecked)
+                  isChecked: isChecked,
+                  checkboxSize: checkboxSize,
+                  rightCheckedImage: rightCheckedImage)
     }
 
     var body: some View {
-        Button(action: toggle) {
-            HStack (spacing: 19.0) {
-                Image(checked ? "CheckboxChecked" : "CheckboxUnchecked")
-                Text(localizedStringKey)
-                    .font(.curitySubheadline)
-                    .foregroundColor(.text)
-                    .frame(minHeight: 43.0)
+        HStack {
+            Button(action: toggle) {
+                HStack (spacing: 19.0) {
+                    Image(checked ? "CheckboxChecked" : "CheckboxUnchecked")
+                        .resizable()
+                        .frame(width: checkboxSize.width,
+                               height: checkboxSize.height)
+                    Text(localizedStringKey)
+                        .font(.curitySubheadline)
+                        .foregroundColor(.text)
+                        .frame(minHeight: 43.0)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if checked, let rightCheckedImage = rightCheckedImage {
+                rightCheckedImage
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding([.top], UIConstants.spacing)
         .onAppear(perform: {
             checked = isChecked
