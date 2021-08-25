@@ -22,6 +22,7 @@ struct FormTextField: View {
     let placeholder: String
     @Binding var text: String
     @Binding var isInvalid: Bool
+    let options: [PickerOptionnable]?
     let textConfiguration: TextInputConfiguration
 
     @State var isPasswordHidden = false
@@ -29,11 +30,13 @@ struct FormTextField: View {
     init(_ placeholder: String,
          text: Binding<String>,
          isInvalid: Binding<Bool>,
+         options: [PickerOptionnable]? = nil,
          config: TextInputConfiguration = .default)
     {
         self.placeholder = placeholder
         self._text = text
         self._isInvalid = isInvalid
+        self.options = options
         textConfiguration = config
     }
 
@@ -46,6 +49,7 @@ struct FormTextField: View {
             HStack {
                 CTextField(placeholder: placeholder,
                            text: $text,
+                           options: options,
                            textConfiguration: textConfiguration)
                     .hidePassword(isPasswordHidden)
                     .isInvalid(isInvalid)

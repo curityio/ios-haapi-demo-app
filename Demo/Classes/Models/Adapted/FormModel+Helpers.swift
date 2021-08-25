@@ -45,9 +45,12 @@ extension FormModel {
 private extension Array where Element == Field {
 
     static var toFieldViewModel: (Field) -> FieldViewModel = { field in
-        if field.type == .checkbox {
+        switch field.type {
+        case .checkbox:
             return CheckboxViewModel(field: field)
-        } else {
+        case .select:
+            return OptionsViewModel(field: field)
+        default:
             return FieldViewModel(field: field)
         }
     }

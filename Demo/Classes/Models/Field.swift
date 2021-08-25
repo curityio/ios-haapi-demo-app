@@ -21,6 +21,7 @@ enum FieldType: Codable {
     case password
     case hidden
     case checkbox
+    case select
     case unsupported(value: String)
 
     init(from decoder: Decoder) throws {
@@ -50,6 +51,7 @@ extension FieldType: RawRepresentable, Equatable, Hashable {
         case "password": self = .password
         case "hidden"  : self = .hidden
         case "checkbox": self = .checkbox
+        case "select": self = .select
         default: self = .unsupported(value: rawValue)
         }
     }
@@ -64,6 +66,8 @@ extension FieldType: RawRepresentable, Equatable, Hashable {
             return "hidden"
         case .checkbox:
             return "checkbox"
+        case .select:
+            return "select"
         case .unsupported(let value):
             return value
         }
@@ -78,6 +82,7 @@ struct Field: Codable, Hashable, Identifiable {
     let placeholder: String?
     let checked: Bool?
     let readonly: Bool?
+    let options: [FieldOption]?
     let id = UUID()
     
     enum CodingKeys: String, CodingKey {
@@ -88,5 +93,12 @@ struct Field: Codable, Hashable, Identifiable {
         case placeholder
         case checked
         case readonly
+        case options
     }
+}
+
+struct FieldOption: Codable, Equatable, Hashable, PickerOptionnable {
+    let value: String
+    let label: String
+    let selected: Bool?
 }
