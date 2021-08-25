@@ -47,9 +47,9 @@ struct PollingView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             PollingView(viewModel: PollingViewModel(pollingStep: pollingStep,
-                                                    controller: HaapiController()))
+                                                    flowViewModel: FlowViewModel(controller: HaapiController())))
             PollingView(viewModel: PollingViewModel(pollingStep: pollingStepDone,
-                                                    controller: HaapiController()))
+                                                    flowViewModel: FlowViewModel(controller: HaapiController())))
         }
         .environmentObject(FlowViewModel(controller: HaapiController()))
     }
@@ -71,15 +71,15 @@ class PollingViewModel: ObservableObject {
 
     private let scheduler = Scheduler()
     private var pollingStep: PollingStep
-    private weak var controller: HaapiSubmitable?
+    private weak var flowViewModel: FlowViewModelActionnable?
 
     init(pollingStep: PollingStep,
-         controller: HaapiSubmitable?,
+         flowViewModel: FlowViewModelActionnable?,
          automaticPolling: Bool = false,
          interval: TimeInterval = 2)
     {
         self.pollingStep = pollingStep
-        self.controller = controller
+        self.flowViewModel = flowViewModel
 
         self.pollingStatus = pollingStep.status
         self.automaticPolling = automaticPolling
@@ -113,8 +113,12 @@ class PollingViewModel: ObservableObject {
            let formModel = action.model as? FormModel
         {
             result = FormViewModel(form: formModel,
-                                   isRedirect: action.isRedirect,
-                                   controller: controller)
+                                   action: action,
+                                   fieldViewModels: [],
+                                   flowViewModel: flowViewModel,
+                                   submitHandler: SubmitHandler(preSubmit: {
+                                    self.invalidate()
+                                   }, postSubmit: haapiCompletionHandler))
         } else {
             result = nil
             Logger.clientApp.debug("Actions is not handled: \(self.pollingStep.auxiliaryActions)")
@@ -123,21 +127,21 @@ class PollingViewModel: ObservableObject {
         return result
     }
 
-    func submit() {
-        let formModel: FormModel?
-        switch pollingStatus {
-        case .pending:
-            formModel = pollingStep.cancelForm
-        case .done:
-            formModel = pollingStep.formModel
+    lazy var haapiCompletionHandler: HaapiCompletionHandler = { [unowned self] result in
+        switch result {
+        case .problem(let problem):
+            Logger.clientApp.debug("A problem occurred when polling: \(problem)")
+        case .accessToken, .next, .systemError:
+            break
+        case .polling(let newStep):
+            if self.pollingStep != newStep {
+                self.pollingStep = newStep
+                self.pollingStatus = newStep.status
+            } else {
+                self.schedulePolling()
+            }
         default:
-            formModel = nil
-        }
-
-        if let formModel = formModel {
-            controller?.submitForm(form: formModel)
-        } else {
-            fatalError("Not supported: \(pollingStatus)")
+            self.schedulePolling()
         }
     }
 
@@ -151,25 +155,8 @@ class PollingViewModel: ObservableObject {
             invalidate()
             return
         }
-        
-        controller?.submitForm(form: formModel)
-        { [unowned self] result in
-            switch result {
-            case .problem(let problem):
-                Logger.clientApp.debug("A problem occurred when polling: \(problem)")
-            case .accessToken, .next, .systemError:
-                break
-            case .polling(let newStep):
-                if pollingStep != newStep {
-                    pollingStep = newStep
-                    pollingStatus = newStep.status
-                } else {
-                    self.schedulePolling()
-                }
-            default:
-                self.schedulePolling()
-            }
-        }
+        flowViewModel?.submitForm(form: formModel,
+                                  completionHandler: haapiCompletionHandler)
     }
 
     private func schedulePolling() {

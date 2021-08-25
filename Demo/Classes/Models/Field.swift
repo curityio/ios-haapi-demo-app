@@ -76,6 +76,8 @@ struct Field: Codable, Hashable, Identifiable {
     let label: String?
     let value: String?
     let placeholder: String?
+    let checked: Bool?
+    let readonly: Bool?
     let id = UUID()
     
     enum CodingKeys: String, CodingKey {
@@ -84,5 +86,7 @@ struct Field: Codable, Hashable, Identifiable {
         case label
         case value
         case placeholder
+        case checked
+        case readonly
     }
 }

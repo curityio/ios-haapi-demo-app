@@ -19,6 +19,10 @@ import SwiftUI
 
 extension Message {
 
+    static func invalid(text: String) -> Message {
+        return Message(text: text, classList: ["error"])
+    }
+
     var messageType: MessageType {
         let result: MessageType
 
@@ -28,8 +32,17 @@ extension Message {
         else if classList.contains("info") {
             result = .info
         }
-        else { // error or heading which is not supported by messageType
+        else if classList.contains("error") {
             result = .error
+        }
+        else if classList.contains("help") {
+            result = .help
+        }
+        else if classList.contains("heading") {
+            result = .heading
+        }
+        else {
+            result = .unsupported(classList.first ?? "empty")
         }
 
         return result
@@ -38,19 +51,24 @@ extension Message {
 
 // MARK: - MessageType
 
-enum MessageType {
+enum MessageType: Equatable {
 
     case error
     case warning
     case info
+    case heading
+    case help
+    case unsupported(String)
 
-    var imageName: String {
-        let result: String
+    var imageName: String? {
+        let result: String?
         switch self {
         case .error:
             result = "WarningTriangle"
         case .warning, .info:
             result = "WarningCircle"
+        default:
+            result = nil
         }
 
         return result
@@ -65,12 +83,15 @@ enum MessageType {
             result = .warning
         case .info:
             result = .info
+        default:
+            result = .text
         }
 
         return result
     }
 
     func backgroundColor(_ colorScheme: ColorScheme) -> Color {
+        guard self == .error || self == .warning || self == .info else { return .clear }
         let result: Color
 
         if colorScheme == .light {
@@ -79,6 +100,31 @@ enum MessageType {
             result = foregroundColor
         }
 
+        return result
+    }
+
+    var font: Font {
+        let result: Font
+
+        switch self {
+        case .error, .info, .warning:
+            result = .curitySubheadline
+        default:
+            result = .text
+        }
+
+        return result
+    }
+
+    var textAlignment: TextAlignment {
+        let result: TextAlignment
+
+        switch self {
+        case .error, .warning, .info:
+            result = .leading
+        default:
+            result = .center
+        }
         return result
     }
 }

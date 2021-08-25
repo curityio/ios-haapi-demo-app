@@ -17,7 +17,6 @@
 import SwiftUI
 
 struct FormView: View {
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @ObservedObject var formViewModel: FormViewModel
 
     var body: some View {
@@ -37,35 +36,37 @@ struct FormView: View {
                         .disabled(formViewModel.isProcessing)
                 }
                 SpacerV()
-                ColorButton(title: formViewModel.actionTitle) { button in
-                    formViewModel.submitForm(presentationMode: presentationMode) {
-                        button.reset()
-                    }
-                }
-                .disabled(formViewModel.isProcessing)
-                .opacity(formViewModel.isProcessing ? 0.7 : 1.0)
             }
-            if formViewModel.isSimpleButtonVisible {
-                ColorButton(title: formViewModel.actionTitle) { button in
-                    formViewModel.submitForm(presentationMode: presentationMode) {
-                        button.reset()
-                    }
+            ColorButton(title: formViewModel.actionTitle,
+                        buttonType: formViewModel.buttonType)
+            { button in
+                formViewModel.submit {
+                    button.reset()
                 }
-                .disabled(formViewModel.isProcessing)
-                .opacity(formViewModel.isProcessing ? 0.7 : 1.0)
             }
+            .disabled(formViewModel.isProcessing)
+            .opacity(formViewModel.isProcessing ? 0.7 : 1.0)
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
 }
 
 struct FormView_Previews: PreviewProvider {
+    static var formModel = FormModel(href: "", method: "")
+    static var flowViewModel = FlowViewModel(controller: HaapiController())
+    static var action = Action(template: .form, kind: "", model: formModel)
+
     static var previews: some View {
-        FormView(formViewModel: FormViewModel(form: FormModel(href: "",
-                                                              method: ""),
-                                              isRedirect: true,
-                                              controller: HaapiController()))
+        FormView(formViewModel: FormViewModel(form: formModel,
+                                              action: action,
+                                              fieldViewModels: [],
+                                              flowViewModel: flowViewModel))
     }
+}
+
+struct SubmitHandler {
+    var preSubmit: (() -> Void)?
+    var postSubmit: HaapiCompletionHandler?
 }
 
 // MARK: - FormViewModel
@@ -73,8 +74,9 @@ struct FormView_Previews: PreviewProvider {
 class FormViewModel: NSObject, ObservableObject {
 
     private var form: FormModel
-    private var isRedirect: Bool
-    private(set) weak var controller: HaapiSubmitable?
+    private var action: Action
+    private weak var flowViewModel: FlowViewModelActionnable?
+    private var submitHandler: SubmitHandler?
 
     private var observer: NSObjectProtocol?
     private let notificationCenter: NotificationCenter
@@ -84,18 +86,21 @@ class FormViewModel: NSObject, ObservableObject {
     @Published var isProcessing = false
 
     init(form: FormModel,
-         isRedirect: Bool,
-         controller: HaapiSubmitable?,
+         action: Action,
+         fieldViewModels: [FieldViewModel],
+         flowViewModel: FlowViewModelActionnable?,
+         submitHandler: SubmitHandler? = nil,
          notificationCenter: NotificationCenter = .default)
     {
         self.form = form
-        self.isRedirect = isRedirect
-        self.controller = controller
+        self.action = action
+        self.fieldViewModels = fieldViewModels
+        self.flowViewModel = flowViewModel
+        self.submitHandler = submitHandler
         self.notificationCenter = notificationCenter
 
         super.init()
-        
-        processForm(form, isRedirect: isRedirect)
+
         observer = self.notificationCenter.addObserver(forName: FlowViewModel.isProcessingNotification,
                                                        object: nil,
                                                        queue: .main,
@@ -116,48 +121,42 @@ class FormViewModel: NSObject, ObservableObject {
     }
 
     var header: String? {
-        return isRedirect ? form.title ?? "API redirect, should be followed automatically by the client" : nil
+        return action.isRedirect ? form.title ?? "API redirect, should be followed automatically by the client" : nil
     }
 
-    var isSimpleButtonVisible: Bool {
-        return isRedirect || form.isSimpleForm()
+    var buttonType: ButtonType {
+        return action.buttonType
     }
 
-    func submitForm(presentationMode: Binding<PresentationMode>,
-                    completion: (() -> Void)?)
-    {
-        fieldViewModels.forEach { $0.isDisabled = true }
-
-        let parameters = fieldViewModels.reduce(into: [String: String]()) {
-            $0[$1.name] = $1.value
-        }
-
-        controller?.submitForm(form: form,
-                               parameterOverrides: parameters,
-                               completionHandler:
-        { [unowned self] result in
-            switch result {
-            case .problem(let problem):
-                DispatchQueue.main.async {
-                    self.processProblem(problem)
-                }
-            default:
-                break
-            }
+    func submit(completion: (() -> Void)?) {
+        submitHandler?.preSubmit?()
+        
+        if fieldViewModels.isEmpty && form.hasEditableFields  {
+            flowViewModel?.applyAction(action)
             completion?()
-        })
-    }
+        } else {
+            fieldViewModels.forEach { $0.isDisabled = true }
 
-    private func processForm(_ form: FormModel,
-                             isRedirect: Bool)
-    {
-        problemViewModel = nil
-        self.form = form
-        self.isRedirect = isRedirect
+            let notNilValues = fieldViewModels.filter { $0.value != nil }
+            let parameters = notNilValues.reduce(into: [String: String]()) {
+                $0[$1.name] = $1.value
+            }
 
-        let fields = form.fields.filter { !$0.isHidden }
-        fieldViewModels = fields.map{ field in
-            FieldViewModel(field: field)
+            flowViewModel?.submitForm(form: form,
+                                      parameterOverrides: parameters,
+                                      completionHandler:
+            { [unowned self] result in
+                switch result {
+                case .problem(let problem):
+                    DispatchQueue.main.async {
+                        self.processProblem(problem)
+                    }
+                default:
+                    break
+                }
+                submitHandler?.postSubmit?(result)
+                completion?()
+            })
         }
     }
 
@@ -169,7 +168,7 @@ class FormViewModel: NSObject, ObservableObject {
             let title = problem.representation.title ?? problem.representation.type.rawValue
             var messages: [Message] = problem.representation.invalidFields.compactMap {
                 guard let detail = $0.detail else { return nil }
-                return Message(text: detail, classList: [])
+                return Message.invalid(text: detail)
             }
             messages.append(contentsOf: problem.representation.messages)
             problemViewModel = ProblemViewModel(title: title,

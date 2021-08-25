@@ -29,7 +29,7 @@ struct StateView: View {
         NavigationView {
             ScrollView {
                 VStack (spacing: UIConstants.spacing) {
-                    HeaderView(flowViewModel.title)
+                    HeaderView(flowViewModel.title, imageName: flowViewModel.imageLogo)
                     ForEach(flowViewModel.messages, id: \.self) { msg in
                         MessageView(text: msg.text,
                                     messageType: msg.messageType)
@@ -48,8 +48,15 @@ struct StateView: View {
                                 .disabled(flowViewModel.isProcessing)
                         }
                     }
+
+                    if !flowViewModel.helpMessages.isEmpty {
+                        ForEach(flowViewModel.helpMessages, id: \.self) { msg in
+                            MessageView(text: msg.text,
+                                        messageType: msg.messageType)
+                        }
+                    }
                 }
-                .padding(.top, 32)
+                .padding([.top, .bottom], 32)
                 .navigationBarItems(trailing: trailingBarItem)
                 .configureNavigationBar { navigationCtrl in
                     navigationCtrl.navigationBar.titleTextAttributes = [
@@ -95,7 +102,7 @@ struct StateView: View {
     private var contentView: some View {
         if let pollingStep = flowViewModel.pollingStep {
             PollingView(viewModel: PollingViewModel(pollingStep: pollingStep,
-                                                    controller: flowViewModel.controller,
+                                                    flowViewModel: flowViewModel,
                                                     automaticPolling: flowViewModel.automaticPolling))
         } else if let code = flowViewModel.code {
             AuthorizedView(viewModel: AuthorizedViewModel(authorizationCode: code,
@@ -104,17 +111,10 @@ struct StateView: View {
             TokensView(TokensViewModel(tokensRepresentation))
         } else if let selectorViewModel = flowViewModel.selectorViewModel {
             SelectorView(viewModel: selectorViewModel)
-        } else if let formViewModel = flowViewModel.formViewModel {
-            FormView(formViewModel: formViewModel)
-        } else if let formOptions = flowViewModel.formOptions {
-            ForEach(formOptions, id: \.id) { option in
-                ProgressRow(title: option.title, action: {
-                    if option.isSimpleForm {
-                        flowViewModel.submitForm(form: option.formModel)
-                    } else {
-                        flowViewModel.applyAction(option.action)
-                    }
-                })
+        }
+        else if let formViewModels = flowViewModel.formViewModels {
+            ForEach(formViewModels, id: \.self) { viewModel in
+                FormView(formViewModel: viewModel)
             }
         }
     }

@@ -158,7 +158,6 @@
 		66994D7B2615015500880758 /* Action.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B3BB7C2601071C001355C2 /* Action.swift */; };
 		66994D7C2615015500880758 /* RedirectionStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 661C115A260D2921008FDAEE /* RedirectionStep.swift */; };
 		66994D7D2615015500880758 /* Data+JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B3BB812601071C001355C2 /* Data+JSON.swift */; };
-		66994D7E2615015500880758 /* ProgressRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B3BB8F2601071C001355C2 /* ProgressRow.swift */; };
 		66994D7F2615015500880758 /* PollingStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 661C1159260D2921008FDAEE /* PollingStep.swift */; };
 		66994D802615015500880758 /* ImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B3BB9D2601071C001355C2 /* ImageLoader.swift */; };
 		66994D812615015500880758 /* Link.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B3BB732601071C001355C2 /* Link.swift */; };
@@ -228,7 +227,6 @@
 		66B3BBBA2601071C001355C2 /* AuthorizedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B3BB892601071C001355C2 /* AuthorizedView.swift */; };
 		66B3BBBD2601071C001355C2 /* StateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B3BB8C2601071C001355C2 /* StateView.swift */; };
 		66B3BBBE2601071C001355C2 /* ColorButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B3BB8E2601071C001355C2 /* ColorButton.swift */; };
-		66B3BBBF2601071C001355C2 /* ProgressRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B3BB8F2601071C001355C2 /* ProgressRow.swift */; };
 		66B3BBC02601071C001355C2 /* PollingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B3BB902601071C001355C2 /* PollingView.swift */; };
 		66B3BBC12601071C001355C2 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B3BB912601071C001355C2 /* FormView.swift */; };
 		66B3BBC22601071C001355C2 /* SelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B3BB922601071C001355C2 /* SelectorView.swift */; };
@@ -399,7 +397,6 @@
 		66B3BB892601071C001355C2 /* AuthorizedView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthorizedView.swift; sourceTree = "<group>"; };
 		66B3BB8C2601071C001355C2 /* StateView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StateView.swift; sourceTree = "<group>"; };
 		66B3BB8E2601071C001355C2 /* ColorButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorButton.swift; sourceTree = "<group>"; };
-		66B3BB8F2601071C001355C2 /* ProgressRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProgressRow.swift; sourceTree = "<group>"; };
 		66B3BB902601071C001355C2 /* PollingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PollingView.swift; sourceTree = "<group>"; };
 		66B3BB912601071C001355C2 /* FormView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
 		66B3BB922601071C001355C2 /* SelectorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SelectorView.swift; sourceTree = "<group>"; };
@@ -724,7 +721,6 @@
 				6634245B26394F24003DA575 /* CheckboxView.swift */,
 				66B3BB8E2601071C001355C2 /* ColorButton.swift */,
 				662807E3260B4D0500D4017C /* CTextField.swift */,
-				66B3BB8F2601071C001355C2 /* ProgressRow.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -1083,7 +1079,6 @@
 				66B3BBAF2601071C001355C2 /* Action.swift in Sources */,
 				661C115C260D2921008FDAEE /* RedirectionStep.swift in Sources */,
 				66B3BBB32601071C001355C2 /* Data+JSON.swift in Sources */,
-				66B3BBBF2601071C001355C2 /* ProgressRow.swift in Sources */,
 				661C115B260D2921008FDAEE /* PollingStep.swift in Sources */,
 				66B3BBCB2601071C001355C2 /* ImageLoader.swift in Sources */,
 				66B3BBA62601071C001355C2 /* Link.swift in Sources */,
@@ -1187,7 +1182,6 @@
 				66994D7C2615015500880758 /* RedirectionStep.swift in Sources */,
 				66994D7D2615015500880758 /* Data+JSON.swift in Sources */,
 				669877E6264C10C200D8C377 /* UIConstants.swift in Sources */,
-				66994D7E2615015500880758 /* ProgressRow.swift in Sources */,
 				66994D7F2615015500880758 /* PollingStep.swift in Sources */,
 				6687551326532FB00039EA45 /* SpacerV.swift in Sources */,
 				66994D802615015500880758 /* ImageLoader.swift in Sources */,

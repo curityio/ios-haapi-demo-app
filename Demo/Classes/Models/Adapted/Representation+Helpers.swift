@@ -45,6 +45,20 @@ extension Representation {
     }
 }
 
+extension RepresentationType {
+    var imageLogo: String {
+        let imageName: String
+        switch self {
+        case .userConsentStep:
+            imageName = "UserConsent"
+        default:
+            imageName = "Logo"
+        }
+
+        return imageName
+    }
+}
+
 extension Representation: Equatable {
 
     static func == (lhs: Representation, rhs: Representation) -> Bool {

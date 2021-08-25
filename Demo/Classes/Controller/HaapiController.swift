@@ -399,6 +399,11 @@ extension HaapiController {
                 throw HaapiControllerError.serverError(statusCode: statusCode)
             }
 
+            // Temporary solution due to server side behaviour
+            guard httpResponse.statusCode != 204 else {
+                throw HaapiControllerError.serverError(statusCode: httpResponse.statusCode)
+            }
+
             guard let data = responseAndData.data else {
                 throw HaapiControllerError.noResponseData
             }
@@ -502,7 +507,9 @@ extension HaapiController {
                 formParameters[name] = value
                 copyParameterOverrides[name] = nil
             }
-            else if let value = field.value {
+            // 'value' from a field.type == checkbox, only indicates the value to return when it is checked !
+            // when checked is true, then the previous block will handle it
+            else if let value = field.value, field.type != .checkbox {
                 formParameters[name] = value
             }
         }
