@@ -239,7 +239,7 @@ extension HaapiController: HaapiControllable {
 
                     switch completions {
                     case .failure(let error):
-                        self?.commitState(.systemError(error),
+                        self?.commitState(.systemError(ErrorInfo(error)),
                                           completionHandler: completionHandler)
                     case .finished:
                         break
