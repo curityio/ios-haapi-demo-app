@@ -251,8 +251,10 @@
 		66E1266B2667C63800326637 /* Bundle+HaapiRedirect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669FADA7263FF33C00BC4293 /* Bundle+HaapiRedirect.swift */; };
 		66E126732668D4C500326637 /* OAuthTokenResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E126722668D4C500326637 /* OAuthTokenResponse.swift */; };
 		66E126742668D4C500326637 /* OAuthTokenResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E126722668D4C500326637 /* OAuthTokenResponse.swift */; };
-		66E1268926725FEC00326637 /* OAuthAuthorizationResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E1268826725FEC00326637 /* OAuthAuthorizationResponse.swift */; };
-		66E1268A26725FEC00326637 /* OAuthAuthorizationResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E1268826725FEC00326637 /* OAuthAuthorizationResponse.swift */; };
+		66E1268926725FEC00326637 /* AuthorizationContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E1268826725FEC00326637 /* AuthorizationContent.swift */; };
+		66E1268A26725FEC00326637 /* AuthorizationContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E1268826725FEC00326637 /* AuthorizationContent.swift */; };
+		66E1269A26777E6F00326637 /* ErrorInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E1269926777E6F00326637 /* ErrorInfo.swift */; };
+		66E1269B26777E6F00326637 /* ErrorInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E1269926777E6F00326637 /* ErrorInfo.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -417,7 +419,8 @@
 		66CC7B672615BCFA00028FB7 /* TrustAllCertsDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrustAllCertsDelegate.swift; sourceTree = "<group>"; };
 		66CC7B6D261605A500028FB7 /* HaapiControllerError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HaapiControllerError.swift; sourceTree = "<group>"; };
 		66E126722668D4C500326637 /* OAuthTokenResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OAuthTokenResponse.swift; sourceTree = "<group>"; };
-		66E1268826725FEC00326637 /* OAuthAuthorizationResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OAuthAuthorizationResponse.swift; sourceTree = "<group>"; };
+		66E1268826725FEC00326637 /* AuthorizationContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthorizationContent.swift; sourceTree = "<group>"; };
+		66E1269926777E6F00326637 /* ErrorInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorInfo.swift; sourceTree = "<group>"; };
 		66E8AB3C2612167200AC1A5D /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -663,11 +666,11 @@
 				66B3BB782601071C001355C2 /* Field.swift */,
 				66B3BB732601071C001355C2 /* Link.swift */,
 				66B3BB742601071C001355C2 /* Message.swift */,
+				66E126722668D4C500326637 /* OAuthTokenResponse.swift */,
 				66B3BB772601071C001355C2 /* Problem.swift */,
 				66B3BB762601071C001355C2 /* Representation.swift */,
 				661C1155260D28DE008FDAEE /* Steps */,
 				66B3BB792601071C001355C2 /* Template.swift */,
-				66E126722668D4C500326637 /* OAuthTokenResponse.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -744,7 +747,8 @@
 		66FEF62C26284B33009D08D7 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
-				66E1268826725FEC00326637 /* OAuthAuthorizationResponse.swift */,
+				66E1268826725FEC00326637 /* AuthorizationContent.swift */,
+				66E1269926777E6F00326637 /* ErrorInfo.swift */,
 				6638E4D8261527F30022D0D9 /* HaapiControllable.swift */,
 				66B3BB832601071C001355C2 /* HaapiController.swift */,
 				66CC7B6D261605A500028FB7 /* HaapiControllerError.swift */,
@@ -1076,6 +1080,7 @@
 				66CC7B6E261605A500028FB7 /* HaapiControllerError.swift in Sources */,
 				66B3BBC72601071C001355C2 /* LinkView.swift in Sources */,
 				663D5C6E26243F7900885FBF /* Logger+HaapiDemo.swift in Sources */,
+				66E1269A26777E6F00326637 /* ErrorInfo.swift in Sources */,
 				6604F6E7260A1D7B001AFCEB /* ProfileView.swift in Sources */,
 				663424712639A3C8003DA575 /* AuthenticatorButton.swift in Sources */,
 				66181025262F036F0039234E /* Font+Brand.swift in Sources */,
@@ -1112,7 +1117,7 @@
 				66B3BBA02601071C001355C2 /* BankIdClientOperation.swift in Sources */,
 				6604F6DC260A13FF001AFCEB /* Profile.swift in Sources */,
 				66CC7B682615BCFA00028FB7 /* TrustAllCertsDelegate.swift in Sources */,
-				66E1268926725FEC00326637 /* OAuthAuthorizationResponse.swift in Sources */,
+				66E1268926725FEC00326637 /* AuthorizationContent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1182,6 +1187,7 @@
 				66994D7A2615015500880758 /* ProfileView.swift in Sources */,
 				66CC7B602615AF0600028FB7 /* HaapiStateContent.swift in Sources */,
 				663424722639A3C8003DA575 /* AuthenticatorButton.swift in Sources */,
+				66E1269B26777E6F00326637 /* ErrorInfo.swift in Sources */,
 				66181026262F036F0039234E /* Font+Brand.swift in Sources */,
 				66994D7B2615015500880758 /* Action.swift in Sources */,
 				66994D7C2615015500880758 /* RedirectionStep.swift in Sources */,
@@ -1218,7 +1224,7 @@
 				66994D942615015500880758 /* BankIdClientOperation.swift in Sources */,
 				66994D952615015500880758 /* Profile.swift in Sources */,
 				66CC7B692615BCFA00028FB7 /* TrustAllCertsDelegate.swift in Sources */,
-				66E1268A26725FEC00326637 /* OAuthAuthorizationResponse.swift in Sources */,
+				66E1268A26725FEC00326637 /* AuthorizationContent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

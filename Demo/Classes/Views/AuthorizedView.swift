@@ -53,7 +53,7 @@ class AuthorizedViewModel: ObservableObject {
     let authorizationCode: String
     private(set) weak var controller: HaapiFlowable?
 
-    @Published var error: Error?
+    @Published var error: ErrorInfo?
 
     init(authorizationCode: String,
          controller: HaapiFlowable?)

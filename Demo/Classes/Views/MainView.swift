@@ -55,7 +55,7 @@ struct MainView: View {
                })
         .alert(isPresented: Binding<Bool>.constant(viewModel.error != nil), content: {
             Alert(
-                title: Text("Client error"),
+                title: Text(viewModel.error?.title ?? ""),
                 message: Text(viewModel.error?.localizedDescription ?? ""),
                 dismissButton: .default(Text("Ok"), action: { viewModel.reset() })
             )

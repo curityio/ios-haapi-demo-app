@@ -73,14 +73,14 @@ struct HaapiStateContent: HaapiStateContentable, Equatable {
 }
 
 enum HaapiState: Equatable, CustomStringConvertible {
-    /// The flow is interrupted due to a system Error
-    case systemError(Error)
+    /// The flow is interrupted. ErrorInfo contains the information why the flow was interrupted.
+    case systemError(ErrorInfo)
     /// A new step that is not a problem/error/polling/authorizationResponse or accessToken; A HaapiStateContent is provided.
     case step(HaapiStateContent)
     /// A problem from a representation
     case problem(Problem)
     /// The authorization code
-    case authorizationResponse(OAuthAuthorizationResponse)
+    case authorizationResponse(AuthorizationContent)
     /// The accessToken response; Final step
     case accessToken(OAuthTokenResponse)
     /// PollingStep
@@ -88,7 +88,7 @@ enum HaapiState: Equatable, CustomStringConvertible {
 
     static func == (lhs: HaapiState, rhs: HaapiState) -> Bool {
         switch (lhs, rhs) {
-        case (.systemError(let err1 as NSError), .systemError(let err2 as NSError)):
+        case (.systemError(let err1), .systemError(let err2)):
             return err1 == err2
         case (.problem(let prob1), .problem(let prob2)):
             return prob1 == prob2

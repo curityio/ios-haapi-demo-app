@@ -15,6 +15,7 @@
 //
 
 import Foundation
+import os
 
 class Problem: NSObject, HaapiStateContentable{
     let representation: Representation
@@ -43,6 +44,34 @@ class Problem: NSObject, HaapiStateContentable{
 
         return messages
     }
+
+    var haapiError: HaapiControllerError? {
+        guard representation.type == .unexpected ||
+                representation.code == "authorization_failed" ||
+                representation.code == "access_denied" ||
+                representation.code == nil
+        else {
+            return nil
+        }
+
+        return .problem(problem: self)
+    }
+
+    override var description: String {
+        if let errorDesc = representation.errorDescription {
+            return errorDesc
+        }
+
+        var result = ""
+        for (index, content) in representation.messages.enumerated() {
+            result.append(content.text)
+            if index != representation.messages.count - 1 {
+                result.append("\n")
+            }
+        }
+
+        return result
+    }
 }
 
 final class InvalidInputProblem: Problem {
@@ -58,6 +87,10 @@ final class InvalidInputProblem: Problem {
     var errorDescription: String? {
         return representation.errorDescription
     }
+
+    override var haapiError: HaapiControllerError? {
+        return nil
+    }
 }
 
 struct InvalidField: Codable, Equatable {
@@ -68,36 +101,25 @@ struct InvalidField: Codable, Equatable {
 
 final class AuthorizationProblem: Problem {
 
-    var errorDescription: String {
-        if let errorDesc = representation.errorDescription {
-            return errorDesc
-        }
+    let errorDescription: String
+    let error: String
 
-        var result = ""
-        for (index, content) in representation.messages.enumerated() {
-            result.append(content.text)
-            if index != representation.messages.count - 1 {
-                result.append("\n")
-            }
-        }
-
-        return result
+    init(representation: Representation, errorDescription: String, error: String) {
+        self.errorDescription = errorDescription
+        self.error = error
+        super.init(representation: representation)
     }
 
-    var error: HaapiControllerError? {
-        guard representation.code == "authorization_failed" || // timeout
-                representation.code == "access_denied" || // bankid switching config while polling
-                representation.code == nil || // polling timeout
-                representation.error == "access_denied" // user_consent cancel
-        else {
-            return nil
-        }
-
-        return .problem(problem: self)
+    override var title: String {
+        return error
     }
 
     override var description: String {
         return errorDescription
+    }
+
+    override var haapiError: HaapiControllerError? {
+        return .problem(problem: self)
     }
 }
 
@@ -106,12 +128,19 @@ struct ProblemFactory {
 
     static func create(_ representation: Representation) -> Problem? {
         switch representation.type {
-        case .problem, .incorrectCredentialsProblem:
+        case .problem, .incorrectCredentialsProblem, .unexpected:
             return Problem(representation: representation)
         case .invalidInputProblem:
             return InvalidInputProblem(representation: representation)
-        case .unexpected, .errorAuthorizationResponse:
-            return AuthorizationProblem(representation: representation)
+        case .errorAuthorizationResponse:
+            if let errorDescription = representation.errorDescription, let error = representation.error {
+                return AuthorizationProblem(representation: representation,
+                                            errorDescription: errorDescription,
+                                            error: error)
+            } else {
+                Logger.clientApp.debug("Invalid representation for .errorAuthorizationResponse.")
+                return nil
+            }
         default:
             return nil
         }

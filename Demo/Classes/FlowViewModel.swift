@@ -72,7 +72,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelActionnable {
         }
     }
 
-    private(set) var error: Error?
+    private(set) var error: ErrorInfo?
 
     // MARK: Support UI
 
