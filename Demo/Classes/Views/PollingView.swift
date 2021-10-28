@@ -32,6 +32,9 @@ struct PollingView: View {
                 }
                 SpacerV()
             }
+            if viewModel.automaticPolling, viewModel.pollingStatus == .pending {
+                ArcSpinner(color: Color.spotMagenta)
+            }
             if let formViewModel = viewModel.formViewModel {
                 FormView(formViewModel: formViewModel)
             }
@@ -131,7 +134,7 @@ class PollingViewModel: ObservableObject {
         switch result {
         case .problem(let problem):
             Logger.clientApp.debug("A problem occurred when polling: \(problem)")
-        case .accessToken, .next, .systemError:
+        case .accessToken, .step, .systemError:
             break
         case .polling(let newStep):
             if self.pollingStep != newStep {

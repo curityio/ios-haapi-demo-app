@@ -19,7 +19,7 @@ import IdsvrHaapiSdk
 import os
 import Combine
 
-typealias HaapiCompletionHandler = (HaapiState) -> Void
+typealias HaapiCompletionHandler = (HaapiState?) -> Void
 
 class HaapiController: ObservableObject {
 
@@ -27,7 +27,7 @@ class HaapiController: ObservableObject {
 
     // MARK: Properties
 
-    @Published private(set) var state = HaapiState.none {
+    @Published private(set) var state: HaapiState? = nil {
         didSet {
             notificationCenter.post(name: Self.stateNotification,
                                     object: state,
@@ -113,7 +113,7 @@ extension HaapiController: HaapiControllable {
                         }
                     } else {
                         DispatchQueue.main.async { [weak self] in
-                            self?.commitState(.next(HaapiStateContent(representation: representation,
+                            self?.commitState(.step(HaapiStateContent(representation: representation,
                                                                       continueActions: representation.actions)),
                                               completionHandler: completionHandler)
                         }
@@ -140,7 +140,7 @@ extension HaapiController: HaapiControllable {
         haapiClient = nil
         getAccessTokenPublisher?.cancel()
         getAccessTokenPublisher = nil
-        commitState(.none, completionHandler: nil)
+        commitState(nil, completionHandler: nil)
     }
 
     func submitForm(
@@ -228,7 +228,7 @@ extension HaapiController: HaapiControllable {
                 Logger.controllerFlow.debug("Representation received: \(String(data: data, encoding: .utf8) ?? "-")")
                 return data
             }
-            .decode(type: TokensRepresentation.self, decoder: JSONDecoder())
+            .decode(type: OAuthTokenResponse.self, decoder: JSONDecoder())
             .mapError { error -> HaapiControllerError in
                 return HaapiControllerError.general(cause: error)
             }
@@ -337,18 +337,18 @@ extension HaapiController {
     private func commitContinueState(continueActions: [Action],
                                      completionHandler: HaapiCompletionHandler?) throws
     {
-        if case .next(let content) = state {
+        if case .step(let content) = state {
             let newContent = HaapiStateContent(representation: content.representation,
                                                continueActions: continueActions)
             clientOperation = ClientOperationManager.makeForActions(continueActions)
-            commitState(.next(newContent), completionHandler: nil)
+            commitState(.step(newContent), completionHandler: nil)
         } else {
             assertionFailure("Not possible to handle gracefully")
             throw HaapiControllerError.noCurrentState
         }
     }
     
-    private func commitState(_ state: HaapiState,
+    private func commitState(_ state: HaapiState?,
                              completionHandler: HaapiCompletionHandler?)
     {
         clientOperation?.startOperation(haapiRedirect: self,
@@ -360,7 +360,11 @@ extension HaapiController {
         })
 
         isProcessing = false
-        Logger.controllerFlow.debug("Commit state: \(state)")
+        if let state = state {
+            Logger.controllerFlow.debug("Commit state: \(state)")
+        } else {
+            Logger.controllerFlow.debug("Commit state: nil")
+        }
         completionHandler?(state)
         if self.state != state {
             self.state = state
@@ -464,17 +468,17 @@ extension HaapiController {
                     Logger.controllerFlow.debug("Following display Form")
 
                     clientOperation = ClientOperationManager.makeForActions(representation.actions)
-                    commitState(.next(representation.haapiState),
+                    commitState(.step(representation.haapiState),
                                 completionHandler: completionHandler)
                 }
             }
             else if case .oauthAuthorizationResponse = representation.type,
-                    let code = representation.properties["code"]
+                    let authorizationContent = OAuthAuthorizationResponse(representation: representation)
             {
                 Logger.controllerFlow.debug("Will commit authorization response")
 
                 clientOperation = ClientOperationManager.makeForActions(representation.actions)
-                commitState(.authorizationResponse(code),
+                commitState(.authorizationResponse(authorizationContent),
                             completionHandler: completionHandler)
             }
             else if let pollingStep = PollingStep(representation) {
@@ -487,7 +491,7 @@ extension HaapiController {
                 Logger.controllerFlow.debug("Will commit representation type: \(representation.type.rawValue)")
 
                 clientOperation = ClientOperationManager.makeForActions(representation.actions)
-                commitState(.next(representation.haapiState),
+                commitState(.step(representation.haapiState),
                             completionHandler: completionHandler)
            }
         } catch {

@@ -16,66 +16,85 @@
 
 import Foundation
 
-struct HaapiStateContent: Equatable {
-    var problem: Problem?
-    let representation: Representation
-    let actions: [Action]
-    // TODO : add continueMessages to replace previous Representation's messages
+protocol HaapiStateContentable {
+    /// The Haapi Representation
+    var representation: Representation { get }
+    /// The array of actions of the Representation
+    var actions: [Action] { get }
 
-    init(
-        representation: Representation,
-        continueActions: [Action],
-        problem: Problem? = nil
-    ) {
-        self.representation = representation
-        self.actions = continueActions
-        self.problem = problem
+    /// The title that can be used in your View. It is based on the Representation or [Actions] or Representation.Type.
+    var title: String { get }
+    /// The image name for building an UIImage(UIKit) or Image(SwiftUI) from your assetFolder.
+    var imageLogo: String { get }
+}
+
+extension HaapiStateContentable {
+
+    /// The array of messages of the Representation
+    var messages: [Message] {
+        return representation.messages
     }
 
-    var actionModel: ActionModel? {
-        let result: ActionModel?
-        if actions.count == 1 {
-            result = actions.first?.model
-        } else {
-            result = nil
-        }
+    /// The array of links of the Representation
+    var links: [Link] {
+        return representation.links
+    }
 
-        return result
+    /// The Representation type
+    var type: RepresentationType {
+        return representation.type
+    }
+
+    var title: String {
+        return actions.first(where: { $0.title != nil })?.title ?? representation.type.rawValue
+    }
+
+    var imageLogo: String {
+        return representation.type.imageLogo
+    }
+}
+/// A model representing the latest received Haapi Representation with relevent parameters, functions and methods to be consumed directly
+/// with a ViewModel or View.
+struct HaapiStateContent: HaapiStateContentable, Equatable {
+    let representation: Representation
+    let actions: [Action]
+
+    init(representation: Representation,
+         continueActions: [Action])
+    {
+        self.representation = representation
+        self.actions = continueActions
     }
 
     static func == (lhs: HaapiStateContent, rhs: HaapiStateContent) -> Bool {
-        return lhs.problem == rhs.problem
-            && lhs.representation == rhs.representation
+        return lhs.representation == rhs.representation
             && lhs.actions == rhs.actions
     }
 }
 
 enum HaapiState: Equatable, CustomStringConvertible {
-    case none
     /// The flow is interrupted due to a system Error
     case systemError(Error)
-    /// A new representation that is not a problem/error/polling/authorizationResponse or accessToken; The UI will consume the HaapiStateContent
-    case next(HaapiStateContent)
+    /// A new step that is not a problem/error/polling/authorizationResponse or accessToken; A HaapiStateContent is provided.
+    case step(HaapiStateContent)
     /// A problem from a representation
     case problem(Problem)
     /// The authorization code
-    case authorizationResponse(String)
+    case authorizationResponse(OAuthAuthorizationResponse)
     /// The accessToken response; Final step
-    case accessToken(TokensRepresentation)
+    case accessToken(OAuthTokenResponse)
     /// PollingStep
     case polling(PollingStep)
 
     static func == (lhs: HaapiState, rhs: HaapiState) -> Bool {
         switch (lhs, rhs) {
-        case (.none, .none):
-            return true
         case (.systemError(let err1 as NSError), .systemError(let err2 as NSError)):
             return err1 == err2
         case (.problem(let prob1), .problem(let prob2)):
             return prob1 == prob2
         case (.authorizationResponse(let code1), .authorizationResponse(let code2)):
             return code1 == code2
-        case (.next(let content1), .next(let content2)):
+        case (.step(let content1), .step(let content2)):
             return content1 == content2
         case (.accessToken(let dict1), .accessToken(let dict2)):
             return dict1 == dict2
@@ -89,11 +108,9 @@ enum HaapiState: Equatable, CustomStringConvertible {
     var description: String {
         let result: String
         switch self {
-        case .none:
-            result = "none"
         case .systemError:
             result = "systemError"
-        case .next:
+        case .step:
             result = "next"
         case .problem:
             result = "problem"

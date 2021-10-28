@@ -16,6 +16,7 @@
 
 import Foundation
 
+/// An enum representing the status of `PollingStep`.
 enum PollingStatus: CustomStringConvertible {
     case pending
     case done
@@ -36,8 +37,14 @@ enum PollingStatus: CustomStringConvertible {
     }
 }
 
-struct PollingStep: Equatable {
+/**
+ A model representing `HaapiState.pollingStep`.
+
+ Polling step requires a client to poll using one of the provided actions. The client may use a polling interval of its choosing, usually a few seconds. While polling, the client should display any links or messages provided in the response from the server, as well as a visual indicator to make it clear that the server is performing some work while waiting for some external action to be completed.
+ */
+struct PollingStep: HaapiStateContentable, Equatable {
     let representation: Representation
+    let actions: [Action]
     
     init?(_ representation: Representation) {
         guard representation.type == .pollingStep else {
@@ -45,11 +52,24 @@ struct PollingStep: Equatable {
         }
 
         self.representation = representation
+        self.actions = representation.actions
+    }
+
+    var title: String {
+        return NSLocalizedString("polling_title",
+                                 comment: "Title for polling view")
+    }
+
+    static func == (lhs: PollingStep, rhs: PollingStep) -> Bool {
+        return lhs.representation == rhs.representation
+            && lhs.actions == rhs.actions
+            && lhs.status == rhs.status
     }
 }
 
 extension PollingStep {
 
+    /// The status for PollingStep.
     var status: PollingStatus {
         let status = representation.properties["status"]
 
@@ -64,6 +84,7 @@ extension PollingStep {
         return .unknown
     }
 
+    /// The potential `FormModel` of the Representation.
     var formModel: FormModel? {
         let result: FormModel?
 
@@ -99,8 +120,9 @@ extension PollingStep {
         return representation.cancelForm
     }
 
+    /// The actions of the Representation according to the PollingStep.status
     var auxiliaryActions: [Action] {
-        representation.actions
+        actions
             .filter { action in
                 guard action.title != nil else { return false }
                 switch status {
