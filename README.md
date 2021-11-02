@@ -4,6 +4,8 @@ This project is a demo application that highlights the usage of [ios-idsvr-haapi
 
 ## Getting started
 
+See the [Tutorial Walkthrough](https://curity.io/resources/learn/swift-ios-haapi/) on the Curity website for an overview of this code example.
+
 ### Xcode
 
 Version 12.4+ - at least a version that supports iOS 14
