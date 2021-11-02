@@ -4,8 +4,6 @@ This project is a demo application that highlights the usage of [ios-idsvr-haapi
 
 ## Getting started
 
-See the [Tutorial Walkthrough](https://curity.io/resources/learn/swift-ios-haapi/) on the Curity website for an overview of this code example.
-
 ### Xcode
 
 Version 12.4+ - at least a version that supports iOS 14
@@ -71,6 +69,7 @@ __Prerequisite__: Configure the identity server to be able to test with the demo
 
 ## More information
 
+See the [Tutorial Walkthrough](https://curity.io/resources/learn/swift-ios-haapi/) on the Curity website for an overview of this code example.\
 Please visit [curity.io](https://curity.io/) for more information about the Curity Identity Server.
 
 ## Licensing
