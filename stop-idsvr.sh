@@ -3,4 +3,6 @@
 ###############################################################
 # Free deployment resources when finished with the code example
 ###############################################################
-./deployment/haapi/stop.sh
+
+USE_NGROK=true
+./deployment/stop.sh "$USE_NGROK" "haapi"

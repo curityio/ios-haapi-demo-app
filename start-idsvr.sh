@@ -34,8 +34,8 @@ fi
 #
 # Run the deployment script to get an NGROK URL and deploy the Curity Identity Server 
 #
-cp ./license.json deployment/haapi/license.json
-./deployment/haapi/start.sh "$USE_NGROK" "$BASE_URL"
+cp ./license.json deployment/resources/license.json
+./deployment/start.sh "$USE_NGROK" "$BASE_URL" "haapi"
 if [ $? -ne 0 ]; then
   echo 'Problem encountered deploying the Curity Identity Server'
   exit
@@ -44,5 +44,5 @@ fi
 #
 # Inform the user of the Curity Identity Server URL, to be copied to configuration
 #
-IDENTITY_SERVER_BASE_URL=$(cat './deployment/haapi/output.txt')
+IDENTITY_SERVER_BASE_URL=$(cat './deployment/output.txt')
 echo "Curity Identity Server is running at $IDENTITY_SERVER_BASE_URL"
