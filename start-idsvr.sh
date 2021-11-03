@@ -1,8 +1,16 @@
 #!/bin/bash
 
-#############################################################################
-# Provide a preconfigured Curity Identity Server for running the code example
-#############################################################################
+####################################################################################################
+# Run the Curity Identity Server in Docker on the local computer, preconfigured for the code example
+# Please ensure that the jq tool is installed before running this script, eg 'brew install jq'
+####################################################################################################
+
+#
+# By default the Curity Identity Server will use a dynamic NGROK URL
+# Set USE_NGROK to false if you want to use a localhost or IP address based URL instead
+#
+USE_NGROK=true
+BASE_URL=https://localhost:8443
 
 #
 # First check prerequisites
@@ -27,7 +35,7 @@ fi
 # Run the deployment script to get an NGROK URL and deploy the Curity Identity Server 
 #
 cp ./license.json deployment/haapi/license.json
-./deployment/haapi/start.sh
+./deployment/haapi/start.sh "$USE_NGROK" "$BASE_URL"
 if [ $? -ne 0 ]; then
   echo 'Problem encountered deploying the Curity Identity Server'
   exit

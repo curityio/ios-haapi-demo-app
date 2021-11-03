@@ -67,9 +67,22 @@ __Prerequisite__: Configure the identity server to be able to test with the demo
 - `IdsvrHaapiSdk.HaapiError error 8`: Your identity server was not configured and the demo app cannot reach it. The identity server needs to be configured and accessible for the device or simulator.
 - `IdsvrHaapiSdk.HaapiError error 4.`: If you are running on a simulator and you get this error, it means that Disable Attestation Validation is disabled and it should be **<u>enabled</u>**. 
 
+## Docker Automated Setup
+
+The above Curity Identity Server setup and connectivity from devices can be automated via a bash script:
+
+- Copy a license.json file into the code example root folder
+- Edit the `./start-idsvr.sh` script to use either a local Docker URL on an ngrok internet URL
+- Run the script to deploy a preconfigured Curity Identity Server via Docker
+- Build and run the mobile app from Android Studio
+- Sign in with the preconfigured user account `demouser / Password1`
+- Run `./stop-idsvr.sh` when you want to free Docker resources
+
+The [Mobile Setup](https://curity.io/resources/learn/mobile-setup-ngrok/) article provides further details on this setup.
+
 ## More information
 
-See the [Tutorial Walkthrough](https://curity.io/resources/learn/swift-ios-haapi/) on the Curity website for an overview of this code example.\
+For further details about this code example, see the [Tutorial Walkthrough](https://curity.io/resources/learn/swift-ios-haapi/) on the Curity website.\
 Please visit [curity.io](https://curity.io/) for more information about the Curity Identity Server.
 
 ## Licensing
