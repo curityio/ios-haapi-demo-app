@@ -19,57 +19,57 @@ import XCTest
 
 class FieldTests: XCTestCase {
 
-    enum TestFailed: Error {
-        case reason(String)
-    }
-
-    func testFieldValidJSON() {
-        do {
-            let data = try Data(jsonFileName: "fieldValid", inBundle: Bundle(for: FieldTests.self))
-            let field = try JSONDecoder().decode(Field.self, from: data)
-            XCTAssertEqual(field.name, "A field", "field.name is not equal")
-            XCTAssertEqual(field.type, .username, "field.type is not username")
-            XCTAssertNil(field.label, "field.label should be nil")
-            XCTAssertNil(field.value, "field.value should be nil")
-            XCTAssertNil(field.placeholder, "field.placeholder should be nil")
-        } catch {
-            XCTFail("Invalid flow: \(error.localizedDescription)")
-        }
-    }
-
-    func testFieldInvalidJSON() {
-        do {
-            let data = try Data(jsonFileName: "fieldInvalid", inBundle: Bundle(for: FieldTests.self))
-            _ = try JSONDecoder().decode(Field.self, from: data)
-            XCTFail("Expecting invalid JSON for Field")
-        } catch {
-            XCTAssertTrue(true, "Expecting JSONDecoder to fail")
-        }
-    }
-
-    func testFieldToDict() {
-        let field = Field(name: "A field",
-                          type: .username,
-                          label: nil,
-                          value: nil,
-                          placeholder: nil,
-                          checked: nil,
-                          readonly: nil)
-        do {
-            let data = try JSONEncoder().encode(field)
-            guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-                throw TestFailed.reason("Invalid Dictionary")
-            }
-            XCTAssertEqual(json["name"] as? String, field.name, "field.name is not equal")
-            XCTAssertEqual(json["type"] as? String, "username", "field.username is not equal")
-            XCTAssertEqual(json["label"] as? String, field.label, "field.label is not equal")
-            XCTAssertEqual(json["value"] as? String, field.value, "field.value is not equal")
-            XCTAssertEqual(json["placeholder"] as? String, field.placeholder, "field.placeholder is not equal")
-            XCTAssertEqual(json["checked"] as? Bool, field.checked, "field.checked is not equal")
-            XCTAssertEqual(json["readonly"] as? Bool, field.readonly, "field.readonly is not equal")
-        } catch {
-            XCTFail("Invalid flow: \(error.localizedDescription)")
-        }
-    }
+//    enum TestFailed: Error {
+//        case reason(String)
+//    }
+//
+//    func testFieldValidJSON() {
+//        do {
+//            let data = try Data(jsonFileName: "fieldValid", inBundle: Bundle(for: FieldTests.self))
+//            let field = try JSONDecoder().decode(Field.self, from: data)
+//            XCTAssertEqual(field.name, "A field", "field.name is not equal")
+//            XCTAssertEqual(field.type, .username, "field.type is not username")
+//            XCTAssertNil(field.label, "field.label should be nil")
+//            XCTAssertNil(field.value, "field.value should be nil")
+//            XCTAssertNil(field.placeholder, "field.placeholder should be nil")
+//        } catch {
+//            XCTFail("Invalid flow: \(error.localizedDescription)")
+//        }
+//    }
+//
+//    func testFieldInvalidJSON() {
+//        do {
+//            let data = try Data(jsonFileName: "fieldInvalid", inBundle: Bundle(for: FieldTests.self))
+//            _ = try JSONDecoder().decode(Field.self, from: data)
+//            XCTFail("Expecting invalid JSON for Field")
+//        } catch {
+//            XCTAssertTrue(true, "Expecting JSONDecoder to fail")
+//        }
+//    }
+//
+//    func testFieldToDict() {
+//        let field = Field(name: "A field",
+//                          type: .username,
+//                          label: nil,
+//                          value: nil,
+//                          placeholder: nil,
+//                          checked: nil,
+//                          readonly: nil)
+//        do {
+//            let data = try JSONEncoder().encode(field)
+//            guard let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
+//                throw TestFailed.reason("Invalid Dictionary")
+//            }
+//            XCTAssertEqual(json["name"] as? String, field.name, "field.name is not equal")
+//            XCTAssertEqual(json["type"] as? String, "username", "field.username is not equal")
+//            XCTAssertEqual(json["label"] as? String, field.label, "field.label is not equal")
+//            XCTAssertEqual(json["value"] as? String, field.value, "field.value is not equal")
+//            XCTAssertEqual(json["placeholder"] as? String, field.placeholder, "field.placeholder is not equal")
+//            XCTAssertEqual(json["checked"] as? Bool, field.checked, "field.checked is not equal")
+//            XCTAssertEqual(json["readonly"] as? Bool, field.readonly, "field.readonly is not equal")
+//        } catch {
+//            XCTFail("Invalid flow: \(error.localizedDescription)")
+//        }
+//    }
 
 }

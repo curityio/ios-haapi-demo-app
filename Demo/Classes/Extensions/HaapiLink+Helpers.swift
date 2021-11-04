@@ -15,6 +15,7 @@
 //
 
 import UIKit
+import HaapiModelsSDK
 
 enum LinkHrefDataType: Equatable {
     case data
@@ -23,6 +24,15 @@ enum LinkHrefDataType: Equatable {
 }
 
 extension Link {
+
+    func imageUrl() -> URL? {
+        guard true == type?.contains("image"),
+              case .url = hrefDataType()
+        else {
+            return nil
+        }
+        return URL(string: href)
+    }
 
     func hrefDataType() -> LinkHrefDataType {
         let scheme = href.components(separatedBy: ":").first ?? ""
@@ -55,14 +65,5 @@ extension Link {
         } else {
             return nil
         }
-    }
-
-    func imageUrl() -> URL? {
-        guard true == type?.contains("image"),
-              case .url = hrefDataType()
-        else {
-            return nil
-        }
-        return URL(string: href)
     }
 }

@@ -15,18 +15,19 @@
 //
 
 import SwiftUI
+import HaapiModelsSDK
 
 struct ProblemView: View {
     let viewModel: ProblemViewModel
-    
+
     var body: some View {
         VStack {
             Text(viewModel.title)
                 .foregroundColor(.error)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding([.top, .bottom], 11)
-            
-            if let messages = viewModel.messages, !messages.isEmpty {
+
+            if let messages = viewModel.messages {
                 VStack {
                     ForEach(messages, id: \.text) { message in
                         MessageView(text: message.text,
@@ -38,31 +39,33 @@ struct ProblemView: View {
     }
 }
 
-// swiftlint:disable force_try force_unwrapping
 struct ProblemView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            ProblemView(viewModel: example1)
-            ProblemView(viewModel: example2)
+            ProblemView(viewModel: ProblemViewModel(title: "A problem", messages: []))
+            ProblemView(viewModel: ProblemViewModel(title: "A problem",
+                                                    messages: [
+                                                        ProblemMessageBundle(text: "Missing field",
+                                                                             messageType: .error),
+                                                        ProblemMessageBundle(text: "A help",
+                                                                             messageType: .warning)
+                                                    ]))
         }
     }
-
-    static var example1: ProblemViewModel = {
-        let problem = ProblemFactory.create(try! Representation(Data(.incorrectCredentialsProblem)))!
-        return ProblemViewModel(title: problem.representation.title ?? "",
-                                messages: problem.representation.messages)
-    }()
-
-    static var example2: ProblemViewModel = {
-        let problem = ProblemFactory.create(try! Representation(Data(.incorrectCredentialsProblemWithMessages)))!
-        return ProblemViewModel(title: problem.representation.title ?? "",
-                                messages: problem.representation.messages)
-    }()
 }
 
 // MARK: - ProblemViewModel
 
 struct ProblemViewModel {
     let title: String
-    let messages: [Message]?
+    let messages: [ProblemMessageBundle]
+}
+
+struct ProblemMessageBundle: Identifiable {
+    var id: String {
+        return UUID().uuidString
+    }
+
+    let text: String
+    let messageType: MessageType
 }

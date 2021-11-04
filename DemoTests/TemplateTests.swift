@@ -19,26 +19,26 @@ import XCTest
 
 class TemplateTests: XCTestCase {
 
-    func testTemplateClientOperation() {
-        let clientOperation = Template.clientOperation
-        do {
-            let data = try JSONEncoder().encode(clientOperation)
-            let string = try JSONDecoder().decode(String.self, from: data)
-            XCTAssertEqual(string, clientOperation.rawValue)
-        } catch {
-            XCTFail("Template.clientOperation should conform to Data -> String: \(error.localizedDescription)")
-        }
-    }
-
-    func testTemplateUnsupported() {
-        let template = Template.unsupported(value: "Awesome value")
-        do {
-            let data = try JSONEncoder().encode(template)
-            let string = try JSONDecoder().decode(String.self, from: data)
-            XCTAssertEqual(string, template.rawValue)
-        } catch {
-            XCTFail("Template.unsupported should conform to Data -> String: \(error.localizedDescription)")
-        }
-    }
+//    func testTemplateClientOperation() {
+//        let clientOperation = Template.clientOperation
+//        do {
+//            let data = try JSONEncoder().encode(clientOperation)
+//            let string = try JSONDecoder().decode(String.self, from: data)
+//            XCTAssertEqual(string, clientOperation.rawValue)
+//        } catch {
+//            XCTFail("Template.clientOperation should conform to Data -> String: \(error.localizedDescription)")
+//        }
+//    }
+//
+//    func testTemplateUnsupported() {
+//        let template = Template.unsupported(value: "Awesome value")
+//        do {
+//            let data = try JSONEncoder().encode(template)
+//            let string = try JSONDecoder().decode(String.self, from: data)
+//            XCTAssertEqual(string, template.rawValue)
+//        } catch {
+//            XCTFail("Template.unsupported should conform to Data -> String: \(error.localizedDescription)")
+//        }
+//    }
 
 }

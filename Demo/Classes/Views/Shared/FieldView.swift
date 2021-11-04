@@ -15,10 +15,11 @@
 //
 
 import SwiftUI
+import HaapiModelsSDK
 
 struct FieldView: View {
     @EnvironmentObject var viewModel: FieldViewModel
-    
+
     var body: some View {
         VStack (spacing: 0) {
             if let checkboxViewModel = viewModel as? CheckboxViewModel {
@@ -46,34 +47,23 @@ struct FieldView: View {
     }
 }
 
-struct FieldView_Previews: PreviewProvider {
-    static var previews: some View {
-        FieldView()
-            .environmentObject(FieldViewModel(field: Field(name: "Password",
-                                                           type: .password,
-                                                           label: "Password",
-                                                           value: "",
-                                                           placeholder: "foobar",
-                                                           checked: nil,
-                                                           readonly: false,
-                                                           options: nil)))
-        .previewLayout(.sizeThatFits)
-    }
-}
-
 // MARK: - FieldViewModel
 
 class FieldViewModel: ObservableObject, Hashable {
 
-    @Published var invalidField: InvalidField?
+    @Published var invalidField: InvalidInputProblem.InvalidField?
     @Published var isDisabled = false
 
-    let field: Field
+    let field: FormField
     fileprivate(set) var value: String?
 
-    init(field: Field) {
+    init(field: FormField) {
         self.field = field
-        value = field.value ?? ""
+        if let textField = field as? FormFieldText {
+            value = textField.value
+        } else {
+            value = nil
+        }
     }
 
     var name: String {
@@ -81,7 +71,7 @@ class FieldViewModel: ObservableObject, Hashable {
     }
 
     var label: String {
-        return field.label ?? ""
+        return field.label?.value() ?? ""
     }
 
     var textBinding: Binding<String> {
@@ -124,17 +114,18 @@ final class CheckboxViewModel: FieldViewModel {
     /// Reference value to pass to the server. With this value, the server considers a checkbox value as `true`.
     private let onValue: String
 
-    override init(field: Field) {
-        onValue = field.value ?? ""
-        super.init(field: field)
-        checked = field.checked ?? false
+    init(checkboxField: FormFieldCheckbox) {
+        onValue = checkboxField.value ?? ""
+        super.init(field: checkboxField)
+        checked = checkboxField.checked
         if !checked {
             value = nil
         }
     }
 
     var isReadOnly: Bool {
-        return field.readonly ?? false
+        // swiftlint:disable:next force_cast
+        return (field as! FormFieldCheckbox).readonly
     }
 
     var boolBinding: Binding<Bool> {
@@ -166,22 +157,19 @@ final class CheckboxViewModel: FieldViewModel {
 
 final class OptionsViewModel: FieldViewModel {
 
-    let options: [FieldOption]
+    let options: [PickerOption]
     var selectedText = "" {
         didSet {
             value = options.first(where: { $0.label == selectedText })?.value
         }
     }
 
-    override init(field: Field) {
-        if let fieldOptions = field.options {
-            options = fieldOptions
-        } else {
-            fatalError("Incorrect mapping, field does not have any options. \(field)")
-        }
-        super.init(field: field)
-        value = options.first(where: { $0.selected == true })?.value
-        selectedText = options.first(where: { $0.selected == true })?.label ?? ""
+    init(selectField: FormFieldSelect) {
+        options = selectField.options.map { PickerOption(value: $0.value, label: $0.label.value()) }
+        super.init(field: selectField)
+        let firstSelect = selectField.options.first(where: { $0.selected == true })
+        value = firstSelect?.value
+        selectedText = firstSelect?.label.value() ?? ""
     }
 
     override var textBinding: Binding<String> {
@@ -190,5 +178,10 @@ final class OptionsViewModel: FieldViewModel {
         }, set: { [unowned self] newValue in
             self.selectedText = newValue
         })
+    }
+
+    struct PickerOption: PickerOptionnable {
+        let value: String
+        let label: String
     }
 }

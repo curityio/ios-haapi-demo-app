@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+import HaapiModelsSDK
 import SwiftUI
 
 struct TokensView: View {
@@ -46,23 +47,12 @@ struct TokensView: View {
     }
 }
 
-struct AccessTokenView_Previews: PreviewProvider {
-    static var previews: some View {
-        TokensView(viewModel: TokensViewModel(OAuthTokenResponse(accessToken: "6adf18ca-9d77-4947-945d-c939c8890977",
-                                                                 tokenType: "bearer",
-                                                                 scope: nil,
-                                                                 expiresIn: 300,
-                                                                 refreshToken: "be9d3f8b-c18b-46b7-9asd-e0734d95c71d",
-                                                                 idToken: nil)))
-    }
-}
-
 // MARK: - AccessTokenViewModel
 
 struct TokensViewModel {
-    let oauthTokenResponse: OAuthTokenResponse
+    let oauthTokenResponse: TokenResponse
 
-    init(_ oauthTokenResponse: OAuthTokenResponse) {
+    init(_ oauthTokenResponse: TokenResponse) {
         self.oauthTokenResponse = oauthTokenResponse
     }
 
@@ -82,7 +72,7 @@ struct TokensViewModel {
     }
 
     var refreshToken: String {
-        return oauthTokenResponse.refreshToken
+        return oauthTokenResponse.refreshToken ?? ""
     }
 
     var idToken: String? {

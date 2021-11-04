@@ -15,10 +15,11 @@
 //
 import os
 import SwiftUI
+import HaapiModelsSDK
 
 struct PollingView: View {
-    @StateObject var viewModel: PollingViewModel
-    
+    @ObservedObject var viewModel: PollingViewModel
+
     var body: some View {
         VStack {
             if viewModel.pollingStatus != .done,
@@ -35,34 +36,14 @@ struct PollingView: View {
             if viewModel.automaticPolling, viewModel.pollingStatus == .pending {
                 ArcSpinner(color: Color.spotMagenta)
             }
-            if let formViewModel = viewModel.formViewModel {
-                FormView(formViewModel: formViewModel)
-            }
+            FormView(formViewModel: viewModel.formViewModel)
         }
         .onDisappear {
             viewModel.invalidate()
         }
-    }
-}
-
-// swiftlint:disable force_try force_unwrapping
-struct PollingView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            PollingView(viewModel: PollingViewModel(pollingStep: pollingStep,
-                                                    flowViewModel: FlowViewModel(controller: HaapiController())))
-            PollingView(viewModel: PollingViewModel(pollingStep: pollingStepDone,
-                                                    flowViewModel: FlowViewModel(controller: HaapiController())))
+        .onAppear {
+            viewModel.schedulePolling()
         }
-        .environmentObject(FlowViewModel(controller: HaapiController()))
-    }
-
-    static var pollingStep: PollingStep {
-        return PollingStep(try! Representation(Data(.pollingStep)))!
-    }
-
-    static var pollingStepDone: PollingStep {
-        return PollingStep(try! Representation(Data(.pollingStepDone)))!
     }
 }
 
@@ -71,23 +52,35 @@ class PollingViewModel: ObservableObject {
     @Published var pollingStatus: PollingStatus
     let automaticPolling: Bool
     let interval: TimeInterval
+    let formViewModel: FormViewModel
 
     private let scheduler = Scheduler()
     private var pollingStep: PollingStep
-    private weak var flowViewModel: FlowViewModelActionnable?
+    private weak var submitter: FlowViewModelSubmitable?
 
     init(pollingStep: PollingStep,
-         flowViewModel: FlowViewModelActionnable?,
+         submitter: FlowViewModelSubmitable,
          automaticPolling: Bool = false,
          interval: TimeInterval = 2)
     {
         self.pollingStep = pollingStep
-        self.flowViewModel = flowViewModel
+        self.submitter = submitter
 
-        self.pollingStatus = pollingStep.status
+        self.pollingStatus = pollingStep.pollingProperties.status
         self.automaticPolling = automaticPolling
         self.interval = interval
-        schedulePolling()
+
+        var formAction: FormAction
+        if let cancelAction = pollingStep.cancelAction {
+            formAction = cancelAction
+        } else {
+            formAction = pollingStep.mainAction
+        }
+
+        formViewModel = FormViewModel(formAction: formAction,
+                                      title: pollingStep.mainAction.title?.value(),
+                                      fieldViewModels: [],
+                                      submitter: submitter)
     }
 
     deinit {
@@ -98,73 +91,21 @@ class PollingViewModel: ObservableObject {
         scheduler.invalidate()
     }
 
-    var actions: [Action]? {
-        guard !pollingStep.auxiliaryActions.isEmpty else {
-            return nil
-        }
-        return pollingStep.auxiliaryActions
-    }
-
-    var formViewModel: FormViewModel? {
-        guard !pollingStep.auxiliaryActions.isEmpty else {
-            return nil
-        }
-
-        let result: FormViewModel?
-        if pollingStep.auxiliaryActions.count == 1,
-           let action = pollingStep.auxiliaryActions.first,
-           let formModel = action.model as? FormModel
-        {
-            result = FormViewModel(form: formModel,
-                                   action: action,
-                                   fieldViewModels: [],
-                                   flowViewModel: flowViewModel,
-                                   submitHandler: SubmitHandler(preSubmit: {
-                                    self.invalidate()
-                                   }, postSubmit: haapiCompletionHandler))
-        } else {
-            result = nil
-            Logger.clientApp.debug("Actions is not handled: \(self.pollingStep.auxiliaryActions)")
-        }
-
-        return result
-    }
-
-    lazy var haapiCompletionHandler: HaapiCompletionHandler = { [unowned self] result in
-        switch result {
-        case .problem(let problem):
-            Logger.clientApp.debug("A problem occurred when polling: \(problem)")
-        case .accessToken, .step, .systemError:
-            break
-        case .polling(let newStep):
-            if self.pollingStep != newStep {
-                self.pollingStep = newStep
-                self.pollingStatus = newStep.status
-            } else {
-                self.schedulePolling()
-            }
-        default:
-            self.schedulePolling()
-        }
-    }
-
     func polling() {
         invalidate()
 
-        guard pollingStatus == .pending,
-              let formModel = pollingStep.pollingForm
-        else {
-            Logger.clientApp.error("Invalid state: \(self.pollingStatus) - cancelling polling")
-            invalidate()
-            return
+        submitter?.submitForm(form: pollingStep.mainAction.model,
+                              parameterOverrides: [:])
+        {
+            DispatchQueue.main.async {
+                self.schedulePolling()
+            }
         }
-        flowViewModel?.submitForm(form: formModel,
-                                  completionHandler: haapiCompletionHandler)
     }
 
-    private func schedulePolling() {
-        guard automaticPolling else { return }
-        
+    func schedulePolling() {
+        guard pollingStep.pollingProperties.status == .pending, automaticPolling else { return }
+
         scheduler.schedule(withTimeInterval: interval) { [weak self] in
             self?.polling()
         }

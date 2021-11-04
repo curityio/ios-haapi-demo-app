@@ -54,20 +54,3 @@ struct StartAuthView_Previews: PreviewProvider {
         }
     }
 }
-
-struct MainView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            MainView(viewModel: FlowViewModel(controller: HaapiController()))
-                .previewDevice("iPod touch (7th generation)")
-                .preferredColorScheme(.dark)
-                .environmentObject(ImageLoader())
-                .environmentObject(ProfileManager())
-            MainView(viewModel: FlowViewModel(controller: HaapiController()))
-                .previewDevice("iPhone 12")
-                .preferredColorScheme(.dark)
-                .environmentObject(ImageLoader())
-                .environmentObject(ProfileManager())
-        }
-    }
-}

@@ -19,26 +19,26 @@ import XCTest
 
 class FieldTypeTests: XCTestCase {
 
-    func testFieldTypePassword() {
-        let fieldType = FieldType.password
-        do {
-            let data = try JSONEncoder().encode(fieldType)
-            let string = try JSONDecoder().decode(String.self, from: data)
-            XCTAssertEqual(string, fieldType.rawValue)
-        } catch {
-            XCTFail("Invalid flow: \(error.localizedDescription)")
-        }
-    }
-
-    func testFieldTypeUnkown() {
-        let fieldType = FieldType.unsupported(value: "Awesome value")
-        do {
-            let data = try JSONEncoder().encode(fieldType)
-            let string = try JSONDecoder().decode(String.self, from: data)
-            XCTAssertEqual(string, fieldType.rawValue)
-        } catch {
-            XCTFail("Invalid flow: \(error.localizedDescription)")
-        }
-    }
+//    func testFieldTypePassword() {
+//        let fieldType = FieldType.password
+//        do {
+//            let data = try JSONEncoder().encode(fieldType)
+//            let string = try JSONDecoder().decode(String.self, from: data)
+//            XCTAssertEqual(string, fieldType.rawValue)
+//        } catch {
+//            XCTFail("Invalid flow: \(error.localizedDescription)")
+//        }
+//    }
+//
+//    func testFieldTypeUnkown() {
+//        let fieldType = FieldType.unsupported(value: "Awesome value")
+//        do {
+//            let data = try JSONEncoder().encode(fieldType)
+//            let string = try JSONDecoder().decode(String.self, from: data)
+//            XCTAssertEqual(string, fieldType.rawValue)
+//        } catch {
+//            XCTFail("Invalid flow: \(error.localizedDescription)")
+//        }
+//    }
 
 }

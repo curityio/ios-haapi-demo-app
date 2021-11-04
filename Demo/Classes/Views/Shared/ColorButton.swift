@@ -68,7 +68,7 @@ struct ColorButton_Previews: PreviewProvider {
         Group {
             ColorButton(title: "Create an account", action: { _ in })
                 .preferredColorScheme(.light)
-        }.environmentObject(HaapiController())
+        }
     }
 }
 
