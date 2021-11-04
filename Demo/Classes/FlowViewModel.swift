@@ -19,14 +19,6 @@ import HaapiModelsSDK
 import os
 import UIKit
 
-protocol ApplyActionnable: AnyObject {
-    /// Applies an `Action`
-    func applyAction(_ action: Action)
-}
-
-/// A typealias that combines HaapiSubmitable & ApplyActionnable
-typealias FlowViewModelActionnable = HaapiSubmitable & ApplyActionnable
-
 protocol FlowViewModelSubmitable: AnyObject {
     func submitForm(form: FormActionModel,
                     parameterOverrides: [String: String],
@@ -48,6 +40,7 @@ protocol TokenServices: AnyObject {
  For UI layer and cusomization, check the viewModels or the following parameters : `FlowViewModel.messages`,
  `FlowViewModel.links`,  `FlowViewModel.title` or `FlowViewModel.imageLogo`.
  */
+// swiftlint:disable:next type_body_length
 final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServices {
 
     static let isProcessingNotification = NSNotification.Name("flowViewModel.isProcessing")
@@ -91,7 +84,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
     private(set) var title: String = ""
     private(set) var imageLogo = "Logo"
 
-    // MARK: ViewModels
+    // MARK: - ViewModels
 
     /// A `SelectorViewModel`is generated from `[Action]`. This ViewModel is used by a `SelectorView`.
     private(set) var selectorViewModel: SelectorViewModel?
@@ -110,7 +103,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         self.notificationCenter = notificationCenter
     }
 
-    // MARK: Callable methods
+    // MARK: - Process HaapiResult
 
     private func processHaapiResult(_ haapiResult: HaapiResult) {
         DispatchQueue.main.async {
@@ -124,7 +117,9 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
             DispatchQueue.main.async {
                 self.haapiRepresentation = representation
             }
-        case .operation(let operationStep): break
+        case .operation(let operationStep):
+            print(operationStep)
+            processOperationStep(operationStep)
         case .problem(let problemRepresentation):
             print(problemRepresentation)
             processProblemRepresentation(problemRepresentation)
@@ -133,6 +128,61 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                 self.error = ErrorInfo(title: "Unexpected error",
                                        reason: error.localizedDescription)
             }
+        }
+    }
+
+    private func openExternalApp(externalURL: URL,
+                                 succeedAction: FormAction?,
+                                 failedAction: FormAction?)
+    {
+        DispatchQueue.main.async {
+            UIApplication.shared.open(externalURL, options: [:]) { succeed in
+                if succeed {
+                    Logger.clientApp.debug("Did open external application")
+                    if let succeedAction = succeedAction {
+                        self.haapiManager?.applyFormAction(succeedAction,
+                                                           infoMessage: nil,
+                                                           completionHandler:
+                        { haapiResult in
+                            self.processHaapiResult(haapiResult)
+                        })
+                    }
+                } else {
+                    Logger.clientApp.debug("Cannot open external application")
+                    if let failedAction = failedAction {
+                        self.haapiManager?.applyFormAction(failedAction,
+                                                           infoMessage: "Cannot open an external application",
+                                                           completionHandler:
+                        { haapiResult in
+                            self.processHaapiResult(haapiResult)
+                        })
+                    }
+                }
+            }
+        }
+    }
+
+    private var pendingOperationStep: OperationStep?
+    private func processOperationStep(_ operationStep: OperationStep) {
+        pendingOperationStep = operationStep
+        switch operationStep {
+        case let externalBrowserStep as ExternalBrowserOperationStep:
+            guard let externalURL = externalBrowserStep.externalURL else {
+                Logger.clientApp.debug("No external URL")
+                return
+            }
+            openExternalApp(externalURL: externalURL,
+                            succeedAction: externalBrowserStep.succeedOpeningOperationAction,
+                            failedAction: externalBrowserStep.failedOpeninigOperationAction)
+        case let bankIdStep as BankIdOperationStep:
+            guard let bankIDURL = bankIdStep.externalURL else {
+                Logger.clientApp.debug("No external URL")
+                return
+            }
+            openExternalApp(externalURL: bankIDURL,
+                            succeedAction: bankIdStep.succeedOpeningOperationAction,
+                            failedAction: bankIdStep.failedOpeninigOperationAction)
+        default:break
         }
     }
 
@@ -223,6 +273,8 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         }
     }
 
+    // MARK: - Haapi Manager
+
     /**
      Starts the HaapiFlow according to the provided `Profile` and invokes the `completionHandler`.
      - Parameter profile: A `Profile` that contains the configurations for Haapi.
@@ -232,7 +284,9 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                completionHandler: @escaping (Bool) -> Void)
     {
         guard !isProcessing else { return }
-        isProcessing = true
+        DispatchQueue.main.async {
+            self.isProcessing = true
+        }
         guard let baseURL = URL(string: profile.baseURLString),
               let tokenEndpointURL = URL(string: profile.tokenEndpointURI),
               let authorizationEndpointURL = URL(string: profile.authorizationEndpointURI),
@@ -269,13 +323,6 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         }
     }
 
-    /// Resets the HaapiFlow by clearing the internal state and notify the controller to reset itself.
-    func reset() {
-        resetState()
-        haapiManager?.close()
-        haapiManager = nil
-    }
-
     /**
      Submits a `FormModel`with a dictionary `parameterOverrides` and invokes the `completionHandler`.
      - Parameter form: A `FormModel`
@@ -287,7 +334,9 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                     completionHandler: @escaping () -> Void)
     {
         guard !isProcessing else { return }
-        isProcessing = true
+        DispatchQueue.main.async {
+            self.isProcessing = true
+        }
 
         haapiManager?.submitForm(form,
                                  parameters: parameterOverrides,
@@ -305,7 +354,9 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
      */
     func followLink(link: Link) {
         guard !isProcessing else { return }
-        isProcessing = true
+        DispatchQueue.main.async {
+            self.isProcessing = true
+        }
 
         haapiManager?.followLink(link,
                                  completionHandler:
@@ -314,21 +365,36 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         })
     }
 
-    /// Applies an `Action` according to the user interaction.
-    func applyAction(_ action: Action) {
-        isProcessing = true
-//        processActions([action])
-//        if let actionTitle = action.title {
-//            title = actionTitle
-//        }
-        isProcessing = false
+    // MARK: - HaapiManager client operations
+
+    func canHandleURL(_ url: URL) -> Bool {
+        guard let haapiManager = haapiManager else { return false }
+
+        return haapiManager.canHandleURL(url)
+    }
+
+    func handleURL(_ url: URL) {
+        guard let haapiManager = haapiManager,
+              let extBrowserStep = pendingOperationStep as? ExternalBrowserOperationStep,
+              let continueAction = extBrowserStep.continueAction
+        else {
+            fatalError("There is no haapiManager - The flow was not started or canHandleURL was not called")
+        }
+        do {
+            let formattedParameters = try haapiManager.formattedParametersFromURL(url)
+            submitForm(form: continueAction.model, parameterOverrides: formattedParameters, completionHandler: {})
+        } catch {
+            fatalError(error.localizedDescription)
+        }
     }
 
     // MARK: Token service
 
     func fetchAccessToken(code: String) {
         guard !isProcessing else { return }
-        isProcessing = true
+        DispatchQueue.main.async {
+            self.isProcessing = true
+        }
 
         oauthTokenService?.fetchAccessToken(with: code,
                                             completionHandler:
@@ -342,7 +408,9 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
 
     func refreshAccessToken(refreshToken: String) {
         guard !isProcessing else { return }
-        isProcessing = true
+        DispatchQueue.main.async {
+            self.isProcessing = true
+        }
 
         oauthTokenService?.refreshAccessToken(with: refreshToken,
                                               completionHandler:
@@ -377,7 +445,14 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         }
     }
 
-    // MARK: Private
+    // MARK: Reset
+
+    /// Resets the HaapiFlow by clearing the internal state and notify the controller to reset itself.
+    func reset() {
+        resetState()
+        haapiManager?.close()
+        haapiManager = nil
+    }
 
     /// Resets the internal state of FlowViewModel
     private func resetState() {

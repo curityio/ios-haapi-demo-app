@@ -52,6 +52,7 @@ struct ColorButton: View {
 
     func didTapButton() {
         isSpinning = true
+        hideKeyboard()
         action(self)
     }
 }

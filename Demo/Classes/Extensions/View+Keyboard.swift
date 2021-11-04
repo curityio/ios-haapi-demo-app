@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2020 Curity AB.
+// Copyright (C) 2021 Curity AB.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
 //
 
 import Foundation
+import SwiftUI
 
-protocol HashIdentifiable: Identifiable {
-}
-
-extension HashIdentifiable where Self: RawRepresentable, Self: Hashable {
-    var id: Int {
-        hashValue
+extension View {
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                        to: nil,
+                                        from: nil,
+                                        for: nil)
     }
 }

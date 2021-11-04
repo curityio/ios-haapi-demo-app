@@ -21,7 +21,7 @@ import os
 struct MainView: View {
     @EnvironmentObject var profileManager: ProfileManager
     @EnvironmentObject var imageLoader: ImageLoader
-    @StateObject var viewModel: FlowViewModel
+    @ObservedObject var viewModel: FlowViewModel
     @State private var startFlow = false
     
     var body: some View {
@@ -53,5 +53,12 @@ struct MainView: View {
                     .environmentObject(viewModel)
                     .environmentObject(imageLoader)
                })
+        .alert(isPresented: Binding<Bool>.constant(viewModel.error != nil), content: {
+            Alert(
+                title: Text(viewModel.error?.title ?? ""),
+                message: Text(viewModel.error?.reason ?? ""),
+                dismissButton: .default(Text("Ok"), action: { viewModel.reset() })
+            )
+        })
     }
 }

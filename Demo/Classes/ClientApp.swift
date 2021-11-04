@@ -22,6 +22,7 @@ import HaapiModelsSDK
 
 @main
 struct ClientApp: App {
+    @StateObject var flowViewModel = FlowViewModel()
     @StateObject var profileManager = ProfileManager()
     @StateObject var imageLoader = ImageLoader(with: .dev)
     
@@ -31,7 +32,7 @@ struct ClientApp: App {
     
     var body: some Scene {
         WindowGroup {
-            MainView(viewModel: FlowViewModel())
+            MainView(viewModel: flowViewModel)
                 .environmentObject(profileManager)
                 .environmentObject(imageLoader)
                 .onOpenURL(perform: handleUrl)
@@ -40,6 +41,8 @@ struct ClientApp: App {
     
     func handleUrl(url: URL) {
         Logger.clientApp.debug("Incoming URL: \(url)")
-//        haapiController.handleURL(url)
+        if flowViewModel.canHandleURL(url) {
+            flowViewModel.handleURL(url)
+        }
     }
 }

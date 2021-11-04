@@ -28,7 +28,7 @@ struct LinkView: View {
     }
 
     var body: some View {
-        Button(action: viewModel.select) {
+        Button(action: didTapButton) {
             VStack {
                 if let image = viewModel.image {
                     Image(uiImage: image)
@@ -45,6 +45,11 @@ struct LinkView: View {
             }
         }
         .disabled(viewModel.isDisabled)
+    }
+
+    func didTapButton() {
+        hideKeyboard()
+        viewModel.select()
     }
 }
 
