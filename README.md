@@ -74,7 +74,7 @@ The above Curity Identity Server setup and connectivity from devices can be auto
 - Copy a license.json file into the code example root folder
 - Edit the `./start-idsvr.sh` script to use either a local Docker URL on an ngrok internet URL
 - Run the script to deploy a preconfigured Curity Identity Server via Docker
-- Build and run the mobile app from Android Studio
+- Build and run the mobile app from Xcode
 - Sign in with the preconfigured user account `demouser / Password1`
 - Run `./stop-idsvr.sh` when you want to free Docker resources
 
