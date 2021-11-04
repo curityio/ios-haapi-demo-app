@@ -35,14 +35,9 @@ if [ ! -d 'deployment' ]; then
 fi
 
 #
-# Copy resources
-#
-cp ./license.json      deployment/resources/license.json
-cp ./curity-config.xml deployment/resources/example-config.xml
-
-#
 # Run the deployment script to get an NGROK URL and deploy the Curity Identity Server 
 #
+cp ./license.json deployment/resources/license.json
 ./deployment/start.sh "$USE_NGROK" "$BASE_URL" "haapi"
 if [ $? -ne 0 ]; then
   echo 'Problem encountered deploying the Curity Identity Server'
