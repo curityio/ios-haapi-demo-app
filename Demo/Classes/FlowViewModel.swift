@@ -251,6 +251,13 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                 pollingViewModel = PollingViewModel(pollingStep: pollingStep,
                                                     submitter: self,
                                                     automaticPolling: profile?.automaticPolling == true)
+                if pollingStatus == .done,
+                    profile?.followRedirects == true
+                {
+                    submitForm(form: pollingStep.mainAction.model,
+                               parameterOverrides: [:],
+                               completionHandler: {})
+                }
             } else {
                 // swiftlint:disable:next line_length
                 Logger.controllerFlow.debug("Ignoring new polling step: \(pollingStep.pollingProperties.status.rawValue)")
