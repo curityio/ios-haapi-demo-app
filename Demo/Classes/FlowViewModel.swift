@@ -112,16 +112,16 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         
         switch haapiResult {
         case .representation(let representation):
-            print(representation)
+            Logger.controllerFlow.debug("Received a representation: \(String(describing: representation))")
             processHaapiRepresentation(representation)
             DispatchQueue.main.async {
                 self.haapiRepresentation = representation
             }
         case .operation(let operationStep):
-            print(operationStep)
+            Logger.controllerFlow.debug("Received an operation: \(String(describing: operationStep))")
             processOperationStep(operationStep)
         case .problem(let problemRepresentation):
-            print(problemRepresentation)
+            Logger.controllerFlow.debug("Received a problem: \(String(describing: problemRepresentation))")
             processProblemRepresentation(problemRepresentation)
         case .error(let error):
             DispatchQueue.main.async {
@@ -213,17 +213,21 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                                                 title: nil,
                                                 fieldViewModels: fieldViewModels,
                                                 submitter: self))
-        case is AuthenticationStep, is RegistrationStep:
+        case is AuthenticationStep, is RegistrationStep, is UserConsentStep:
             var shouldShowSectionTitle = false
             if representation.actions.count == 1 {
                 if let actionTitle = representation.actions.first?.title?.value() {
                     title = actionTitle
                 } else {
-                    title = representation is AuthenticationStep ? "Authentication" : "Registration"
+                    title = representation is AuthenticationStep
+                    ? "Authentication" : representation is RegistrationStep
+                    ? "Registration" : "User consent"
                 }
             } else {
                 shouldShowSectionTitle = true
-                title = representation is AuthenticationStep ? "Authentication" : "Registration"
+                title = representation is AuthenticationStep
+                ? "Authentication" : representation is RegistrationStep
+                ? "Registration" : "User consent"
             }
             representation.actions.forEach { action in
                 guard let formAction = action as? FormAction else { return }
@@ -434,7 +438,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         formViewModels.removeAll()
         authorizedViewModel = nil
 
-        print(oAuthResponse)
+        Logger.controllerFlow.debug("Received an OAuthResponse: \(String(describing: oAuthResponse))")
         switch oAuthResponse {
         case .token(let tokenResponse):
             title = "Success"

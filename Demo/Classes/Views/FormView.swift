@@ -57,18 +57,12 @@ struct FormView: View {
     }
 }
 
-struct SubmitHandler {
-    var preSubmit: (() -> Void)?
-    var postSubmit: HaapiCompletionHandler?
-}
-
 // MARK: - FormViewModel
 
 class FormViewModel: NSObject, ObservableObject {
 
     private var formAction: FormAction
     private weak var submitter: FlowViewModelSubmitable?
-    private var submitHandler: SubmitHandler?
 
     private var observers = [NSObjectProtocol]()
     private let notificationCenter: NotificationCenter
@@ -83,13 +77,11 @@ class FormViewModel: NSObject, ObservableObject {
          title: String?,
          fieldViewModels: [FieldViewModel],
          submitter: FlowViewModelSubmitable,
-         submitHandler: SubmitHandler? = nil,
          notificationCenter: NotificationCenter = .default)
     {
         self.formAction = formAction
         self.fieldViewModels = fieldViewModels
         self.submitter = submitter
-        self.submitHandler = submitHandler
         self.notificationCenter = notificationCenter
         self.title = title
 
@@ -146,15 +138,10 @@ class FormViewModel: NSObject, ObservableObject {
         {
             completion()
         }
-//        submitHandler?.preSubmit?()
-//
-//        if fieldViewModels.isEmpty && form.hasEditableFields  {
-//            flowViewModel?.applyAction(action)
-//            completion?()
-//        }
     }
 
     private func processProblem(_ problem: ProblemRepresentation) {
+        guard !fieldViewModels.isEmpty else { return }
         fieldViewModels.forEach {
             $0.isDisabled = false
             $0.invalidField = nil

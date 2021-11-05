@@ -118,9 +118,7 @@ final class CheckboxViewModel: FieldViewModel {
         onValue = checkboxField.value ?? ""
         super.init(field: checkboxField)
         checked = checkboxField.checked
-        if !checked {
-            value = nil
-        }
+        value = checked ? onValue : nil
     }
 
     var isReadOnly: Bool {
