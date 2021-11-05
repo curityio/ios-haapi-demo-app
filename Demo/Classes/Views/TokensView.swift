@@ -19,9 +19,12 @@ import SwiftUI
 
 struct TokensView: View {
     let viewModel: TokensViewModel
+    let presentationMode: Binding<PresentationMode>
 
-    init(viewModel: TokensViewModel) {
+    init(viewModel: TokensViewModel,
+         presentationMode: Binding<PresentationMode>) {
         self.viewModel = viewModel
+        self.presentationMode = presentationMode
     }
 
     var body: some View {
@@ -43,6 +46,16 @@ struct TokensView: View {
             DisclosureView(title: "Refresh Token") {
                 DisclosureContentView(text: viewModel.refreshToken)
             }
+
+            ColorButton(title: "Refresh token") { btn in
+                viewModel.requestRefreshToken()
+                btn.reset()
+            }
+
+            ColorButton(title: "Sign out") { btn in
+                presentationMode.wrappedValue.dismiss()
+                btn.reset()
+            }
         }
     }
 }
@@ -51,9 +64,13 @@ struct TokensView: View {
 
 struct TokensViewModel {
     let oauthTokenResponse: TokenResponse
+    let tokenServices: TokenServices
 
-    init(_ oauthTokenResponse: TokenResponse) {
+    init(_ oauthTokenResponse: TokenResponse,
+         tokenServices: TokenServices)
+    {
         self.oauthTokenResponse = oauthTokenResponse
+        self.tokenServices = tokenServices
     }
 
     var accessToken: String {
@@ -77,5 +94,9 @@ struct TokensViewModel {
 
     var idToken: String? {
         return oauthTokenResponse.idToken
+    }
+
+    func requestRefreshToken() {
+        tokenServices.refreshAccessToken(refreshToken: refreshToken)
     }
 }

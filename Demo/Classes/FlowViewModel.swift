@@ -431,7 +431,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         switch oAuthResponse {
         case .token(let tokenResponse):
             title = "Success"
-            tokensViewModel = TokensViewModel(tokenResponse)
+            tokensViewModel = TokensViewModel(tokenResponse, tokenServices: self)
         case .invalid(let invalidTokenResponse):
             DispatchQueue.main.async {
                 self.error = ErrorInfo(title: invalidTokenResponse.error,
