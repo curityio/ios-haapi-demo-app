@@ -155,6 +155,11 @@ class FormViewModel: NSObject, ObservableObject {
     }
 
     private func processProblem(_ problem: ProblemRepresentation) {
+        fieldViewModels.forEach {
+            $0.isDisabled = false
+            $0.invalidField = nil
+        }
+
         var problemMessageBundle = problem.messages.map {
             ProblemMessageBundle(text: $0.text.value(),
                                  messageType: $0.messageType)
@@ -164,11 +169,6 @@ class FormViewModel: NSObject, ObservableObject {
             problemViewModel = ProblemViewModel(title: problem.title,
                                                 messages: problemMessageBundle)
             return
-        }
-
-        fieldViewModels.forEach {
-            $0.isDisabled = false
-            $0.invalidField = nil
         }
 
         invalidInputProblem.invalidFields.forEach { invalidField in
