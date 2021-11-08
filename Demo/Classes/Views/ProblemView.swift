@@ -22,10 +22,12 @@ struct ProblemView: View {
 
     var body: some View {
         VStack {
-            Text(viewModel.title)
-                .foregroundColor(.error)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding([.top, .bottom], 11)
+            if let title = viewModel.title {
+                Text(title)
+                    .foregroundColor(.error)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding([.top, .bottom], 11)
+            }
 
             if let messages = viewModel.messages {
                 VStack {
@@ -57,7 +59,7 @@ struct ProblemView_Previews: PreviewProvider {
 // MARK: - ProblemViewModel
 
 struct ProblemViewModel {
-    let title: String
+    let title: String?
     let messages: [ProblemMessageBundle]
 }
 
