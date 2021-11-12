@@ -208,8 +208,8 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                                                   submitter: self)
         case let redirectionStep as RedirectionStep:
             title = "Redirection"
-            let fieldViewModels = redirectionStep.actionForm.model.fields.visibleFieldViewModel
-            formViewModels.append(FormViewModel(formAction: redirectionStep.actionForm,
+            let fieldViewModels = redirectionStep.redirectAction.model.fields.visibleFieldViewModel
+            formViewModels.append(FormViewModel(formAction: redirectionStep.redirectAction,
                                                 title: nil,
                                                 fieldViewModels: fieldViewModels,
                                                 submitter: self))

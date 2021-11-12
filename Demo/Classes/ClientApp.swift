@@ -15,7 +15,6 @@
 //
 
 import Foundation
-import IdsvrHaapiSdk
 import os
 import SwiftUI
 import HaapiModelsSDK

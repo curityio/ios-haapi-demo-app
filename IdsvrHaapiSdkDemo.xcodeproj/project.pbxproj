@@ -166,13 +166,9 @@
 		66994DA82615015500880758 /* oauthAuthorizationResponse.json in Resources */ = {isa = PBXBuildFile; fileRef = 6604F50D2603AD78001AFCEB /* oauthAuthorizationResponse.json */; };
 		66994DA92615015500880758 /* duo.json in Resources */ = {isa = PBXBuildFile; fileRef = 6604F5072603AD53001AFCEB /* duo.json */; };
 		66994DAA2615015500880758 /* bankIdSameDeviceClientOperation.json in Resources */ = {isa = PBXBuildFile; fileRef = 6604F4F52603ACED001AFCEB /* bankIdSameDeviceClientOperation.json */; };
-		66994DD32615025D00880758 /* IdsvrHaapiSdk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66994DD22615025D00880758 /* IdsvrHaapiSdk.framework */; };
-		66994DD42615025D00880758 /* IdsvrHaapiSdk.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 66994DD22615025D00880758 /* IdsvrHaapiSdk.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		669FADA8263FF33C00BC4293 /* Bundle+HaapiRedirect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669FADA7263FF33C00BC4293 /* Bundle+HaapiRedirect.swift */; };
 		66A34AD427316B10003BBC7C /* HaapiModelsSDK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66A34AC927316A32003BBC7C /* HaapiModelsSDK.xcframework */; };
 		66A34AD527316B10003BBC7C /* HaapiModelsSDK.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 66A34AC927316A32003BBC7C /* HaapiModelsSDK.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		66A34AD627317362003BBC7C /* IdsvrHaapiSdk.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66A34AD027316AD3003BBC7C /* IdsvrHaapiSdk.xcframework */; };
-		66A34AD727317362003BBC7C /* IdsvrHaapiSdk.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 66A34AD027316AD3003BBC7C /* IdsvrHaapiSdk.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		66A34AD927329CEF003BBC7C /* HaapiLink+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A34AD827329CEF003BBC7C /* HaapiLink+Helpers.swift */; };
 		66A34ADA27329CEF003BBC7C /* HaapiLink+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A34AD827329CEF003BBC7C /* HaapiLink+Helpers.swift */; };
 		66A34ADC2732A66C003BBC7C /* UserMessage+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A34ADB2732A66C003BBC7C /* UserMessage+Helpers.swift */; };
@@ -230,7 +226,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				66994DD42615025D00880758 /* IdsvrHaapiSdk.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -242,7 +237,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				66A34AD527316B10003BBC7C /* HaapiModelsSDK.xcframework in Embed Frameworks */,
-				66A34AD727317362003BBC7C /* IdsvrHaapiSdk.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -250,8 +244,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		04F70F46257A929D009470E1 /* IdsvrHaapiSdk.xcframework.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; name = IdsvrHaapiSdk.xcframework.zip; path = ../../../../Downloads/IdsvrHaapiSdk.xcframework.zip; sourceTree = "<group>"; };
-		04F70F4E257A92C8009470E1 /* IdsvrHaapiSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = IdsvrHaapiSdk.xcframework; path = ../../../../Downloads/IdsvrHaapiSdk.xcframework; sourceTree = "<group>"; };
 		04FB0E8B2577B3CD003E8479 /* RepresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepresentationTests.swift; sourceTree = "<group>"; };
 		1BB29325255BE0EB0091ABDC /* IdsvrHaapiSdkDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IdsvrHaapiSdkDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1BB2933B255BE0EC0091ABDC /* IdsvrHaapiSdkDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IdsvrHaapiSdkDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -326,10 +318,8 @@
 		6687552E265507A30039EA45 /* AuthenticationsIcons.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = AuthenticationsIcons.xcassets; sourceTree = "<group>"; };
 		669877E4264C10C200D8C377 /* UIConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIConstants.swift; sourceTree = "<group>"; };
 		66994DAE2615015500880758 /* Debug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Debug.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		66994DD22615025D00880758 /* IdsvrHaapiSdk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = IdsvrHaapiSdk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		669FADA7263FF33C00BC4293 /* Bundle+HaapiRedirect.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+HaapiRedirect.swift"; sourceTree = "<group>"; };
 		66A34AC927316A32003BBC7C /* HaapiModelsSDK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = HaapiModelsSDK.xcframework; path = "../ios-cat/build/HaapiModelsSDK.xcframework"; sourceTree = "<group>"; };
-		66A34AD027316AD3003BBC7C /* IdsvrHaapiSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = IdsvrHaapiSdk.xcframework; path = "../ios-cat/build/IdsvrHaapiSdk.xcframework"; sourceTree = "<group>"; };
 		66A34AD827329CEF003BBC7C /* HaapiLink+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HaapiLink+Helpers.swift"; sourceTree = "<group>"; };
 		66A34ADB2732A66C003BBC7C /* UserMessage+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserMessage+Helpers.swift"; sourceTree = "<group>"; };
 		66B3BB5B260106E3001355C2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -366,7 +356,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				66A34AD427316B10003BBC7C /* HaapiModelsSDK.xcframework in Frameworks */,
-				66A34AD627317362003BBC7C /* IdsvrHaapiSdk.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -388,7 +377,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				66994DD32615025D00880758 /* IdsvrHaapiSdk.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -460,11 +448,7 @@
 		1BB29360255BE14D0091ABDC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				66A34AD027316AD3003BBC7C /* IdsvrHaapiSdk.xcframework */,
 				66A34AC927316A32003BBC7C /* HaapiModelsSDK.xcframework */,
-				66994DD22615025D00880758 /* IdsvrHaapiSdk.framework */,
-				04F70F4E257A92C8009470E1 /* IdsvrHaapiSdk.xcframework */,
-				04F70F46257A929D009470E1 /* IdsvrHaapiSdk.xcframework.zip */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
