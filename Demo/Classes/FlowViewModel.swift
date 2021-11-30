@@ -15,7 +15,7 @@
 //
 
 import Foundation
-import HaapiModelsSDK
+import IdsvrHaapiSdk
 import os
 import UIKit
 
@@ -66,7 +66,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
 
     // MARK: Configurations
     private var haapiManager: HaapiManager?
-    private var oauthTokenService: OAuthTokenService?
+    private var oauthTokenManager: OAuthTokenManager?
     private var profile: Profile?
 
     private let notificationCenter: NotificationCenter
@@ -77,7 +77,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
 
     var messageBundles: [MessageBundle] {
         return haapiRepresentation?.messages.map {
-            MessageBundle(text: $0.text.value(), messageType: $0.messageType)
+            MessageBundle(text: $0.text.literal, messageType: $0.messageType)
         } ?? []
     }
 
@@ -120,6 +120,9 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         case .operation(let operationStep):
             Logger.controllerFlow.debug("Received an operation: \(String(describing: operationStep))")
             processOperationStep(operationStep)
+            DispatchQueue.main.async {
+                self.haapiRepresentation = operationStep
+            }
         case .problem(let problemRepresentation):
             Logger.controllerFlow.debug("Received a problem: \(String(describing: problemRepresentation))")
             processProblemRepresentation(problemRepresentation)
@@ -131,34 +134,31 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         }
     }
 
-    private func openExternalApp(externalURL: URL,
-                                 succeedAction: FormAction?,
-                                 failedAction: FormAction?)
+    private func prepareFormViewModelsForActions(_ actions: [Action],
+                                                 defaultTitle: String)
     {
-        DispatchQueue.main.async {
-            UIApplication.shared.open(externalURL, options: [:]) { succeed in
-                if succeed {
-                    Logger.clientApp.debug("Did open external application")
-                    if let succeedAction = succeedAction {
-                        self.haapiManager?.applyFormAction(succeedAction,
-                                                           infoMessage: nil,
-                                                           completionHandler:
-                        { haapiResult in
-                            self.processHaapiResult(haapiResult)
-                        })
-                    }
-                } else {
-                    Logger.clientApp.debug("Cannot open external application")
-                    if let failedAction = failedAction {
-                        self.haapiManager?.applyFormAction(failedAction,
-                                                           infoMessage: "Cannot open an external application",
-                                                           completionHandler:
-                        { haapiResult in
-                            self.processHaapiResult(haapiResult)
-                        })
-                    }
-                }
+        selectorViewModel = nil
+        formViewModels.removeAll()
+        authorizedViewModel = nil
+
+        var shouldShowSectionTitle = false
+        if actions.count == 1 {
+            if let actionTitle = actions.first?.title?.literal {
+                title = actionTitle
+            } else {
+                title = defaultTitle
             }
+        } else {
+            shouldShowSectionTitle = true
+            title = defaultTitle
+        }
+        actions.forEach { action in
+            guard let formAction = action as? FormAction else { return }
+            let fieldViewModels = formAction.model.fields.visibleFieldViewModel
+            formViewModels.append(FormViewModel(formAction: formAction,
+                                                title: shouldShowSectionTitle ? formAction.title?.literal : nil,
+                                                fieldViewModels: fieldViewModels,
+                                                submitter: self))
         }
     }
 
@@ -167,21 +167,41 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         pendingOperationStep = operationStep
         switch operationStep {
         case let externalBrowserStep as ExternalBrowserOperationStep:
-            guard let externalURL = externalBrowserStep.externalURL else {
+            guard let redirect = Bundle.main.haapiRedirectURI,
+                    let externalURL = externalBrowserStep.urlToLaunch(redirectTo: redirect)
+            else {
                 Logger.clientApp.debug("No external URL")
                 return
             }
-            openExternalApp(externalURL: externalURL,
-                            succeedAction: externalBrowserStep.succeedOpeningOperationAction,
-                            failedAction: externalBrowserStep.failedOpeninigOperationAction)
+            DispatchQueue.main.async {
+                UIApplication.shared.open(externalURL, options: [:]) { succeed in
+                    if succeed {
+                        self.prepareFormViewModelsForActions(externalBrowserStep.actionsToPresent,
+                                                             defaultTitle: "External browser operation")
+                    } else {
+                        self.error = ErrorInfo(title: "No available web browser",
+                                               reason: "A web browser is required")
+                    }
+                }
+            }
         case let bankIdStep as BankIdOperationStep:
-            guard let bankIDURL = bankIdStep.externalURL else {
+            guard let redirect = Bundle.main.haapiRedirectURI,
+                  let bankIDURL = bankIdStep.urlToLaunch(redirectTo: redirect) else {
                 Logger.clientApp.debug("No external URL")
                 return
             }
-            openExternalApp(externalURL: bankIDURL,
-                            succeedAction: bankIdStep.succeedOpeningOperationAction,
-                            failedAction: bankIdStep.failedOpeninigOperationAction)
+            DispatchQueue.main.async {
+                UIApplication.shared.open(bankIDURL, options: [:]) { succeed in
+                    if succeed {
+                        self.prepareFormViewModelsForActions(bankIdStep.continueActions,
+                                                             defaultTitle: "Bank ID operation")
+                    } else {
+                        self.prepareFormViewModelsForActions(bankIdStep.errorActions,
+                                                             defaultTitle: "Bank ID operation error")
+                    }
+                }
+            }
+
         default:break
         }
     }
@@ -198,10 +218,10 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
 
         switch representation {
         case let selectorStep as AuthenticatorSelectorStep:
-            title = selectorStep.title.value()
+            title = selectorStep.title.literal
             let options = selectorStep.authenticators.map { authOption in
                 SelectorViewModel.SelectorOption(imageName: authOption.imageName,
-                                                 title: authOption.title.value(),
+                                                 title: authOption.title.literal,
                                                  formActionModel: authOption.action.model)
             }
             selectorViewModel = SelectorViewModel(options: options,
@@ -213,14 +233,14 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                                                 title: nil,
                                                 fieldViewModels: fieldViewModels,
                                                 submitter: self))
-        case is AuthenticationStep, is RegistrationStep, is UserConsentStep:
+        case let interactiveFormStep as InteractiveFormStep:
             var shouldShowSectionTitle = false
-            if representation.actions.count == 1 {
-                if let actionTitle = representation.actions.first?.title?.value() {
+            if interactiveFormStep.actions.count == 1 {
+                if let actionTitle = interactiveFormStep.actions.first?.title?.literal {
                     title = actionTitle
                 } else {
-                    title = representation is AuthenticationStep
-                    ? "Authentication" : representation is RegistrationStep
+                    title = interactiveFormStep.type == .authenticationStep
+                    ? "Authentication" : interactiveFormStep.type == .registrationStep
                     ? "Registration" : "User consent"
                 }
             } else {
@@ -229,11 +249,33 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                 ? "Authentication" : representation is RegistrationStep
                 ? "Registration" : "User consent"
             }
-            representation.actions.forEach { action in
+
+            interactiveFormStep.actions.forEach { formAction in
+                let fieldViewModels = formAction.model.fields.visibleFieldViewModel
+                formViewModels.append(FormViewModel(formAction: formAction,
+                                                    title: shouldShowSectionTitle ? formAction.title?.literal : nil,
+                                                    fieldViewModels: fieldViewModels,
+                                                    submitter: self))
+            }
+        case is AuthenticationStep, is RegistrationStep:
+            Logger.clientApp.debug("AuthenticationStep and RegistrationStep are not handled")
+        case let userConsentStep as UserConsentStep:
+            var shouldShowSectionTitle = false
+            if userConsentStep.actions.count == 1 {
+                if let actionTitle = userConsentStep.actions.first?.title?.literal {
+                    title = actionTitle
+                } else {
+                    title = "User consent"
+                }
+            } else {
+                shouldShowSectionTitle = true
+                title = "User consent"
+            }
+            userConsentStep.actions.forEach { action in
                 guard let formAction = action as? FormAction else { return }
                 let fieldViewModels = formAction.model.fields.visibleFieldViewModel
                 formViewModels.append(FormViewModel(formAction: formAction,
-                                                    title: shouldShowSectionTitle ? formAction.title?.value() : nil,
+                                                    title: shouldShowSectionTitle ? formAction.title?.literal : nil,
                                                     fieldViewModels: fieldViewModels,
                                                     submitter: self))
             }
@@ -317,13 +359,14 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                                                     authorizationEndpointURL: authorizationEndpointURL,
                                                     appRedirectURIString: appRedirect,
                                                     isAutoRedirect: profile.followRedirects,
-                                                    scopes: profile.selectedScopes ?? [],
                                                     urlSession: urlSession)
 
         haapiManager = HaapiManager(haapiConfiguration: haapiConfiguration)
-        oauthTokenService = OAuthTokenService(haapiConfiguration: haapiConfiguration)
+        oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: haapiConfiguration)
 
-        haapiManager?.start{ haapiResult in
+        haapiManager?.start(OAuthAuthorizationParameters(scopes: profile.selectedScopes ?? []),
+                            completionHandler:
+        { haapiResult in
             self.processHaapiResult(haapiResult)
             switch haapiResult {
             case .error, .problem:
@@ -331,7 +374,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
             default:
                 completionHandler(true)
             }
-        }
+        })
     }
 
     /**
@@ -379,24 +422,24 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
     // MARK: - HaapiManager client operations
 
     func canHandleURL(_ url: URL) -> Bool {
-        guard let haapiManager = haapiManager else { return false }
-
-        return haapiManager.canHandleURL(url)
+        if let externalBrowser = pendingOperationStep as? ExternalBrowserOperationStep {
+            return (try? externalBrowser.formattedParametersFromURL(url)) != nil
+        } else {
+            return false
+        }
     }
 
     func handleURL(_ url: URL) {
-        guard let haapiManager = haapiManager,
-              let extBrowserStep = pendingOperationStep as? ExternalBrowserOperationStep,
-              let continueAction = extBrowserStep.continueAction
+        guard haapiManager != nil,
+              let externalBrowserStep = pendingOperationStep as? ExternalBrowserOperationStep,
+              let formattedParameters = try? externalBrowserStep.formattedParametersFromURL(url)
         else {
             fatalError("There is no haapiManager - The flow was not started or canHandleURL was not called")
         }
-        do {
-            let formattedParameters = try haapiManager.formattedParametersFromURL(url)
-            submitForm(form: continueAction.model, parameterOverrides: formattedParameters, completionHandler: {})
-        } catch {
-            fatalError(error.localizedDescription)
-        }
+
+        submitForm(form: externalBrowserStep.continueFormActionModel,
+                   parameterOverrides: formattedParameters,
+                   completionHandler: {})
     }
 
     // MARK: Token service
@@ -407,7 +450,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
             self.isProcessing = true
         }
 
-        oauthTokenService?.fetchAccessToken(with: code,
+        oauthTokenManager?.fetchAccessToken(with: code,
                                             completionHandler:
         { oAuthResponse in
             DispatchQueue.main.async {
@@ -423,7 +466,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
             self.isProcessing = true
         }
 
-        oauthTokenService?.refreshAccessToken(with: refreshToken,
+        oauthTokenManager?.refreshAccessToken(with: refreshToken,
                                               completionHandler:
         { oAuthResponse in
             DispatchQueue.main.async {
@@ -509,7 +552,7 @@ private extension AuthenticatorSelectorStep.AuthenticatorOption {
 
 private extension Array where Element == FormField {
     var visibleFormField: [FormField] {
-        return filter { $0.type != .hidden }
+        return filter { !($0 is FormFieldHidden) }
     }
 
     var visibleFieldViewModel: [FieldViewModel] {

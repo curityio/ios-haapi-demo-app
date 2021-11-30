@@ -15,7 +15,7 @@
 //
 
 import SwiftUI
-import HaapiModelsSDK
+import IdsvrHaapiSdk
 
 struct ProblemView: View {
     let viewModel: ProblemViewModel

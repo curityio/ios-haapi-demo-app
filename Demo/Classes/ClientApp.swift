@@ -17,7 +17,7 @@
 import Foundation
 import os
 import SwiftUI
-import HaapiModelsSDK
+import IdsvrHaapiSdk
 
 @main
 struct ClientApp: App {

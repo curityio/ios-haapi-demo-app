@@ -15,7 +15,7 @@
 //
 import os
 import SwiftUI
-import HaapiModelsSDK
+import IdsvrHaapiSdk
 
 struct PollingView: View {
     @ObservedObject var viewModel: PollingViewModel
@@ -78,7 +78,7 @@ class PollingViewModel: ObservableObject {
         }
 
         formViewModel = FormViewModel(formAction: formAction,
-                                      title: pollingStep.mainAction.title?.value(),
+                                      title: pollingStep.mainAction.title?.literal,
                                       fieldViewModels: [],
                                       submitter: submitter)
     }

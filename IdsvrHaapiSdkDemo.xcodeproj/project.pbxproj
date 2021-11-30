@@ -83,6 +83,8 @@
 		661C1139260D0324008FDAEE /* metaDataResponse.json in Resources */ = {isa = PBXBuildFile; fileRef = 661C1138260D0324008FDAEE /* metaDataResponse.json */; };
 		6621880E273494380075F503 /* View+Keyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6621880D273494380075F503 /* View+Keyboard.swift */; };
 		6621880F273494380075F503 /* View+Keyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6621880D273494380075F503 /* View+Keyboard.swift */; };
+		6626A3B9274BBAD30041A946 /* IdsvrHaapiSdk.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6626A3B8274BBAD30041A946 /* IdsvrHaapiSdk.xcframework */; };
+		6626A3BA274BBAD30041A946 /* IdsvrHaapiSdk.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6626A3B8274BBAD30041A946 /* IdsvrHaapiSdk.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		662807DA260B479000D4017C /* ProfileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662807D9260B479000D4017C /* ProfileManager.swift */; };
 		662807DF260B47CA00D4017C /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662807DE260B47CA00D4017C /* ProfileViewModel.swift */; };
 		662807E4260B4D0500D4017C /* CTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 662807E3260B4D0500D4017C /* CTextField.swift */; };
@@ -167,8 +169,6 @@
 		66994DA92615015500880758 /* duo.json in Resources */ = {isa = PBXBuildFile; fileRef = 6604F5072603AD53001AFCEB /* duo.json */; };
 		66994DAA2615015500880758 /* bankIdSameDeviceClientOperation.json in Resources */ = {isa = PBXBuildFile; fileRef = 6604F4F52603ACED001AFCEB /* bankIdSameDeviceClientOperation.json */; };
 		669FADA8263FF33C00BC4293 /* Bundle+HaapiRedirect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669FADA7263FF33C00BC4293 /* Bundle+HaapiRedirect.swift */; };
-		66A34AD427316B10003BBC7C /* HaapiModelsSDK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66A34AC927316A32003BBC7C /* HaapiModelsSDK.xcframework */; };
-		66A34AD527316B10003BBC7C /* HaapiModelsSDK.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 66A34AC927316A32003BBC7C /* HaapiModelsSDK.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		66A34AD927329CEF003BBC7C /* HaapiLink+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A34AD827329CEF003BBC7C /* HaapiLink+Helpers.swift */; };
 		66A34ADA27329CEF003BBC7C /* HaapiLink+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A34AD827329CEF003BBC7C /* HaapiLink+Helpers.swift */; };
 		66A34ADC2732A66C003BBC7C /* UserMessage+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A34ADB2732A66C003BBC7C /* UserMessage+Helpers.swift */; };
@@ -220,23 +220,23 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		6626A3BB274BBAD30041A946 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				6626A3BA274BBAD30041A946 /* IdsvrHaapiSdk.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		66994DD52615025D00880758 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		66A34AD327316AD3003BBC7C /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				66A34AD527316B10003BBC7C /* HaapiModelsSDK.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -296,6 +296,7 @@
 		661C112F260CFE4D008FDAEE /* ProfileViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModelTests.swift; sourceTree = "<group>"; };
 		661C1138260D0324008FDAEE /* metaDataResponse.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = metaDataResponse.json; sourceTree = "<group>"; };
 		6621880D273494380075F503 /* View+Keyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Keyboard.swift"; sourceTree = "<group>"; };
+		6626A3B8274BBAD30041A946 /* IdsvrHaapiSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = IdsvrHaapiSdk.xcframework; path = "../ios-cat/build/IdsvrHaapiSdk.xcframework"; sourceTree = "<group>"; };
 		662807D9260B479000D4017C /* ProfileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileManager.swift; sourceTree = "<group>"; };
 		662807DE260B47CA00D4017C /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		662807E3260B4D0500D4017C /* CTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CTextField.swift; sourceTree = "<group>"; };
@@ -319,7 +320,6 @@
 		669877E4264C10C200D8C377 /* UIConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIConstants.swift; sourceTree = "<group>"; };
 		66994DAE2615015500880758 /* Debug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Debug.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		669FADA7263FF33C00BC4293 /* Bundle+HaapiRedirect.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+HaapiRedirect.swift"; sourceTree = "<group>"; };
-		66A34AC927316A32003BBC7C /* HaapiModelsSDK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = HaapiModelsSDK.xcframework; path = "../ios-cat/build/HaapiModelsSDK.xcframework"; sourceTree = "<group>"; };
 		66A34AD827329CEF003BBC7C /* HaapiLink+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HaapiLink+Helpers.swift"; sourceTree = "<group>"; };
 		66A34ADB2732A66C003BBC7C /* UserMessage+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserMessage+Helpers.swift"; sourceTree = "<group>"; };
 		66B3BB5B260106E3001355C2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -355,7 +355,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				66A34AD427316B10003BBC7C /* HaapiModelsSDK.xcframework in Frameworks */,
+				6626A3B9274BBAD30041A946 /* IdsvrHaapiSdk.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -448,7 +448,7 @@
 		1BB29360255BE14D0091ABDC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				66A34AC927316A32003BBC7C /* HaapiModelsSDK.xcframework */,
+				6626A3B8274BBAD30041A946 /* IdsvrHaapiSdk.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -616,7 +616,7 @@
 				1BB29321255BE0EB0091ABDC /* Sources */,
 				1BB29322255BE0EB0091ABDC /* Frameworks */,
 				1BB29323255BE0EB0091ABDC /* Resources */,
-				66A34AD327316AD3003BBC7C /* Embed Frameworks */,
+				6626A3BB274BBAD30041A946 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);

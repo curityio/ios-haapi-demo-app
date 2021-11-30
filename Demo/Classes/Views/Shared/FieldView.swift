@@ -15,7 +15,7 @@
 //
 
 import SwiftUI
-import HaapiModelsSDK
+import IdsvrHaapiSdk
 
 struct FieldView: View {
     @EnvironmentObject var viewModel: FieldViewModel
@@ -71,7 +71,7 @@ class FieldViewModel: ObservableObject, Hashable {
     }
 
     var label: String {
-        return field.label?.value() ?? ""
+        return field.label?.literal ?? ""
     }
 
     var textBinding: Binding<String> {
@@ -87,7 +87,7 @@ class FieldViewModel: ObservableObject, Hashable {
     }
 
     final var textInputConfiguration: TextInputConfiguration {
-        return field.type == .password ? .password : .default
+        return (field is FormFieldPassword) ? .password : .default
     }
 
     // MARK: Hashable
@@ -163,11 +163,11 @@ final class OptionsViewModel: FieldViewModel {
     }
 
     init(selectField: FormFieldSelect) {
-        options = selectField.options.map { PickerOption(value: $0.value, label: $0.label.value()) }
+        options = selectField.options.map { PickerOption(value: $0.value, label: $0.label.literal) }
         super.init(field: selectField)
         let firstSelect = selectField.options.first(where: { $0.selected == true })
         value = firstSelect?.value
-        selectedText = firstSelect?.label.value() ?? ""
+        selectedText = firstSelect?.label.literal ?? ""
     }
 
     override var textBinding: Binding<String> {

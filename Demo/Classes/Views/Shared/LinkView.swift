@@ -17,7 +17,7 @@
 import SwiftUI
 import Combine
 import os
-import HaapiModelsSDK
+import IdsvrHaapiSdk
 
 struct LinkView: View {
     @ObservedObject var viewModel: LinkViewModel
@@ -63,7 +63,7 @@ struct LinkView_Previews: PreviewProvider {
       "title": "Scan the code in BankID security app"
     }
 """
-        let link3 = link3Json.decodedAsJson(as: HaapiModelsSDK.Link.self)!
+        let link3 = link3Json.decodedAsJson(as: IdsvrHaapiSdk.Link.self)!
 
         let link4Json = """
     {
@@ -72,7 +72,7 @@ struct LinkView_Previews: PreviewProvider {
       "type": "image/png"
     }
 """
-        let link4 = link4Json.decodedAsJson(as: HaapiModelsSDK.Link.self)!
+        let link4 = link4Json.decodedAsJson(as: IdsvrHaapiSdk.Link.self)!
 
         Group {
             LinkView(viewModel: LinkViewModel(link: link3,
@@ -90,16 +90,16 @@ struct LinkView_Previews: PreviewProvider {
 
 class LinkViewModel: ObservableObject {
 
-    let link: HaapiModelsSDK.Link
+    let link: IdsvrHaapiSdk.Link
     let imageLoader: ImageLoader
-    let selectHandler: (HaapiModelsSDK.Link) -> Void
+    let selectHandler: (IdsvrHaapiSdk.Link) -> Void
 
     @Published var image: UIImage?
     private var subscriber: AnyCancellable?
 
-    init(link: HaapiModelsSDK.Link,
+    init(link: IdsvrHaapiSdk.Link,
          imageLoader: ImageLoader,
-         selectHandler: @escaping (HaapiModelsSDK.Link) -> Void)
+         selectHandler: @escaping (IdsvrHaapiSdk.Link) -> Void)
     {
         self.link = link
 
@@ -117,7 +117,7 @@ class LinkViewModel: ObservableObject {
     var title: String? {
         let result: String?
         if let linkTitle = link.title {
-            result = linkTitle.value()
+            result = linkTitle.literal
         } else {
             if isDataType {
                 result = nil

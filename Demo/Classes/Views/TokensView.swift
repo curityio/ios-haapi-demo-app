@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-import HaapiModelsSDK
+import IdsvrHaapiSdk
 import SwiftUI
 
 struct TokensView: View {

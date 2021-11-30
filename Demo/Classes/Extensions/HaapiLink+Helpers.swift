@@ -15,7 +15,7 @@
 //
 
 import UIKit
-import HaapiModelsSDK
+import IdsvrHaapiSdk
 
 enum LinkHrefDataType: Equatable {
     case data

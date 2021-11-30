@@ -15,7 +15,7 @@
 //
 
 import SwiftUI
-import HaapiModelsSDK
+import IdsvrHaapiSdk
 
 extension UserMessage {
 

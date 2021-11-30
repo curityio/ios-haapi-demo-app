@@ -15,7 +15,7 @@
 //
 
 import SwiftUI
-import HaapiModelsSDK
+import IdsvrHaapiSdk
 
 struct StateView: View {
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
@@ -117,7 +117,7 @@ struct StateView: View {
 // MARK: - UI Models helpers
 
 struct LinkBundle: Identifiable {
-    let link: HaapiModelsSDK.Link
+    let link: IdsvrHaapiSdk.Link
 
     var id: String {
         return link.href

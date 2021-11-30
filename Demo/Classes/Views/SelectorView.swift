@@ -16,7 +16,7 @@
 
 import SwiftUI
 import os
-import HaapiModelsSDK
+import IdsvrHaapiSdk
 
 struct SelectorView: View {
     @ObservedObject var viewModel: SelectorViewModel

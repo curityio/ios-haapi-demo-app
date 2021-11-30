@@ -15,7 +15,7 @@
 //
 
 import SwiftUI
-import HaapiModelsSDK
+import IdsvrHaapiSdk
 
 struct FormView: View {
     @ObservedObject var formViewModel: FormViewModel
@@ -112,7 +112,7 @@ class FormViewModel: NSObject, ObservableObject {
     }
 
     var actionTitle: String {
-        return formAction.model.actionTitle?.value() ?? "Submit"
+        return formAction.model.actionTitle?.literal ?? "Submit"
     }
 
     var header: String? {
@@ -148,7 +148,7 @@ class FormViewModel: NSObject, ObservableObject {
         }
 
         var problemMessageBundle = problem.messages.map {
-            ProblemMessageBundle(text: $0.text.value(),
+            ProblemMessageBundle(text: $0.text.literal,
                                  messageType: $0.messageType)
         }
 
