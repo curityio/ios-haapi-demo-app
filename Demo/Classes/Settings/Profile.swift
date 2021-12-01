@@ -16,6 +16,7 @@
 
 import Foundation
 import SwiftUI
+import IdsvrHaapiSdk
 
 struct Profile: Codable, Identifiable, Hashable {
 
@@ -97,5 +98,39 @@ extension Profile {
         Profile(name: "New Profile (\(val))",
                 clientId: Constants.defaultClientId,
                 baseURLString: Constants.defaultBaseURLString)
+    }
+
+    var haapiConfiguration: HaapiConfiguration? {
+        guard let baseURL = URL(string: baseURLString),
+              let tokenEndpointURL = URL(string: tokenEndpointURI),
+              let authorizationEndpointURL = URL(string: authorizationEndpointURI),
+              let appRedirect = Bundle.main.haapiRedirectURI else
+        {
+            return nil
+        }
+
+        let urlSession = URLSession(configuration: URLSessionConfiguration.haapiFlow,
+                                    delegate: isDefaultAuthChallengeEnabled ? nil : TrustAllCertsDelegate(),
+                                    delegateQueue: nil)
+        return HaapiConfiguration(name: name,
+                                  clientId: clientId,
+                                  baseURL: baseURL,
+                                  tokenEndpointURL: tokenEndpointURL,
+                                  authorizationEndpointURL: authorizationEndpointURL,
+                                  appRedirectURIString: appRedirect,
+                                  isAutoRedirect: followRedirects,
+                                  urlSession: urlSession)
+    }
+}
+
+private extension URLSessionConfiguration {
+
+    static var haapiFlow: URLSessionConfiguration {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 20.0
+        configuration.timeoutIntervalForResource = 20.0
+        configuration.waitsForConnectivity = false
+
+        return configuration
     }
 }

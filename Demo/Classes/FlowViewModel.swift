@@ -27,7 +27,6 @@ protocol FlowViewModelSubmitable: AnyObject {
 
 protocol TokenServices: AnyObject {
     func fetchAccessToken(code: String)
-    func refreshAccessToken(refreshToken: String)
 }
 
 /**
@@ -55,14 +54,15 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         }
     }
 
-    @Published var haapiRepresentation: HaapiRepresentation?
-    @Published var problemRepresentation: ProblemRepresentation? {
+    @Published private(set) var haapiRepresentation: HaapiRepresentation?
+    @Published private(set) var problemRepresentation: ProblemRepresentation? {
         didSet {
             notificationCenter.post(name: Self.problemRepresentationNotification,
                                     object: problemRepresentation)
         }
     }
-    @Published var error: ErrorInfo?
+    @Published private(set) var error: ErrorInfo?
+    @Published private(set) var tokenResponse: TokenResponse?
 
     // MARK: Configurations
     private var haapiManager: HaapiManager?
@@ -94,8 +94,6 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
     private(set) var pollingViewModel: PollingViewModel?
     /// An `AuthorizedViewModel`is generated when HaapiState is `authorizationResponse`. This ViewModel is used by an `AuthorizedView`.
     private(set) var authorizedViewModel: AuthorizedViewModel?
-    /// A `TokensViewModel`is generated when HaapiState is `accessToken`. This ViewModel is used by a `TokensView`.
-    private(set) var tokensViewModel: TokensViewModel?
 
     // MARK: Init & Deinit
 
@@ -340,26 +338,11 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         DispatchQueue.main.async {
             self.isProcessing = true
         }
-        guard let baseURL = URL(string: profile.baseURLString),
-              let tokenEndpointURL = URL(string: profile.tokenEndpointURI),
-              let authorizationEndpointURL = URL(string: profile.authorizationEndpointURI),
-              let appRedirect = Bundle.main.haapiRedirectURI else
-        {
+        guard let haapiConfiguration = profile.haapiConfiguration else {
             completionHandler(false)
             return
         }
         self.profile = profile
-        let urlSession = URLSession(configuration: URLSessionConfiguration.haapiFlow,
-                                    delegate: profile.isDefaultAuthChallengeEnabled ? nil : TrustAllCertsDelegate(),
-                                    delegateQueue: nil)
-        let haapiConfiguration = HaapiConfiguration(name: profile.name,
-                                                    clientId: profile.clientId,
-                                                    baseURL: baseURL,
-                                                    tokenEndpointURL: tokenEndpointURL,
-                                                    authorizationEndpointURL: authorizationEndpointURL,
-                                                    appRedirectURIString: appRedirect,
-                                                    isAutoRedirect: profile.followRedirects,
-                                                    urlSession: urlSession)
 
         haapiManager = HaapiManager(haapiConfiguration: haapiConfiguration)
         oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: haapiConfiguration)
@@ -460,22 +443,6 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         })
     }
 
-    func refreshAccessToken(refreshToken: String) {
-        guard !isProcessing else { return }
-        DispatchQueue.main.async {
-            self.isProcessing = true
-        }
-
-        oauthTokenManager?.refreshAccessToken(with: refreshToken,
-                                              completionHandler:
-        { oAuthResponse in
-            DispatchQueue.main.async {
-                self.processOAuthResponse(oAuthResponse)
-                self.isProcessing = false
-            }
-        })
-    }
-
     private func processOAuthResponse(_ oAuthResponse: OAuthResponse) {
         selectorViewModel = nil
         formViewModels.removeAll()
@@ -485,7 +452,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         switch oAuthResponse {
         case .token(let tokenResponse):
             title = "Success"
-            tokensViewModel = TokensViewModel(tokenResponse, tokenServices: self)
+            self.tokenResponse = tokenResponse
         case .invalid(let invalidTokenResponse):
             DispatchQueue.main.async {
                 self.error = ErrorInfo(title: invalidTokenResponse.error,
@@ -506,6 +473,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         resetState()
         haapiManager?.close()
         haapiManager = nil
+        oauthTokenManager = nil
     }
 
     /// Resets the internal state of FlowViewModel
@@ -518,23 +486,14 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         selectorViewModel = nil
         formViewModels.removeAll()
         authorizedViewModel = nil
-        tokensViewModel = nil
+    }
+
+    func clearTokenResponse() {
+        tokenResponse = nil
     }
 }
 
 // MARK: - Private helpers
-
-private extension URLSessionConfiguration {
-
-    static var haapiFlow: URLSessionConfiguration {
-        let configuration = URLSessionConfiguration.default
-        configuration.timeoutIntervalForRequest = 20.0
-        configuration.timeoutIntervalForResource = 20.0
-        configuration.waitsForConnectivity = false
-
-        return configuration
-    }
-}
 
 private let defaultImageName = "icon-user"
 private extension AuthenticatorSelectorStep.AuthenticatorOption {

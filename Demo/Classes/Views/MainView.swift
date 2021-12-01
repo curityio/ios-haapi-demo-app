@@ -19,10 +19,12 @@ import UIKit
 import os
 
 struct MainView: View {
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @EnvironmentObject var profileManager: ProfileManager
     @EnvironmentObject var imageLoader: ImageLoader
     @ObservedObject var viewModel: FlowViewModel
     @State private var startFlow = false
+    @State private var canOpenToken = false
     
     var body: some View {
         TabView {
@@ -46,13 +48,30 @@ struct MainView: View {
         .accentColor(.spotMagenta)
         .sheet(isPresented: $startFlow,
                onDismiss: {
-                viewModel.reset()
+                  canOpenToken = viewModel.tokenResponse != nil
+                  viewModel.reset()
                },
                content: {
-                StateView()
-                    .environmentObject(viewModel)
-                    .environmentObject(imageLoader)
+                  StateView()
+                     .environmentObject(viewModel)
+                     .environmentObject(imageLoader)
                })
+        .fullScreenCover(isPresented: Binding<Bool>.constant(viewModel.tokenResponse != nil && canOpenToken),
+                         onDismiss: {
+                            canOpenToken = false
+                         },
+                         content: {
+                            if let tokenResponse = viewModel.tokenResponse,
+                               let haapiConfiguration = profileManager.activeProfile.haapiConfiguration
+                            {
+                                TokensView(viewModel: TokensViewModel(tokenResponse,
+                                                                      oauthTokenConfiguration: haapiConfiguration,
+                                                                      urlSession: haapiConfiguration.urlSession))
+                                    .environmentObject(viewModel)
+                            } else {
+                                EmptyView()
+                            }
+                         })
         .alert(isPresented: Binding<Bool>.constant(viewModel.error != nil), content: {
             Alert(
                 title: Text(viewModel.error?.title ?? ""),

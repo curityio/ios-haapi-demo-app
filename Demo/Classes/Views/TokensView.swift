@@ -18,59 +18,91 @@ import IdsvrHaapiSdk
 import SwiftUI
 
 struct TokensView: View {
-    let viewModel: TokensViewModel
-    let presentationMode: Binding<PresentationMode>
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+    @EnvironmentObject var flowViewModel: FlowViewModel
+    
+    @ObservedObject var viewModel: TokensViewModel
 
-    init(viewModel: TokensViewModel,
-         presentationMode: Binding<PresentationMode>) {
+    init(viewModel: TokensViewModel) {
         self.viewModel = viewModel
-        self.presentationMode = presentationMode
     }
 
     var body: some View {
-        VStack {
-            Image("Checkmark")
-                .padding()
-            // Access Token
-            DisclosureView(title: "Access token") {
-                DisclosureContentView(text: viewModel.accessToken,
-                                      details: viewModel.details)
-            }
-            // ID Token
-            if let idToken = viewModel.idToken {
-                DisclosureView(title: "ID Token") {
-                    DisclosureContentView(text: idToken)
+        ScrollView {
+            VStack {
+                HStack(alignment: .bottom) {
+                    Spacer()
+                    Button(action: {
+                        flowViewModel.clearTokenResponse()
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Image(systemName: "xmark")
+                    }
+                    .padding([.leading, .top, .bottom])
+                    .padding([.trailing], 4)
+                    .accentColor(.textHeadings)
+                }
+                Image("Checkmark")
+                    .padding()
+
+                if let userInfo = viewModel.userInfo {
+                    Text(userInfo)
+                }
+
+                // Access Token
+                DisclosureView(title: "Access token") {
+                    DisclosureContentView(text: viewModel.accessToken,
+                                          details: viewModel.details)
+                }
+                // ID Token
+                if let idToken = viewModel.idToken {
+                    DisclosureView(title: "ID Token") {
+                        DisclosureContentView(text: idToken)
+                    }
+                }
+                // Refresh Token
+                DisclosureView(title: "Refresh Token") {
+                    DisclosureContentView(text: viewModel.refreshToken)
+                }
+
+                ColorButton(title: "Refresh token") { btn in
+                    viewModel.requestRefreshToken()
+                    btn.reset()
+                }
+
+                ColorButton(title: "Sign out") { btn in
+                    flowViewModel.clearTokenResponse()
+                    presentationMode.wrappedValue.dismiss()
+                    btn.reset()
                 }
             }
-            // Refresh Token
-            DisclosureView(title: "Refresh Token") {
-                DisclosureContentView(text: viewModel.refreshToken)
-            }
-
-            ColorButton(title: "Refresh token") { btn in
-                viewModel.requestRefreshToken()
-                btn.reset()
-            }
-
-            ColorButton(title: "Sign out") { btn in
-                presentationMode.wrappedValue.dismiss()
-                btn.reset()
-            }
+            .padding([.top, .bottom], 32)
+            .paddingContentView()
         }
     }
 }
 
 // MARK: - AccessTokenViewModel
 
-struct TokensViewModel {
-    let oauthTokenResponse: TokenResponse
-    let tokenServices: TokenServices
+final class TokensViewModel: ObservableObject {
+
+    @Published private(set) var oauthTokenResponse: TokenResponse
+    @Published private(set) var userInfo: String?
+    let oauthTokenManager: OAuthTokenManager
+    let urlSession: URLSession
+    let tokenEndpointURL: URL
 
     init(_ oauthTokenResponse: TokenResponse,
-         tokenServices: TokenServices)
+         oauthTokenConfiguration: OAuthTokenConfigurable,
+         urlSession: URLSession)
     {
         self.oauthTokenResponse = oauthTokenResponse
-        self.tokenServices = tokenServices
+        self.oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: oauthTokenConfiguration)
+        self.urlSession = urlSession
+        self.tokenEndpointURL = oauthTokenConfiguration.tokenEndpointURL
+            .deletingLastPathComponent().appendingPathComponent("userinfo")
+
+        fetchUserInfo()
     }
 
     var accessToken: String {
@@ -97,6 +129,40 @@ struct TokensViewModel {
     }
 
     func requestRefreshToken() {
-        tokenServices.refreshAccessToken(refreshToken: refreshToken)
+        guard let refreshToken = oauthTokenResponse.refreshToken else { return }
+        oauthTokenManager.refreshAccessToken(with: refreshToken) { oAuthResponse in
+            if case let .token(tokenResponse) = oAuthResponse {
+                DispatchQueue.main.async {
+                    self.oauthTokenResponse = tokenResponse
+                    self.fetchUserInfo()
+                }
+            }
+        }
+    }
+
+    private func fetchUserInfo() {
+        var urlRequest = URLRequest(url: tokenEndpointURL,
+                                    cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
+                                    timeoutInterval: 20)
+        urlRequest.httpMethod = "GET"
+        urlRequest.addValue("bearer \(oauthTokenResponse.accessToken)", forHTTPHeaderField: "Authorization")
+        urlSession.dataTask(with: urlRequest) { [weak self] data, _, error in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                guard error == nil, let data = data else {
+                    self.userInfo = nil
+                    return
+                }
+
+                guard let userInfo = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
+                    self.userInfo = nil
+                    return
+                }
+
+                self.userInfo = userInfo.description
+            }
+        }
+        .resume()
     }
 }

@@ -79,6 +79,11 @@ struct StateView: View {
                 })
             )
         })
+        .onChange(of: flowViewModel.tokenResponse) { arg in
+            if arg != nil {
+                presentationMode.wrappedValue.dismiss()
+            }
+        }
     }
 
     @ViewBuilder
@@ -104,8 +109,6 @@ struct StateView: View {
             }
         } else if let authorizedViewModel = flowViewModel.authorizedViewModel {
             AuthorizedView(viewModel: authorizedViewModel)
-        } else if let tokensViewModel = flowViewModel.tokensViewModel {
-            TokensView(viewModel: tokensViewModel, presentationMode: presentationMode)
         } else if let pollingViewModel = flowViewModel.pollingViewModel {
             PollingView(viewModel: pollingViewModel)
         } else {
