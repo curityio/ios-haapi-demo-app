@@ -153,17 +153,17 @@ class FormViewModel: NSObject, ObservableObject {
         }
 
         guard let invalidInputProblem = problem as? InvalidInputProblem else {
-            problemViewModel = ProblemViewModel(title: problem.title,
+            problemViewModel = ProblemViewModel(title: problem.title?.literal,
                                                 messages: problemMessageBundle)
             return
         }
 
         invalidInputProblem.invalidFields.forEach { invalidField in
-            problemMessageBundle.append(ProblemMessageBundle(text: invalidField.detail, messageType: .error))
+            problemMessageBundle.append(ProblemMessageBundle(text: invalidField.detail.literal, messageType: .error))
             self.fieldViewModels.first { $0.name == invalidField.name }?.invalidField = invalidField
         }
 
-        problemViewModel = ProblemViewModel(title: problem.title,
+        problemViewModel = ProblemViewModel(title: problem.title?.literal,
                                             messages: problemMessageBundle)
     }
 }

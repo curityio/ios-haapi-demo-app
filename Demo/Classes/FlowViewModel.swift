@@ -315,7 +315,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         case let authorizationProblem as AuthorizationProblem:
             DispatchQueue.main.async {
                 self.error = ErrorInfo(title: authorizationProblem.error,
-                                       reason: authorizationProblem.errorDescription)
+                                       reason: authorizationProblem.errorDescription ?? authorizationProblem.error)
             }
         default:
             DispatchQueue.main.async {
