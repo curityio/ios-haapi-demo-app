@@ -111,7 +111,10 @@ struct StateView: View {
             AuthorizedView(viewModel: authorizedViewModel)
         } else if let pollingViewModel = flowViewModel.pollingViewModel {
             PollingView(viewModel: pollingViewModel)
-        } else {
+        } else if let genericHaapiViewModel = flowViewModel.genericHaapiViewModel {
+            GenericHaapiView(viewModel: genericHaapiViewModel)
+        }
+        else {
             EmptyView()
         }
     }

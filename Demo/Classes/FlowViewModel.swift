@@ -94,6 +94,8 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
     private(set) var pollingViewModel: PollingViewModel?
     /// An `AuthorizedViewModel`is generated when HaapiState is `authorizationResponse`. This ViewModel is used by an `AuthorizedView`.
     private(set) var authorizedViewModel: AuthorizedViewModel?
+    /// A `GenericHaapiViewModel` for a GenericRepresentationStep
+    private(set) var genericHaapiViewModel: GenericHaapiViewModel?
 
     // MARK: Init & Deinit
 
@@ -138,6 +140,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         selectorViewModel = nil
         formViewModels.removeAll()
         authorizedViewModel = nil
+        genericHaapiViewModel = nil
 
         var shouldShowSectionTitle = false
         if actions.count == 1 {
@@ -209,6 +212,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         selectorViewModel = nil
         formViewModels.removeAll()
         authorizedViewModel = nil
+        genericHaapiViewModel = nil
 
         if !(representation is PollingStep) {
             pollingViewModel = nil
@@ -243,8 +247,8 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                 }
             } else {
                 shouldShowSectionTitle = true
-                title = representation is AuthenticationStep
-                ? "Authentication" : representation is RegistrationStep
+                title = representation.type == .authenticationStep
+                ? "Authentication" : representation.type == .registrationStep
                 ? "Registration" : "User consent"
             }
 
@@ -255,8 +259,6 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                                                     fieldViewModels: fieldViewModels,
                                                     submitter: self))
             }
-        case is AuthenticationStep, is RegistrationStep:
-            Logger.clientApp.debug("AuthenticationStep and RegistrationStep are not handled")
         case let userConsentStep as UserConsentStep:
             var shouldShowSectionTitle = false
             if userConsentStep.actions.count == 1 {
@@ -306,6 +308,14 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                 // swiftlint:disable:next line_length
                 Logger.controllerFlow.debug("Ignoring new polling step: \(pollingStep.pollingProperties.status.rawValue)")
             }
+        case let genericRepresentationStep as GenericRepresentationStep:
+            if genericRepresentationStep.actions.count == 1 {
+                title = genericRepresentationStep.actions.first?.title?.literal ?? "Generic step"
+            } else {
+                title = "Generic step"
+            }
+            genericHaapiViewModel = GenericHaapiViewModel(genericRepresentationStep: genericRepresentationStep,
+                                                          submitter: self)
         default: break
         }
     }
@@ -447,6 +457,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         selectorViewModel = nil
         formViewModels.removeAll()
         authorizedViewModel = nil
+        genericHaapiViewModel = nil
 
         Logger.controllerFlow.debug("Received an OAuthResponse: \(String(describing: oAuthResponse))")
         switch oAuthResponse {
@@ -486,6 +497,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         selectorViewModel = nil
         formViewModels.removeAll()
         authorizedViewModel = nil
+        genericHaapiViewModel = nil
     }
 
     func clearTokenResponse() {
@@ -509,7 +521,7 @@ private extension AuthenticatorSelectorStep.AuthenticatorOption {
     }
 }
 
-private extension Array where Element == FormField {
+extension Array where Element == FormField {
     var visibleFormField: [FormField] {
         return filter { !($0 is FormFieldHidden) }
     }
