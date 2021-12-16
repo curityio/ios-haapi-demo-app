@@ -163,11 +163,11 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         }
     }
 
-    private var pendingOperationStep: OperationStep?
-    private func processOperationStep(_ operationStep: OperationStep) {
+    private var pendingOperationStep: ClientOperationStep?
+    private func processOperationStep(_ operationStep: ClientOperationStep) {
         pendingOperationStep = operationStep
         switch operationStep {
-        case let externalBrowserStep as ExternalBrowserOperationStep:
+        case let externalBrowserStep as ExternalBrowserClientOperationStep:
             guard let redirect = Bundle.main.haapiRedirectURI,
                     let externalURL = externalBrowserStep.urlToLaunch(redirectTo: redirect)
             else {
@@ -185,7 +185,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                     }
                 }
             }
-        case let bankIdStep as BankIdOperationStep:
+        case let bankIdStep as BankIdClientOperationStep:
             guard let redirect = Bundle.main.haapiRedirectURI,
                   let bankIDURL = bankIdStep.urlToLaunch(redirectTo: redirect) else {
                 Logger.clientApp.debug("No external URL")
@@ -415,7 +415,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
     // MARK: - HaapiManager client operations
 
     func canHandleURL(_ url: URL) -> Bool {
-        if let externalBrowser = pendingOperationStep as? ExternalBrowserOperationStep {
+        if let externalBrowser = pendingOperationStep as? ExternalBrowserClientOperationStep {
             return (try? externalBrowser.formattedParametersFromURL(url)) != nil
         } else {
             return false
@@ -424,7 +424,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
 
     func handleURL(_ url: URL) {
         guard haapiManager != nil,
-              let externalBrowserStep = pendingOperationStep as? ExternalBrowserOperationStep,
+              let externalBrowserStep = pendingOperationStep as? ExternalBrowserClientOperationStep,
               let formattedParameters = try? externalBrowserStep.formattedParametersFromURL(url)
         else {
             fatalError("There is no haapiManager - The flow was not started or canHandleURL was not called")
