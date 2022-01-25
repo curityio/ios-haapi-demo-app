@@ -62,7 +62,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         }
     }
     @Published private(set) var error: ErrorInfo?
-    @Published private(set) var tokenResponse: TokenResponse?
+    @Published private(set) var tokenResponse: SuccessfulTokenResponse?
 
     // MARK: Configurations
     private var haapiManager: HaapiManager?
@@ -112,16 +112,18 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         
         switch haapiResult {
         case .representation(let representation):
-            Logger.controllerFlow.debug("Received a representation: \(String(describing: representation))")
-            processHaapiRepresentation(representation)
-            DispatchQueue.main.async {
-                self.haapiRepresentation = representation
-            }
-        case .operation(let operationStep):
-            Logger.controllerFlow.debug("Received an operation: \(String(describing: operationStep))")
-            processOperationStep(operationStep)
-            DispatchQueue.main.async {
-                self.haapiRepresentation = operationStep
+            if let clientOperationStep = representation as? ClientOperationStep {
+                Logger.controllerFlow.debug("Received an operation: \(String(describing: clientOperationStep))")
+                processOperationStep(clientOperationStep)
+                DispatchQueue.main.async {
+                    self.haapiRepresentation = clientOperationStep
+                }
+            } else {
+                Logger.controllerFlow.debug("Received a representation: \(String(describing: representation))")
+                processHaapiRepresentation(representation)
+                DispatchQueue.main.async {
+                    self.haapiRepresentation = representation
+                }
             }
         case .problem(let problemRepresentation):
             Logger.controllerFlow.debug("Received a problem: \(String(describing: problemRepresentation))")
@@ -453,7 +455,7 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         })
     }
 
-    private func processOAuthResponse(_ oAuthResponse: OAuthResponse) {
+    private func processOAuthResponse(_ oAuthResponse: TokenResponse) {
         selectorViewModel = nil
         formViewModels.removeAll()
         authorizedViewModel = nil
@@ -461,13 +463,13 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
 
         Logger.controllerFlow.debug("Received an OAuthResponse: \(String(describing: oAuthResponse))")
         switch oAuthResponse {
-        case .token(let tokenResponse):
+        case .successfulToken(let successfulTokenResponse):
             title = "Success"
-            self.tokenResponse = tokenResponse
-        case .invalid(let invalidTokenResponse):
+            self.tokenResponse = successfulTokenResponse
+        case .errorToken(let errorTokenResponse):
             DispatchQueue.main.async {
-                self.error = ErrorInfo(title: invalidTokenResponse.error,
-                                       reason: invalidTokenResponse.errorDescription)
+                self.error = ErrorInfo(title: errorTokenResponse.error,
+                                       reason: errorTokenResponse.errorDescription)
             }
         case .error(let error):
             DispatchQueue.main.async {
@@ -523,14 +525,14 @@ private extension AuthenticatorSelectorStep.AuthenticatorOption {
 
 extension Array where Element == FormField {
     var visibleFormField: [FormField] {
-        return filter { !($0 is FormFieldHidden) }
+        return filter { !($0 is HiddenFormField) }
     }
 
     var visibleFieldViewModel: [FieldViewModel] {
         return visibleFormField.map {
-            if let formFieldCheckbox = $0 as? FormFieldCheckbox{
+            if let formFieldCheckbox = $0 as? CheckboxFormField{
                 return CheckboxViewModel(checkboxField: formFieldCheckbox)
-            } else if let formFieldSelect = $0 as? FormFieldSelect {
+            } else if let formFieldSelect = $0 as? SelectFormField {
                 return OptionsViewModel(selectField: formFieldSelect)
             } else {
                 return FieldViewModel(field: $0)

@@ -59,7 +59,7 @@ class FieldViewModel: ObservableObject, Hashable {
 
     init(field: FormField) {
         self.field = field
-        if let textField = field as? FormFieldText {
+        if let textField = field as? TextFormField {
             value = textField.value
         } else {
             value = nil
@@ -87,7 +87,7 @@ class FieldViewModel: ObservableObject, Hashable {
     }
 
     final var textInputConfiguration: TextInputConfiguration {
-        return (field is FormFieldPassword) ? .password : .default
+        return (field is PasswordFormField) ? .password : .default
     }
 
     // MARK: Hashable
@@ -114,7 +114,7 @@ final class CheckboxViewModel: FieldViewModel {
     /// Reference value to pass to the server. With this value, the server considers a checkbox value as `true`.
     private let onValue: String
 
-    init(checkboxField: FormFieldCheckbox) {
+    init(checkboxField: CheckboxFormField) {
         onValue = checkboxField.value ?? ""
         super.init(field: checkboxField)
         checked = checkboxField.checked
@@ -123,7 +123,7 @@ final class CheckboxViewModel: FieldViewModel {
 
     var isReadOnly: Bool {
         // swiftlint:disable:next force_cast
-        return (field as! FormFieldCheckbox).readonly
+        return (field as! CheckboxFormField).readonly
     }
 
     var boolBinding: Binding<Bool> {
@@ -162,7 +162,7 @@ final class OptionsViewModel: FieldViewModel {
         }
     }
 
-    init(selectField: FormFieldSelect) {
+    init(selectField: SelectFormField) {
         options = selectField.options.map { PickerOption(value: $0.value, label: $0.label.literal) }
         super.init(field: selectField)
         let firstSelect = selectField.options.first(where: { $0.selected == true })

@@ -117,7 +117,7 @@ extension Profile {
                                   baseURL: baseURL,
                                   tokenEndpointURL: tokenEndpointURL,
                                   authorizationEndpointURL: authorizationEndpointURL,
-                                  appRedirectURIString: appRedirect,
+                                  appRedirect: appRedirect,
                                   isAutoRedirect: followRedirects,
                                   urlSession: urlSession)
     }

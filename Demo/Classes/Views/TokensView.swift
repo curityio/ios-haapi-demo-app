@@ -86,13 +86,13 @@ struct TokensView: View {
 
 final class TokensViewModel: ObservableObject {
 
-    @Published private(set) var oauthTokenResponse: TokenResponse
+    @Published private(set) var oauthTokenResponse: SuccessfulTokenResponse
     @Published private(set) var userInfo: String?
     let oauthTokenManager: OAuthTokenManager
     let urlSession: URLSession
     let tokenEndpointURL: URL
 
-    init(_ oauthTokenResponse: TokenResponse,
+    init(_ oauthTokenResponse: SuccessfulTokenResponse,
          oauthTokenConfiguration: OAuthTokenConfigurable,
          urlSession: URLSession)
     {
@@ -131,7 +131,7 @@ final class TokensViewModel: ObservableObject {
     func requestRefreshToken() {
         guard let refreshToken = oauthTokenResponse.refreshToken else { return }
         oauthTokenManager.refreshAccessToken(with: refreshToken) { oAuthResponse in
-            if case let .token(tokenResponse) = oAuthResponse {
+            if case let .successfulToken(tokenResponse) = oAuthResponse {
                 DispatchQueue.main.async {
                     self.oauthTokenResponse = tokenResponse
                     self.fetchUserInfo()
