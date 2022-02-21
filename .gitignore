@@ -50,3 +50,7 @@ Gemfile.lock
 /derivedData
 /reports
 /logs
+
+### Deployment files ###
+deployment
+license.json
