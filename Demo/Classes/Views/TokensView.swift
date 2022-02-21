@@ -90,17 +90,17 @@ final class TokensViewModel: ObservableObject {
     @Published private(set) var userInfo: String?
     let oauthTokenManager: OAuthTokenManager
     let urlSession: URLSession
-    let tokenEndpointURL: URL
+    let userinfoEndpointURL: URL?
 
     init(_ oauthTokenResponse: SuccessfulTokenResponse,
          oauthTokenConfiguration: OAuthTokenConfigurable,
+         userinfoEndpointURL: String,
          urlSession: URLSession)
     {
         self.oauthTokenResponse = oauthTokenResponse
         self.oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: oauthTokenConfiguration)
         self.urlSession = urlSession
-        self.tokenEndpointURL = oauthTokenConfiguration.tokenEndpointURL
-            .deletingLastPathComponent().appendingPathComponent("userinfo")
+        self.userinfoEndpointURL = URL(string: userinfoEndpointURL)
 
         fetchUserInfo()
     }
@@ -141,7 +141,11 @@ final class TokensViewModel: ObservableObject {
     }
 
     private func fetchUserInfo() {
-        var urlRequest = URLRequest(url: tokenEndpointURL,
+        if (userinfoEndpointURL == nil) {
+            return
+        }
+
+        var urlRequest = URLRequest(url: userinfoEndpointURL.unsafelyUnwrapped,
                                     cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
                                     timeoutInterval: 20)
         urlRequest.httpMethod = "GET"

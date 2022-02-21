@@ -20,21 +20,35 @@ import IdsvrHaapiSdk
 
 struct Profile: Codable, Identifiable, Hashable {
 
+    private static let CURITY_DEV_MODE = false
+
     private enum Constants {
-        static let defaultAuthorizationEndpointURI = "https://localhost:8443/dev/oauth/authorize"
-        static let defaultTokenEndpointURI = "https://localhost:8443/dev/oauth/token"
         static let defaultName = "Default"
+        static let scopes = ["openid", "profile"]
+
+        static let defaultAuthorizationEndpointURI = "https://localhost:8443/oauth/v2/oauth-authorize"
+        static let defaultTokenEndpointURI = "https://localhost:8443/oauth/v2/oauth-token"
+        static let defaultUserinfoEndpointURI = "https://localhost:8443/oauth/v2/oauth-userinfo"
         static let defaultClientId = "haapi-ios-dev-client"
         static let defaultBaseURLString = "https://localhost:8443"
-        static let defaultMetaBaseURLString = "https://localhost:8443/dev/oauth/anonymous"
+        static let defaultMetaBaseURLString = "https://localhost:8443/oauth/v2/oauth-anonymous"
+
+        // Dev constants, for Curity developers' use
+        static let defaultDevAuthorizationEndpointURI = "https://localhost:8443/dev/oauth/authorize"
+        static let defaultDevTokenEndpointURI = "https://localhost:8443/dev/oauth/token"
+        static let defaultDevUserinfoEndpointURI = "https://localhost:8443/dev/oauth/userinfo"
+        static let defaultDevClientId = "haapi-ios-dev-client"
+        static let defaultDevBaseURLString = "https://localhost:8443"
+        static let defaultDevMetaBaseURLString = "https://localhost:8443/dev/oauth/anonymous"
     }
 
     var name: String
     var clientId: String
     var baseURLString: String
-    var tokenEndpointURI: String = Constants.defaultTokenEndpointURI
-    var authorizationEndpointURI: String = Constants.defaultAuthorizationEndpointURI
-    var metaDataBaseURLString: String = Constants.defaultMetaBaseURLString
+    var tokenEndpointURI: String = CURITY_DEV_MODE ? Constants.defaultDevTokenEndpointURI : Constants.defaultTokenEndpointURI
+    var authorizationEndpointURI: String = CURITY_DEV_MODE ? Constants.defaultDevAuthorizationEndpointURI : Constants.defaultAuthorizationEndpointURI
+    var userInfoEndpointURI: String = CURITY_DEV_MODE ? Constants.defaultDevUserinfoEndpointURI : Constants.defaultUserinfoEndpointURI
+    var metaDataBaseURLString: String = CURITY_DEV_MODE ? Constants.defaultDevMetaBaseURLString : Constants.defaultMetaBaseURLString
     var followRedirects = true
     var automaticPolling = true
     var isDefaultAuthChallengeEnabled = false
@@ -54,7 +68,7 @@ struct Profile: Codable, Identifiable, Hashable {
             self.selectedScopes = filteredScopes
         }
     }
-    var selectedScopes: [String]?
+    var selectedScopes: [String]? = Constants.scopes
 
     var fetchedAt: Date?
 
@@ -90,14 +104,14 @@ extension Profile {
 
     static var `default`: Profile {
         Profile(name: Constants.defaultName,
-                clientId: Constants.defaultClientId,
-                baseURLString: Constants.defaultBaseURLString)
+                clientId: CURITY_DEV_MODE ? Constants.defaultDevClientId : Constants.defaultClientId,
+                baseURLString: CURITY_DEV_MODE ? Constants.defaultDevMetaBaseURLString : Constants.defaultBaseURLString)
     }
 
     static func newProfile(_ val: Int) -> Profile {
         Profile(name: "New Profile (\(val))",
-                clientId: Constants.defaultClientId,
-                baseURLString: Constants.defaultBaseURLString)
+                clientId: CURITY_DEV_MODE ? Constants.defaultDevClientId : Constants.defaultClientId,
+                baseURLString: CURITY_DEV_MODE ? Constants.defaultDevBaseURLString : Constants.defaultBaseURLString)
     }
 
     var haapiConfiguration: HaapiConfiguration? {

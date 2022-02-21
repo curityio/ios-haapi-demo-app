@@ -66,6 +66,7 @@ struct MainView: View {
                             {
                                 TokensView(viewModel: TokensViewModel(tokenResponse,
                                                                       oauthTokenConfiguration: haapiConfiguration,
+                                                                      userinfoEndpointURL: profileManager.activeProfile.userInfoEndpointURI,
                                                                       urlSession: haapiConfiguration.urlSession))
                                     .environmentObject(viewModel)
                             } else {
