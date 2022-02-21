@@ -2,6 +2,13 @@
 
 This project is a demo application that highlights the usage of [ios-idsvr-haapi-sdk-dist](https://github.com/curityio/ios-idsvr-haapi-sdk-dist). 
 
+**Note:** The implementation in this branch uses only the [driver SDK](https://curity.io/docs/haapi-ios-driver/latest/),
+which handles the low-level security features of communication with the Authentication API. Response models
+and User Interface elements are implemented directly in this demo. This can serve as an example of using
+the driver directly, though normally you should rather use the full [SDK](https://curity.io/docs/haapi-ios-sdk/latest/),
+which also includes model representations of HAAPI responses. You can check the implementation which uses
+the full SDK in the main branch of this repository.
+
 ## Getting started
 
 ### Xcode
@@ -89,3 +96,4 @@ Please visit [curity.io](https://curity.io/) for more information about the Curi
 ## Licensing
 
 This software is copyright (C) 2021 Curity AB. It is open source software that is licensed under the [Apache 2](https://github.com/curityio/react-assisted-token-website/blob/master/LICENSE).
+

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		04F70F69257A9883009470E1 /* IdsvrHaapiSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 04F70F68257A9883009470E1 /* IdsvrHaapiSdk */; };
 		04FB0E902577B490003E8479 /* RepresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FB0E8B2577B3CD003E8479 /* RepresentationTests.swift */; };
 		1BB2934B255BE0EC0091ABDC /* DemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB2934A255BE0EC0091ABDC /* DemoUITests.swift */; };
 		6604F4DB2603AC00001AFCEB /* redirect.json in Resources */ = {isa = PBXBuildFile; fileRef = 6604F4DA2603AC00001AFCEB /* redirect.json */; };
@@ -197,8 +196,6 @@
 		66994DA82615015500880758 /* oauthAuthorizationResponse.json in Resources */ = {isa = PBXBuildFile; fileRef = 6604F50D2603AD78001AFCEB /* oauthAuthorizationResponse.json */; };
 		66994DA92615015500880758 /* duo.json in Resources */ = {isa = PBXBuildFile; fileRef = 6604F5072603AD53001AFCEB /* duo.json */; };
 		66994DAA2615015500880758 /* bankIdSameDeviceClientOperation.json in Resources */ = {isa = PBXBuildFile; fileRef = 6604F4F52603ACED001AFCEB /* bankIdSameDeviceClientOperation.json */; };
-		66994DD32615025D00880758 /* IdsvrHaapiSdk.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66994DD22615025D00880758 /* IdsvrHaapiSdk.framework */; };
-		66994DD42615025D00880758 /* IdsvrHaapiSdk.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 66994DD22615025D00880758 /* IdsvrHaapiSdk.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		669FADA8263FF33C00BC4293 /* Bundle+HaapiRedirect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669FADA7263FF33C00BC4293 /* Bundle+HaapiRedirect.swift */; };
 		66B2F9F5261D02E400EB9A7B /* Action+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B2F9F4261D02E400EB9A7B /* Action+Helpers.swift */; };
 		66B2F9F6261D02E400EB9A7B /* Action+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B2F9F4261D02E400EB9A7B /* Action+Helpers.swift */; };
@@ -255,6 +252,7 @@
 		66E1268A26725FEC00326637 /* AuthorizationContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E1268826725FEC00326637 /* AuthorizationContent.swift */; };
 		66E1269A26777E6F00326637 /* ErrorInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E1269926777E6F00326637 /* ErrorInfo.swift */; };
 		66E1269B26777E6F00326637 /* ErrorInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E1269926777E6F00326637 /* ErrorInfo.swift */; };
+		90CE3CBC27C3C51800EA5416 /* IdsvrHaapiDriver in Frameworks */ = {isa = PBXBuildFile; productRef = 90CE3CBB27C3C51800EA5416 /* IdsvrHaapiDriver */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -281,7 +279,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				66994DD42615025D00880758 /* IdsvrHaapiSdk.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -289,8 +286,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		04F70F46257A929D009470E1 /* IdsvrHaapiSdk.xcframework.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; name = IdsvrHaapiSdk.xcframework.zip; path = ../../../../Downloads/IdsvrHaapiSdk.xcframework.zip; sourceTree = "<group>"; };
-		04F70F4E257A92C8009470E1 /* IdsvrHaapiSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = IdsvrHaapiSdk.xcframework; path = ../../../../Downloads/IdsvrHaapiSdk.xcframework; sourceTree = "<group>"; };
 		04FB0E8B2577B3CD003E8479 /* RepresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepresentationTests.swift; sourceTree = "<group>"; };
 		1BB29325255BE0EB0091ABDC /* IdsvrHaapiSdkDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IdsvrHaapiSdkDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1BB2933B255BE0EC0091ABDC /* IdsvrHaapiSdkDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IdsvrHaapiSdkDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -372,7 +367,6 @@
 		6687552E265507A30039EA45 /* AuthenticationsIcons.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = AuthenticationsIcons.xcassets; sourceTree = "<group>"; };
 		669877E4264C10C200D8C377 /* UIConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIConstants.swift; sourceTree = "<group>"; };
 		66994DAE2615015500880758 /* Debug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Debug.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		66994DD22615025D00880758 /* IdsvrHaapiSdk.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = IdsvrHaapiSdk.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		669FADA7263FF33C00BC4293 /* Bundle+HaapiRedirect.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Bundle+HaapiRedirect.swift"; sourceTree = "<group>"; };
 		66B2F9F4261D02E400EB9A7B /* Action+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Action+Helpers.swift"; sourceTree = "<group>"; };
 		66B3BB5B260106E3001355C2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -429,7 +423,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				04F70F69257A9883009470E1 /* IdsvrHaapiSdk in Frameworks */,
+				90CE3CBC27C3C51800EA5416 /* IdsvrHaapiDriver in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -451,7 +445,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				66994DD32615025D00880758 /* IdsvrHaapiSdk.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -523,9 +516,6 @@
 		1BB29360255BE14D0091ABDC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				66994DD22615025D00880758 /* IdsvrHaapiSdk.framework */,
-				04F70F4E257A92C8009470E1 /* IdsvrHaapiSdk.xcframework */,
-				04F70F46257A929D009470E1 /* IdsvrHaapiSdk.xcframework.zip */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -775,7 +765,7 @@
 			);
 			name = IdsvrHaapiSdkDemo;
 			packageProductDependencies = (
-				04F70F68257A9883009470E1 /* IdsvrHaapiSdk */,
+				90CE3CBB27C3C51800EA5416 /* IdsvrHaapiDriver */,
 			);
 			productName = Demo;
 			productReference = 1BB29325255BE0EB0091ABDC /* IdsvrHaapiSdkDemo.app */;
@@ -870,7 +860,7 @@
 			);
 			mainGroup = 1BB2931C255BE0EB0091ABDC;
 			packageReferences = (
-				04F70F67257A9883009470E1 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */,
+				90CE3CBA27C3C51800EA5416 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-driver-dist" */,
 			);
 			productRefGroup = 1BB29326255BE0EB0091ABDC /* Products */;
 			projectDirPath = "";
@@ -1582,21 +1572,21 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		04F70F67257A9883009470E1 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */ = {
+		90CE3CBA27C3C51800EA5416 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-driver-dist" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/curityio/ios-idsvr-haapi-sdk-dist";
+			repositoryURL = "https://github.com/curityio/ios-idsvr-haapi-driver-dist";
 			requirement = {
-				kind = exactVersion;
-				version = 1.0.5;
+				branch = master;
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		04F70F68257A9883009470E1 /* IdsvrHaapiSdk */ = {
+		90CE3CBB27C3C51800EA5416 /* IdsvrHaapiDriver */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 04F70F67257A9883009470E1 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */;
-			productName = IdsvrHaapiSdk;
+			package = 90CE3CBA27C3C51800EA5416 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-driver-dist" */;
+			productName = IdsvrHaapiDriver;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

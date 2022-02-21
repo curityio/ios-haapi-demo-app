@@ -15,7 +15,7 @@
 //
 
 import Foundation
-import IdsvrHaapiSdk
+import IdsvrHaapiDriver
 
 /// A model representing an error container that has a title and an error.
 struct ErrorInfo: Equatable, LocalizedError {
