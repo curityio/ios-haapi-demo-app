@@ -132,7 +132,6 @@ class ProfileViewModel: ObservableObject {
     var errorUserinfoEndpointString: String? {
         return profile.userInfoEndpointURI.errorInvalidURL
     }
-
 }
 
 extension ProfileViewModel: ScopesViewModelDelegate {

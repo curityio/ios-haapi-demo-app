@@ -46,7 +46,10 @@ struct TokensView: View {
                     .padding()
 
                 if let userInfo = viewModel.userInfo {
-                    Text(userInfo)
+                    let sub = userInfo["sub"] as? String ?? ""
+                    DisclosureView(title: "Userinfo response") {
+                        DisclosureContentView(text: sub, details: viewModel.userinfoDetails)
+                    }
                 }
 
                 // Access Token
@@ -87,7 +90,7 @@ struct TokensView: View {
 final class TokensViewModel: ObservableObject {
 
     @Published private(set) var oauthTokenResponse: SuccessfulTokenResponse
-    @Published private(set) var userInfo: String?
+    @Published private(set) var userInfo: [String: Any]?
     let oauthTokenManager: OAuthTokenManager
     let urlSession: URLSession
     let userinfoEndpointURL: URL?
@@ -120,6 +123,15 @@ final class TokensViewModel: ObservableObject {
         ]
     }
 
+    var userinfoDetails: [CardDetails] {
+        let familyName = userInfo?["family_name"] as? String ?? ""
+        let givenName = userInfo?["given_name"] as? String ?? ""
+        return [
+            CardDetails(header: "sub", value: userInfo?["sub"] as? String ?? ""),
+            CardDetails(header: "name", value: givenName + " " + familyName)
+        ]
+    }
+
     var refreshToken: String {
         return oauthTokenResponse.refreshToken ?? ""
     }
@@ -141,7 +153,7 @@ final class TokensViewModel: ObservableObject {
     }
 
     private func fetchUserInfo() {
-        if (userinfoEndpointURL == nil) {
+        if userinfoEndpointURL == nil {
             return
         }
 
@@ -164,7 +176,7 @@ final class TokensViewModel: ObservableObject {
                     return
                 }
 
-                self.userInfo = userInfo.description
+                self.userInfo = userInfo
             }
         }
         .resume()

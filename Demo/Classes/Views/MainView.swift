@@ -64,10 +64,11 @@ struct MainView: View {
                             if let tokenResponse = viewModel.tokenResponse,
                                let haapiConfiguration = profileManager.activeProfile.haapiConfiguration
                             {
-                                TokensView(viewModel: TokensViewModel(tokenResponse,
-                                                                      oauthTokenConfiguration: haapiConfiguration,
-                                                                      userinfoEndpointURL: profileManager.activeProfile.userInfoEndpointURI,
-                                                                      urlSession: haapiConfiguration.urlSession))
+                                TokensView(viewModel: TokensViewModel(
+                                    tokenResponse,
+                                    oauthTokenConfiguration: haapiConfiguration,
+                                    userinfoEndpointURL: profileManager.activeProfile.userInfoEndpointURI,
+                                    urlSession: haapiConfiguration.urlSession))
                                     .environmentObject(viewModel)
                             } else {
                                 EmptyView()

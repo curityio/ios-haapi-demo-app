@@ -20,7 +20,7 @@ import IdsvrHaapiSdk
 
 struct Profile: Codable, Identifiable, Hashable {
 
-    private static let CURITY_DEV_MODE = false
+    private static let curityDevMode = false
 
     private enum Constants {
         static let defaultName = "Default"
@@ -45,10 +45,14 @@ struct Profile: Codable, Identifiable, Hashable {
     var name: String
     var clientId: String
     var baseURLString: String
-    var tokenEndpointURI: String = CURITY_DEV_MODE ? Constants.defaultDevTokenEndpointURI : Constants.defaultTokenEndpointURI
-    var authorizationEndpointURI: String = CURITY_DEV_MODE ? Constants.defaultDevAuthorizationEndpointURI : Constants.defaultAuthorizationEndpointURI
-    var userInfoEndpointURI: String = CURITY_DEV_MODE ? Constants.defaultDevUserinfoEndpointURI : Constants.defaultUserinfoEndpointURI
-    var metaDataBaseURLString: String = CURITY_DEV_MODE ? Constants.defaultDevMetaBaseURLString : Constants.defaultMetaBaseURLString
+    var tokenEndpointURI: String = curityDevMode ?
+        Constants.defaultDevTokenEndpointURI : Constants.defaultTokenEndpointURI
+    var authorizationEndpointURI: String = curityDevMode ?
+        Constants.defaultDevAuthorizationEndpointURI : Constants.defaultAuthorizationEndpointURI
+    var userInfoEndpointURI: String = curityDevMode ?
+        Constants.defaultDevUserinfoEndpointURI : Constants.defaultUserinfoEndpointURI
+    var metaDataBaseURLString: String = curityDevMode ?
+        Constants.defaultDevMetaBaseURLString : Constants.defaultMetaBaseURLString
     var followRedirects = true
     var automaticPolling = true
     var isDefaultAuthChallengeEnabled = false
@@ -104,14 +108,14 @@ extension Profile {
 
     static var `default`: Profile {
         Profile(name: Constants.defaultName,
-                clientId: CURITY_DEV_MODE ? Constants.defaultDevClientId : Constants.defaultClientId,
-                baseURLString: CURITY_DEV_MODE ? Constants.defaultDevMetaBaseURLString : Constants.defaultBaseURLString)
+                clientId: curityDevMode ? Constants.defaultDevClientId : Constants.defaultClientId,
+                baseURLString: curityDevMode ? Constants.defaultDevMetaBaseURLString : Constants.defaultBaseURLString)
     }
 
     static func newProfile(_ val: Int) -> Profile {
         Profile(name: "New Profile (\(val))",
-                clientId: CURITY_DEV_MODE ? Constants.defaultDevClientId : Constants.defaultClientId,
-                baseURLString: CURITY_DEV_MODE ? Constants.defaultDevBaseURLString : Constants.defaultBaseURLString)
+                clientId: curityDevMode ? Constants.defaultDevClientId : Constants.defaultClientId,
+                baseURLString: curityDevMode ? Constants.defaultDevBaseURLString : Constants.defaultBaseURLString)
     }
 
     var haapiConfiguration: HaapiConfiguration? {
