@@ -14,56 +14,98 @@
 // limitations under the License.
 //
 
+import IdsvrHaapiSdk
 import SwiftUI
 
 struct TokensView: View {
-    let viewModel: TokensViewModel
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+    @EnvironmentObject var flowViewModel: FlowViewModel
+    
+    @ObservedObject var viewModel: TokensViewModel
 
     init(viewModel: TokensViewModel) {
         self.viewModel = viewModel
     }
 
     var body: some View {
-        VStack {
-            Image("Checkmark")
-                .padding()
-            // Access Token
-            DisclosureView(title: "Access token") {
-                DisclosureContentView(text: viewModel.accessToken,
-                                      details: viewModel.details)
-            }
-            // ID Token
-            if let idToken = viewModel.idToken {
-                DisclosureView(title: "ID Token") {
-                    DisclosureContentView(text: idToken)
+        ScrollView {
+            VStack {
+                HStack(alignment: .bottom) {
+                    Spacer()
+                    Button(action: {
+                        flowViewModel.clearTokenResponse()
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Image(systemName: "xmark")
+                    }
+                    .padding([.leading, .top, .bottom])
+                    .padding([.trailing], 4)
+                    .accentColor(.textHeadings)
+                }
+                Image("Checkmark")
+                    .padding()
+
+                if let userInfo = viewModel.userInfo {
+                    let sub = userInfo["sub"] as? String ?? ""
+                    DisclosureView(title: "Userinfo response") {
+                        DisclosureContentView(text: sub, details: viewModel.userinfoDetails)
+                    }
+                }
+
+                // Access Token
+                DisclosureView(title: "Access token") {
+                    DisclosureContentView(text: viewModel.accessToken,
+                                          details: viewModel.details)
+                }
+                // ID Token
+                if let idToken = viewModel.idToken {
+                    DisclosureView(title: "ID Token") {
+                        DisclosureContentView(text: idToken)
+                    }
+                }
+                // Refresh Token
+                DisclosureView(title: "Refresh Token") {
+                    DisclosureContentView(text: viewModel.refreshToken)
+                }
+
+                ColorButton(title: "Refresh token") { btn in
+                    viewModel.requestRefreshToken()
+                    btn.reset()
+                }
+
+                ColorButton(title: "Sign out") { btn in
+                    flowViewModel.clearTokenResponse()
+                    presentationMode.wrappedValue.dismiss()
+                    btn.reset()
                 }
             }
-            // Refresh Token
-            DisclosureView(title: "Refresh Token") {
-                DisclosureContentView(text: viewModel.refreshToken)
-            }
+            .padding([.top, .bottom], 32)
+            .paddingContentView()
         }
-    }
-}
-
-struct AccessTokenView_Previews: PreviewProvider {
-    static var previews: some View {
-        TokensView(viewModel: TokensViewModel(OAuthTokenResponse(accessToken: "6adf18ca-9d77-4947-945d-c939c8890977",
-                                                                 tokenType: "bearer",
-                                                                 scope: nil,
-                                                                 expiresIn: 300,
-                                                                 refreshToken: "be9d3f8b-c18b-46b7-9asd-e0734d95c71d",
-                                                                 idToken: nil)))
     }
 }
 
 // MARK: - AccessTokenViewModel
 
-struct TokensViewModel {
-    let oauthTokenResponse: OAuthTokenResponse
+final class TokensViewModel: ObservableObject {
 
-    init(_ oauthTokenResponse: OAuthTokenResponse) {
+    @Published private(set) var oauthTokenResponse: SuccessfulTokenResponse
+    @Published private(set) var userInfo: [String: Any]?
+    let oauthTokenManager: OAuthTokenManager
+    let urlSession: URLSession
+    let userinfoEndpointURL: URL?
+
+    init(_ oauthTokenResponse: SuccessfulTokenResponse,
+         oauthTokenConfiguration: OAuthTokenConfigurable,
+         userinfoEndpointURL: String,
+         urlSession: URLSession)
+    {
         self.oauthTokenResponse = oauthTokenResponse
+        self.oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: oauthTokenConfiguration)
+        self.urlSession = urlSession
+        self.userinfoEndpointURL = URL(string: userinfoEndpointURL)
+
+        fetchUserInfo()
     }
 
     var accessToken: String {
@@ -81,11 +123,62 @@ struct TokensViewModel {
         ]
     }
 
+    var userinfoDetails: [CardDetails] {
+        let familyName = userInfo?["family_name"] as? String ?? ""
+        let givenName = userInfo?["given_name"] as? String ?? ""
+        return [
+            CardDetails(header: "sub", value: userInfo?["sub"] as? String ?? ""),
+            CardDetails(header: "name", value: givenName + " " + familyName)
+        ]
+    }
+
     var refreshToken: String {
-        return oauthTokenResponse.refreshToken
+        return oauthTokenResponse.refreshToken ?? ""
     }
 
     var idToken: String? {
         return oauthTokenResponse.idToken
+    }
+
+    func requestRefreshToken() {
+        guard let refreshToken = oauthTokenResponse.refreshToken else { return }
+        oauthTokenManager.refreshAccessToken(with: refreshToken) { oAuthResponse in
+            if case let .successfulToken(tokenResponse) = oAuthResponse {
+                DispatchQueue.main.async {
+                    self.oauthTokenResponse = tokenResponse
+                    self.fetchUserInfo()
+                }
+            }
+        }
+    }
+
+    private func fetchUserInfo() {
+        if userinfoEndpointURL == nil {
+            return
+        }
+
+        var urlRequest = URLRequest(url: userinfoEndpointURL.unsafelyUnwrapped,
+                                    cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
+                                    timeoutInterval: 20)
+        urlRequest.httpMethod = "GET"
+        urlRequest.addValue("bearer \(oauthTokenResponse.accessToken)", forHTTPHeaderField: "Authorization")
+        urlSession.dataTask(with: urlRequest) { [weak self] data, _, error in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                guard error == nil, let data = data else {
+                    self.userInfo = nil
+                    return
+                }
+
+                guard let userInfo = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
+                    self.userInfo = nil
+                    return
+                }
+
+                self.userInfo = userInfo
+            }
+        }
+        .resume()
     }
 }

@@ -15,12 +15,18 @@
 //
 
 import SwiftUI
+import IdsvrHaapiSdk
 
 struct FormView: View {
     @ObservedObject var formViewModel: FormViewModel
 
     var body: some View {
         VStack (spacing: 0) {
+            if let title = formViewModel.title {
+                Text(title)
+                    .font(.curityTitle2)
+                SpacerV()
+            }
             if let problemViewModel = formViewModel.problemViewModel {
                 ProblemView(viewModel: problemViewModel)
             }
@@ -51,125 +57,113 @@ struct FormView: View {
     }
 }
 
-struct FormView_Previews: PreviewProvider {
-    static var formModel = FormModel(href: "", method: "")
-    static var flowViewModel = FlowViewModel(controller: HaapiController())
-    static var action = Action(template: .form, kind: "", model: formModel)
-
-    static var previews: some View {
-        FormView(formViewModel: FormViewModel(form: formModel,
-                                              action: action,
-                                              fieldViewModels: [],
-                                              flowViewModel: flowViewModel))
-    }
-}
-
-struct SubmitHandler {
-    var preSubmit: (() -> Void)?
-    var postSubmit: HaapiCompletionHandler?
-}
-
 // MARK: - FormViewModel
 
 class FormViewModel: NSObject, ObservableObject {
 
-    private var form: FormModel
-    private var action: Action
-    private weak var flowViewModel: FlowViewModelActionnable?
-    private var submitHandler: SubmitHandler?
+    private var formAction: FormAction
+    private weak var submitter: FlowViewModelSubmitable?
 
-    private var observer: NSObjectProtocol?
+    private var observers = [NSObjectProtocol]()
     private let notificationCenter: NotificationCenter
 
     @Published var fieldViewModels: [FieldViewModel] = []
     @Published var problemViewModel: ProblemViewModel?
     @Published var isProcessing = false
 
-    init(form: FormModel,
-         action: Action,
+    let title: String?
+
+    init(formAction: FormAction,
+         title: String?,
          fieldViewModels: [FieldViewModel],
-         flowViewModel: FlowViewModelActionnable?,
-         submitHandler: SubmitHandler? = nil,
+         submitter: FlowViewModelSubmitable,
          notificationCenter: NotificationCenter = .default)
     {
-        self.form = form
-        self.action = action
+        self.formAction = formAction
         self.fieldViewModels = fieldViewModels
-        self.flowViewModel = flowViewModel
-        self.submitHandler = submitHandler
+        self.submitter = submitter
         self.notificationCenter = notificationCenter
+        self.title = title
 
         super.init()
 
-        observer = self.notificationCenter.addObserver(forName: FlowViewModel.isProcessingNotification,
-                                                       object: nil,
-                                                       queue: .main,
-                                                       using:
+        let isProcessingNotif = self.notificationCenter.addObserver(forName: FlowViewModel.isProcessingNotification,
+                                                                    object: nil,
+                                                                    queue: .main,
+                                                                    using:
         { [weak self] notification in
             self?.isProcessing = notification.object as? Bool ?? false
         })
+        observers.append(isProcessingNotif)
+
+        let problemNotif = self.notificationCenter.addObserver(forName: FlowViewModel.problemRepresentationNotification,
+                                                               object: nil,
+                                                               queue: .main)
+        { [weak self] notification in
+            guard let problem = notification.object as? ProblemRepresentation else { return }
+            self?.processProblem(problem)
+        }
+        observers.append(problemNotif)
     }
 
     deinit {
-        if let observer = observer {
-            notificationCenter.removeObserver(observer)
-        }
+        observers.forEach { notificationCenter.removeObserver($0) }
+        observers.removeAll()
     }
 
     var actionTitle: String {
-        return form.actionTitle ?? "Submit"
+        return formAction.model.actionTitle?.literal ?? "Submit"
     }
 
     var header: String? {
-        return action.isRedirect ? form.title ?? "API redirect, should be followed automatically by the client" : nil
+        guard formAction.kind == .redirect else {
+            return nil
+        }
+        return "API redirect, should be followed automatically by the client"
     }
 
     var buttonType: ButtonType {
-        return action.buttonType
+        return formAction.kind == .cancel ? .secondary : .primary
     }
 
-    func submit(completion: (() -> Void)?) {
-        submitHandler?.preSubmit?()
-        
-        if fieldViewModels.isEmpty && form.hasEditableFields  {
-            flowViewModel?.applyAction(action)
-            completion?()
-        } else {
-            fieldViewModels.forEach { $0.isDisabled = true }
+    func submit(completion: @escaping () -> Void) {
+        fieldViewModels.forEach { $0.isDisabled = true }
 
-            let notNilValues = fieldViewModels.filter { $0.value != nil }
-            let parameters = notNilValues.reduce(into: [String: String]()) {
-                $0[$1.name] = $1.value
-            }
-
-            flowViewModel?.submitForm(form: form,
-                                      parameterOverrides: parameters,
-                                      completionHandler:
-            { [unowned self] result in
-                switch result {
-                case .problem(let problem):
-                    DispatchQueue.main.async {
-                        self.processProblem(problem)
-                    }
-                default:
-                    break
-                }
-                submitHandler?.postSubmit?(result)
-                completion?()
-            })
+        let notNilValues = fieldViewModels.filter { $0.value != nil }
+        let parameters = notNilValues.reduce(into: [String: String]()) {
+            $0[$1.name] = $1.value
+        }
+        submitter?.submitForm(form: formAction.model,
+                              parameterOverrides: parameters)
+        {
+            completion()
         }
     }
 
-    private func processProblem(_ problem: Problem) {
-        problemViewModel = ProblemViewModel(title: problem.title,
-                                            messages: problem.messages)
-        
+    private func processProblem(_ problem: ProblemRepresentation) {
+        guard !fieldViewModels.isEmpty else { return }
         fieldViewModels.forEach {
-            $0.invalidField = nil
             $0.isDisabled = false
+            $0.invalidField = nil
         }
-        problem.representation.invalidFields.forEach { invalidField in
-            self.fieldViewModels.first{ $0.name == invalidField.name }?.invalidField = invalidField
+
+        var problemMessageBundle = problem.messages.map {
+            ProblemMessageBundle(text: $0.text.literal,
+                                 messageType: $0.messageType)
         }
+
+        guard let invalidInputProblem = problem as? InvalidInputProblem else {
+            problemViewModel = ProblemViewModel(title: problem.title?.literal,
+                                                messages: problemMessageBundle)
+            return
+        }
+
+        invalidInputProblem.invalidFields.forEach { invalidField in
+            problemMessageBundle.append(ProblemMessageBundle(text: invalidField.detail.literal, messageType: .error))
+            self.fieldViewModels.first { $0.name == invalidField.name }?.invalidField = invalidField
+        }
+
+        problemViewModel = ProblemViewModel(title: problem.title?.literal,
+                                            messages: problemMessageBundle)
     }
 }

@@ -52,6 +52,7 @@ struct ColorButton: View {
 
     func didTapButton() {
         isSpinning = true
+        hideKeyboard()
         action(self)
     }
 }
@@ -68,7 +69,7 @@ struct ColorButton_Previews: PreviewProvider {
         Group {
             ColorButton(title: "Create an account", action: { _ in })
                 .preferredColorScheme(.light)
-        }.environmentObject(HaapiController())
+        }
     }
 }
 

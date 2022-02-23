@@ -14,12 +14,14 @@
 // limitations under the License.
 //
 
-extension Field {
-    var isHidden: Bool {
-        if case .hidden = type {
-            return true
-        } else {
-            return false
-        }
+import Foundation
+import SwiftUI
+
+extension View {
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                        to: nil,
+                                        from: nil,
+                                        for: nil)
     }
 }

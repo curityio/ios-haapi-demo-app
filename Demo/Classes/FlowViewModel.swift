@@ -15,15 +15,19 @@
 //
 
 import Foundation
+import IdsvrHaapiSdk
 import os
+import UIKit
 
-protocol ApplyActionnable: AnyObject {
-    /// Applies an `Action`
-    func applyAction(_ action: Action)
+protocol FlowViewModelSubmitable: AnyObject {
+    func submitForm(form: FormActionModel,
+                    parameterOverrides: [String: String],
+                    completionHandler: @escaping () -> Void)
 }
 
-/// A typealias that combines HaapiSubmitable & ApplyActionnable
-typealias FlowViewModelActionnable = HaapiSubmitable & ApplyActionnable
+protocol TokenServices: AnyObject {
+    func fetchAccessToken(code: String)
+}
 
 /**
  FlowViewModel is representing a ViewModel that is aware of all HaapiState from `HaapiController`. This class interacts directly with `HaapiController`
@@ -35,13 +39,14 @@ typealias FlowViewModelActionnable = HaapiSubmitable & ApplyActionnable
  For UI layer and cusomization, check the viewModels or the following parameters : `FlowViewModel.messages`,
  `FlowViewModel.links`,  `FlowViewModel.title` or `FlowViewModel.imageLogo`.
  */
-final class FlowViewModel: ObservableObject, FlowViewModelActionnable {
+// swiftlint:disable:next type_body_length
+final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServices {
 
     static let isProcessingNotification = NSNotification.Name("flowViewModel.isProcessing")
+    static let problemRepresentationNotification = NSNotification.Name("flowViewModel.problemRepresentation")
 
     // MARK: @Published
 
-    @Published var state: HaapiState?
     @Published var isProcessing = false {
         didSet {
             notificationCenter.post(name: Self.isProcessingNotification,
@@ -49,91 +54,289 @@ final class FlowViewModel: ObservableObject, FlowViewModelActionnable {
         }
     }
 
-    // MARK: Configurations
-
-    private var automaticPolling = false
-    private weak var controller: HaapiControllable?
-    private let notificationCenter: NotificationCenter
-    private var observer: NSObjectProtocol?
-
-    // MARK: Models
-
-    private var haapiStateContent: HaapiStateContentable? {
+    @Published private(set) var haapiRepresentation: HaapiRepresentation?
+    @Published private(set) var problemRepresentation: ProblemRepresentation? {
         didSet {
-            if let content = haapiStateContent {
-                processActions(content.actions)
-                title = content.title
-                imageLogo = content.imageLogo
-            } else {
-                authorizedViewModel = nil
-                pollingViewModel = nil
-                tokensViewModel = nil
-            }
+            notificationCenter.post(name: Self.problemRepresentationNotification,
+                                    object: problemRepresentation)
         }
     }
+    @Published private(set) var error: ErrorInfo?
+    @Published private(set) var tokenResponse: SuccessfulTokenResponse?
 
-    private(set) var error: ErrorInfo?
+    // MARK: Configurations
+    private var haapiManager: HaapiManager?
+    private var oauthTokenManager: OAuthTokenManager?
+    private var profile: Profile?
+
+    private let notificationCenter: NotificationCenter
+
+    private var pollingStatus: PollingStatus?
 
     // MARK: Support UI
 
-    var messages: [Message] {
-        return haapiStateContent?.messages ?? []
-    }
-
-    private var problemLinks: [Link]?
-
-    var links: [Link] {
-        var results = [Link]()
-        if let contentLinks = haapiStateContent?.links {
-            results.append(contentsOf: contentLinks)
-        }
-        if let problemLinks = problemLinks {
-            results.append(contentsOf: problemLinks)
-        }
-        return results
+    var messageBundles: [MessageBundle] {
+        return haapiRepresentation?.messages.map {
+            MessageBundle(text: $0.text.literal, messageType: $0.messageType)
+        } ?? []
     }
 
     private(set) var title: String = ""
     private(set) var imageLogo = "Logo"
 
-    // MARK: ViewModels
+    // MARK: - ViewModels
 
     /// A `SelectorViewModel`is generated from `[Action]`. This ViewModel is used by a `SelectorView`.
     private(set) var selectorViewModel: SelectorViewModel?
     /// A `[FormViewModel]`is generated from `[Action]`. This ViewModel is used by a `FormView`.
-    private(set) var formViewModels: [FormViewModel]?
+    private(set) var formViewModels = [FormViewModel]()
     /// A `PollingViewModel`is generated when HaapiState is `polling`. This ViewModel is used by a `PollingView`.
     private(set) var pollingViewModel: PollingViewModel?
     /// An `AuthorizedViewModel`is generated when HaapiState is `authorizationResponse`. This ViewModel is used by an `AuthorizedView`.
     private(set) var authorizedViewModel: AuthorizedViewModel?
-    /// A `TokensViewModel`is generated when HaapiState is `accessToken`. This ViewModel is used by a `TokensView`.
-    private(set) var tokensViewModel: TokensViewModel?
+    /// A `GenericHaapiViewModel` for a GenericRepresentationStep
+    private(set) var genericHaapiViewModel: GenericHaapiViewModel?
 
     // MARK: Init & Deinit
 
-    init(controller: HaapiControllable,
-         notificationCenter: NotificationCenter = .default)
-    {
-        self.controller = controller
+    init(notificationCenter: NotificationCenter = .default) {
         self.notificationCenter = notificationCenter
+    }
 
-        observer = self.notificationCenter.addObserver(forName: HaapiController.stateNotification,
-                                                       object: nil,
-                                                       queue: .main)
-        { [unowned self] notif in
-            guard !self.isProcessing else { return } // Ignore notification when we are making the call
-            guard let haapiState = notif.object as? HaapiState else { return }
-            self.processState(haapiState)
+    // MARK: - Process HaapiResult
+
+    private func processHaapiResult(_ haapiResult: HaapiResult) {
+        DispatchQueue.main.async {
+            self.isProcessing = false
+        }
+        
+        switch haapiResult {
+        case .representation(let representation):
+            if let clientOperationStep = representation as? ClientOperationStep {
+                Logger.controllerFlow.debug("Received an operation: \(String(describing: clientOperationStep))")
+                processOperationStep(clientOperationStep)
+                DispatchQueue.main.async {
+                    self.haapiRepresentation = clientOperationStep
+                }
+            } else {
+                Logger.controllerFlow.debug("Received a representation: \(String(describing: representation))")
+                processHaapiRepresentation(representation)
+                DispatchQueue.main.async {
+                    self.haapiRepresentation = representation
+                }
+            }
+        case .problem(let problemRepresentation):
+            Logger.controllerFlow.debug("Received a problem: \(String(describing: problemRepresentation))")
+            processProblemRepresentation(problemRepresentation)
+        case .error(let error):
+            DispatchQueue.main.async {
+                self.error = ErrorInfo(title: "Unexpected error",
+                                       reason: error.localizedDescription)
+            }
         }
     }
 
-    deinit {
-        if let observer = observer {
-            notificationCenter.removeObserver(observer)
+    private func prepareFormViewModelsForActions(_ actions: [Action],
+                                                 defaultTitle: String)
+    {
+        selectorViewModel = nil
+        formViewModels.removeAll()
+        authorizedViewModel = nil
+        genericHaapiViewModel = nil
+
+        var shouldShowSectionTitle = false
+        if actions.count == 1 {
+            if let actionTitle = actions.first?.title?.literal {
+                title = actionTitle
+            } else {
+                title = defaultTitle
+            }
+        } else {
+            shouldShowSectionTitle = true
+            title = defaultTitle
+        }
+        actions.forEach { action in
+            guard let formAction = action as? FormAction else { return }
+            let fieldViewModels = formAction.model.fields.visibleFieldViewModel
+            formViewModels.append(FormViewModel(formAction: formAction,
+                                                title: shouldShowSectionTitle ? formAction.title?.literal : nil,
+                                                fieldViewModels: fieldViewModels,
+                                                submitter: self))
         }
     }
 
-    // MARK: Callable methods
+    private var pendingOperationStep: ClientOperationStep?
+    private func processOperationStep(_ operationStep: ClientOperationStep) {
+        pendingOperationStep = operationStep
+        switch operationStep {
+        case let externalBrowserStep as ExternalBrowserClientOperationStep:
+            guard let redirect = Bundle.main.haapiRedirectURI,
+                    let externalURL = externalBrowserStep.urlToLaunch(redirectTo: redirect)
+            else {
+                Logger.clientApp.debug("No external URL")
+                return
+            }
+            DispatchQueue.main.async {
+                UIApplication.shared.open(externalURL, options: [:]) { succeed in
+                    if succeed {
+                        self.prepareFormViewModelsForActions(externalBrowserStep.actionsToPresent,
+                                                             defaultTitle: "External browser operation")
+                    } else {
+                        self.error = ErrorInfo(title: "No available web browser",
+                                               reason: "A web browser is required")
+                    }
+                }
+            }
+        case let bankIdStep as BankIdClientOperationStep:
+            guard let redirect = Bundle.main.haapiRedirectURI,
+                  let bankIDURL = bankIdStep.urlToLaunch(redirectTo: redirect) else {
+                Logger.clientApp.debug("No external URL")
+                return
+            }
+            DispatchQueue.main.async {
+                UIApplication.shared.open(bankIDURL, options: [:]) { succeed in
+                    if succeed {
+                        self.prepareFormViewModelsForActions(bankIdStep.continueActions,
+                                                             defaultTitle: "Bank ID operation")
+                    } else {
+                        self.prepareFormViewModelsForActions(bankIdStep.errorActions,
+                                                             defaultTitle: "Bank ID operation error")
+                    }
+                }
+            }
+
+        default:break
+        }
+    }
+
+    // swiftlint:disable:next cyclomatic_complexity
+    private func processHaapiRepresentation(_ representation: HaapiRepresentation) {
+        selectorViewModel = nil
+        formViewModels.removeAll()
+        authorizedViewModel = nil
+        genericHaapiViewModel = nil
+
+        if !(representation is PollingStep) {
+            pollingViewModel = nil
+        }
+
+        switch representation {
+        case let selectorStep as AuthenticatorSelectorStep:
+            title = selectorStep.title.literal
+            let options = selectorStep.authenticators.map { authOption in
+                SelectorViewModel.SelectorOption(imageName: authOption.imageName,
+                                                 title: authOption.title.literal,
+                                                 formActionModel: authOption.action.model)
+            }
+            selectorViewModel = SelectorViewModel(options: options,
+                                                  submitter: self)
+        case let redirectionStep as RedirectionStep:
+            title = "Redirection"
+            let fieldViewModels = redirectionStep.redirectAction.model.fields.visibleFieldViewModel
+            formViewModels.append(FormViewModel(formAction: redirectionStep.redirectAction,
+                                                title: nil,
+                                                fieldViewModels: fieldViewModels,
+                                                submitter: self))
+        case let interactiveFormStep as InteractiveFormStep:
+            var shouldShowSectionTitle = false
+            if interactiveFormStep.actions.count == 1 {
+                if let actionTitle = interactiveFormStep.actions.first?.title?.literal {
+                    title = actionTitle
+                } else {
+                    title = interactiveFormStep.type == .authenticationStep
+                    ? "Authentication" : interactiveFormStep.type == .registrationStep
+                    ? "Registration" : "User consent"
+                }
+            } else {
+                shouldShowSectionTitle = true
+                title = representation.type == .authenticationStep
+                ? "Authentication" : representation.type == .registrationStep
+                ? "Registration" : "User consent"
+            }
+
+            interactiveFormStep.actions.forEach { formAction in
+                let fieldViewModels = formAction.model.fields.visibleFieldViewModel
+                formViewModels.append(FormViewModel(formAction: formAction,
+                                                    title: shouldShowSectionTitle ? formAction.title?.literal : nil,
+                                                    fieldViewModels: fieldViewModels,
+                                                    submitter: self))
+            }
+        case let userConsentStep as UserConsentStep:
+            var shouldShowSectionTitle = false
+            if userConsentStep.actions.count == 1 {
+                if let actionTitle = userConsentStep.actions.first?.title?.literal {
+                    title = actionTitle
+                } else {
+                    title = "User consent"
+                }
+            } else {
+                shouldShowSectionTitle = true
+                title = "User consent"
+            }
+            userConsentStep.actions.forEach { action in
+                guard let formAction = action as? FormAction else { return }
+                let fieldViewModels = formAction.model.fields.visibleFieldViewModel
+                formViewModels.append(FormViewModel(formAction: formAction,
+                                                    title: shouldShowSectionTitle ? formAction.title?.literal : nil,
+                                                    fieldViewModels: fieldViewModels,
+                                                    submitter: self))
+            }
+        case let oAuthStep as OAuthAuthorizationResponseStep:
+            guard let code = oAuthStep.oauthAuthorizationResponseProperties.code else {
+                fatalError("How to recover from it ?")
+            }
+            if profile?.followRedirects == true {
+                fetchAccessToken(code: code)
+            } else {
+                title = "OAuth authorization completed"
+                authorizedViewModel = AuthorizedViewModel(authorizationCode: code,
+                                                          tokenServices: self)
+            }
+        case let pollingStep as PollingStep:
+            if pollingStatus != pollingStep.pollingProperties.status {
+                title = "Polling"
+                pollingStatus = pollingStep.pollingProperties.status
+                pollingViewModel = PollingViewModel(pollingStep: pollingStep,
+                                                    submitter: self,
+                                                    automaticPolling: profile?.automaticPolling == true)
+                if pollingStatus == .done,
+                    profile?.followRedirects == true
+                {
+                    submitForm(form: pollingStep.mainAction.model,
+                               parameterOverrides: [:],
+                               completionHandler: {})
+                }
+            } else {
+                // swiftlint:disable:next line_length
+                Logger.controllerFlow.debug("Ignoring new polling step: \(pollingStep.pollingProperties.status.rawValue)")
+            }
+        case let genericRepresentationStep as GenericRepresentationStep:
+            if genericRepresentationStep.actions.count == 1 {
+                title = genericRepresentationStep.actions.first?.title?.literal ?? "Generic step"
+            } else {
+                title = "Generic step"
+            }
+            genericHaapiViewModel = GenericHaapiViewModel(genericRepresentationStep: genericRepresentationStep,
+                                                          submitter: self)
+        default: break
+        }
+    }
+
+    private func processProblemRepresentation(_ problem: ProblemRepresentation) {
+        switch problem {
+        case let authorizationProblem as AuthorizationProblem:
+            DispatchQueue.main.async {
+                self.error = ErrorInfo(title: authorizationProblem.error,
+                                       reason: authorizationProblem.errorDescription ?? authorizationProblem.error)
+            }
+        default:
+            DispatchQueue.main.async {
+                self.problemRepresentation = problem
+            }
+        }
+    }
+
+    // MARK: - Haapi Manager
 
     /**
      Starts the HaapiFlow according to the provided `Profile` and invokes the `completionHandler`.
@@ -144,24 +347,29 @@ final class FlowViewModel: ObservableObject, FlowViewModelActionnable {
                completionHandler: @escaping (Bool) -> Void)
     {
         guard !isProcessing else { return }
+        DispatchQueue.main.async {
+            self.isProcessing = true
+        }
+        guard let haapiConfiguration = profile.haapiConfiguration else {
+            completionHandler(false)
+            return
+        }
+        self.profile = profile
 
-        isProcessing = true
-        automaticPolling = profile.automaticPolling
-        controller?.start(with: profile) { [weak self] state in
-            self?.processState(state)
-            if case .systemError = state {
+        haapiManager = HaapiManager(haapiConfiguration: haapiConfiguration)
+        oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: haapiConfiguration)
+
+        haapiManager?.start(OAuthAuthorizationParameters(scopes: profile.selectedScopes ?? []),
+                            completionHandler:
+        { haapiResult in
+            self.processHaapiResult(haapiResult)
+            switch haapiResult {
+            case .error, .problem:
                 completionHandler(false)
-            } else {
+            default:
                 completionHandler(true)
             }
-            self?.isProcessing = false
-        }
-    }
-
-    /// Resets the HaapiFlow by clearing the internal state and notify the controller to reset itself.
-    func reset() {
-        resetState()
-        controller?.reset()
+        })
     }
 
     /**
@@ -170,20 +378,21 @@ final class FlowViewModel: ObservableObject, FlowViewModelActionnable {
      - Parameter parametersOverrides: A dictionary of String that will override any possible keys from `FormModel`.
      - Parameter completionHAndler: A closure of `HaapiCompletionHandler` that returns an optional `HaapiState`.
      */
-    func submitForm(form: FormModel,
+    func submitForm(form: FormActionModel,
                     parameterOverrides: [String: String],
-                    completionHandler: HaapiCompletionHandler?)
+                    completionHandler: @escaping () -> Void)
     {
         guard !isProcessing else { return }
+        DispatchQueue.main.async {
+            self.isProcessing = true
+        }
 
-        isProcessing = true
-        controller?.submitForm(form: form,
-                               parameterOverrides: parameterOverrides,
-                               completionHandler:
-        { [weak self] newState in
-            self?.processState(newState)
-            completionHandler?(newState)
-            self?.isProcessing = false
+        haapiManager?.submitForm(form,
+                                 parameters: parameterOverrides,
+                                 completionHandler:
+        { haapiResult in
+            self.processHaapiResult(haapiResult)
+            completionHandler()
         })
     }
 
@@ -192,138 +401,142 @@ final class FlowViewModel: ObservableObject, FlowViewModelActionnable {
      - Parameter link: A `Link`
      - Parameter completionHandler: An optional closure of `HaapiCompletionHandler` that returns an optional `HappiState`
      */
-    func followLink(link: Link,
-                    completionHandler: HaapiCompletionHandler? = nil)
-    {
+    func followLink(link: Link) {
         guard !isProcessing else { return }
+        DispatchQueue.main.async {
+            self.isProcessing = true
+        }
 
-        isProcessing = true
-        controller?.followLink(link: link,
-                               completionHandler:
-        { [weak self] state in
-            self?.processState(state)
-            completionHandler?(state)
-            self?.isProcessing = false
+        haapiManager?.followLink(link,
+                                 completionHandler:
+        { haapiResult in
+            self.processHaapiResult(haapiResult)
         })
     }
 
-    /// Applies an `Action` according to the user interaction.
-    func applyAction(_ action: Action) {
-        isProcessing = true
-        processActions([action])
-        if let actionTitle = action.title {
-            title = actionTitle
-        }
-        isProcessing = false
-    }
+    // MARK: - HaapiManager client operations
 
-    // MARK: Private
-
-    /// Process the new `HaapiState` so the FlowViewModel can update its parameters and notifiy the View through the @Publisher (state)
-    private func processState(_ state: HaapiState?) {
-        problemLinks = nil
-
-        switch state {
-        case .systemError(let error):
-            self.error = error
-            self.state = state
-        case .step(let content):
-            haapiStateContent = content
-            pollingViewModel = nil
-            self.state = state
-        case nil:
-            resetState()
-        case .authorizationResponse(let response):
-            haapiStateContent = response
-            authorizedViewModel = AuthorizedViewModel(authorizationCode: response.code,
-                                                      controller: controller)
-            self.state = state
-        case .accessToken(let tokensRepresentation):
-            haapiStateContent = nil
-            tokensViewModel = TokensViewModel(tokensRepresentation)
-            title = tokensRepresentation.title
-            imageLogo = tokensRepresentation.imageLogo
-            self.state = state
-        case .polling(let pollingStep):
-            if (haapiStateContent as? PollingStep) != pollingStep {
-                pollingViewModel = PollingViewModel(pollingStep: pollingStep,
-                                                    flowViewModel: self,
-                                                    automaticPolling: automaticPolling)
-            }
-            haapiStateContent = pollingStep
-            if self.state != state {
-                self.state = state
-            }
-        case .problem(let problem):
-            problemLinks = problem.links
-            self.state = state
+    func canHandleURL(_ url: URL) -> Bool {
+        if let externalBrowser = pendingOperationStep as? ExternalBrowserClientOperationStep {
+            return (try? externalBrowser.formattedParametersFromURL(url)) != nil
+        } else {
+            return false
         }
     }
 
-    /// Process the `actions` to generate the corresponding ViewModel: SelectorViewModel, FormViewModel or [FieldViewModels]
-    private func processActions(_ actions: [Action]) {
-        selectorViewModel = nil
-        formViewModels = nil
-
-        guard !actions.isEmpty else { return }
-
-        if actions.count == 1,
-           let action = actions.first
-        {
-            if let selectorModel = action.model as? SelectorModel {
-                selectorViewModel = SelectorViewModel(options: selectorModel.options,
-                                                      haapiSubmiter: self)
-            }
-            else if let formModel = action.model as? FormModel {
-                formViewModels = []
-
-                formViewModels?.append(FormViewModel(form: formModel,
-                                                     action: action,
-                                                     fieldViewModels: formModel.visibleFieldViewModels,
-                                                     flowViewModel: self))
-            }
-            else {
-                Logger.clientApp.debug("Action.model is not handled (Not a FormModel or SelectorModel)")
-            }
-        }
+    func handleURL(_ url: URL) {
+        guard haapiManager != nil,
+              let externalBrowserStep = pendingOperationStep as? ExternalBrowserClientOperationStep,
+              let formattedParameters = try? externalBrowserStep.formattedParametersFromURL(url)
         else {
-            formViewModels = []
-            actions.forEach {
-                guard let formModel = $0.model as? FormModel else {
-                    Logger.clientApp.debug("Action.model is not a FormModel(ignored)")
-                    return
-                }
+            fatalError("There is no haapiManager - The flow was not started or canHandleURL was not called")
+        }
 
-                let fieldViewModels: [FieldViewModel]
+        submitForm(form: externalBrowserStep.continueFormActionModel,
+                   parameterOverrides: formattedParameters,
+                   completionHandler: {})
+    }
 
-                if formModel.hasReadOnlyFields {
-                    fieldViewModels = formModel.visibleFieldViewModels
-                } else {
-                    fieldViewModels = []
-                }
+    // MARK: Token service
 
-                formViewModels?.append(FormViewModel(form: formModel,
-                                                     action: $0,
-                                                     fieldViewModels: fieldViewModels,
-                                                     flowViewModel: self))
+    func fetchAccessToken(code: String) {
+        guard !isProcessing else { return }
+        DispatchQueue.main.async {
+            self.isProcessing = true
+        }
+
+        oauthTokenManager?.fetchAccessToken(with: code,
+                                            completionHandler:
+        { oAuthResponse in
+            DispatchQueue.main.async {
+                self.processOAuthResponse(oAuthResponse)
+                self.isProcessing = false
+            }
+        })
+    }
+
+    private func processOAuthResponse(_ oAuthResponse: TokenResponse) {
+        selectorViewModel = nil
+        formViewModels.removeAll()
+        authorizedViewModel = nil
+        genericHaapiViewModel = nil
+
+        Logger.controllerFlow.debug("Received an OAuthResponse: \(String(describing: oAuthResponse))")
+        switch oAuthResponse {
+        case .successfulToken(let successfulTokenResponse):
+            title = "Success"
+            self.tokenResponse = successfulTokenResponse
+        case .errorToken(let errorTokenResponse):
+            DispatchQueue.main.async {
+                self.error = ErrorInfo(title: errorTokenResponse.error,
+                                       reason: errorTokenResponse.errorDescription)
+            }
+        case .error(let error):
+            DispatchQueue.main.async {
+                self.error = ErrorInfo(title: "Unexpected error",
+                                       reason: error.localizedDescription)
             }
         }
+    }
+
+    // MARK: Reset
+
+    /// Resets the HaapiFlow by clearing the internal state and notify the controller to reset itself.
+    func reset() {
+        resetState()
+        haapiManager?.close()
+        haapiManager = nil
+        oauthTokenManager = nil
     }
 
     /// Resets the internal state of FlowViewModel
     private func resetState() {
-        state = nil
         isProcessing = false
 
-        haapiStateContent = nil
+        haapiRepresentation = nil
         error = nil
-        automaticPolling = false
-        problemLinks = nil
 
         selectorViewModel = nil
-        formViewModels = nil
-        pollingViewModel = nil
+        formViewModels.removeAll()
         authorizedViewModel = nil
-        tokensViewModel = nil
+        genericHaapiViewModel = nil
+    }
+
+    func clearTokenResponse() {
+        tokenResponse = nil
+    }
+}
+
+// MARK: - Private helpers
+
+private let defaultImageName = "icon-user"
+private extension AuthenticatorSelectorStep.AuthenticatorOption {
+
+    var imageName: String {
+        guard let type = type else { return defaultImageName }
+
+        var result = "icon-\(type)"
+        if UIImage(named: result) == nil {
+            result = defaultImageName
+        }
+        return result
+    }
+}
+
+extension Array where Element == FormField {
+    var visibleFormField: [FormField] {
+        return filter { !($0 is HiddenFormField) }
+    }
+
+    var visibleFieldViewModel: [FieldViewModel] {
+        return visibleFormField.map {
+            if let formFieldCheckbox = $0 as? CheckboxFormField{
+                return CheckboxViewModel(checkboxField: formFieldCheckbox)
+            } else if let formFieldSelect = $0 as? SelectFormField {
+                return OptionsViewModel(selectField: formFieldSelect)
+            } else {
+                return FieldViewModel(field: $0)
+            }
+        }
     }
 }

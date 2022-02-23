@@ -17,6 +17,7 @@
 import SwiftUI
 import Combine
 import os
+import IdsvrHaapiSdk
 
 struct LinkView: View {
     @ObservedObject var viewModel: LinkViewModel
@@ -27,7 +28,7 @@ struct LinkView: View {
     }
 
     var body: some View {
-        Button(action: viewModel.select) {
+        Button(action: didTapButton) {
             VStack {
                 if let image = viewModel.image {
                     Image(uiImage: image)
@@ -45,16 +46,16 @@ struct LinkView: View {
         }
         .disabled(viewModel.isDisabled)
     }
+
+    func didTapButton() {
+        hideKeyboard()
+        viewModel.select()
+    }
 }
 
-// swiftlint:disable force_try line_length force_unwrapping
+// swiftlint:disable line_length force_unwrapping
 struct LinkView_Previews: PreviewProvider {
     static var previews: some View {
-        let link1 = Link(href: "", rel: "", title: "Title here", type: nil)
-
-        let imageRepresentation = try! Representation(Data(.messagesWithTextAndImageLinks))
-        let link2 = imageRepresentation.links.first!
-
         let link3Json = """
     {
       "href": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPoAAAD6AQAAAACgl2eQAAABpklEQVR42u2ZS47EMAhEkXIAHylX95F8gEg0VOHE3fNZjGaRkhJl4dhvg4ACHPPfn24P8AAP8DegWzzNN/ejuY99G/uRW6YFeB71bVic5l4DiX0hIIyKHbO9/JOfgSkCYeYeDPa7LJD+go0Rb7siwJCDv/K7MsjFAKR/P9b3G324OXDpbqZ/BF77SavvDCDfYWklDtR4S0FTAuJ0Q6TFGiJg9kWK7w941sGwy+KdKdOpzEJAbFKHk5wuWzNLAkCuI8Yi0ui7KPQfIqYA+EBlzNMkI+TWgqIA5MN2MY2dvjuukNMAcj2qS4GxzkIpBfRpZieTUubogZWA6tshX2ly9lpvUqwBpGox5YdtZ12/yqIG4CglnAGrsjAOlYCaOJg+1ljr+9poSQCoIDXMssViHokBNYm71TyV67d2UQQoEcYmq8kqxSoALkYwj6PQs8uSAuayTUHDhL6EnARQI+15YXUWei3A57Uh5Ree6sfnJcndAV5Y4ZQuq8BTBOoUowcHQ0WAF1YcA9nJawHVMXolyzmGaAHrtVtqstFfuxTw/I16gAf4b+AFsrD1sGayV1UAAAAASUVORK5CYII=",
@@ -62,7 +63,7 @@ struct LinkView_Previews: PreviewProvider {
       "title": "Scan the code in BankID security app"
     }
 """
-        let link3 = link3Json.decodedAsJson(as: Link.self)!
+        let link3 = link3Json.decodedAsJson(as: IdsvrHaapiSdk.Link.self)!
 
         let link4Json = """
     {
@@ -71,15 +72,9 @@ struct LinkView_Previews: PreviewProvider {
       "type": "image/png"
     }
 """
-        let link4 = link4Json.decodedAsJson(as: Link.self)!
+        let link4 = link4Json.decodedAsJson(as: IdsvrHaapiSdk.Link.self)!
 
         Group {
-            LinkView(viewModel: LinkViewModel(link: link1,
-                                              imageLoader: ImageLoader(),
-                                              selectHandler: { _ in }))
-            LinkView(viewModel: LinkViewModel(link: link2,
-                                              imageLoader: ImageLoader(),
-                                              selectHandler: { _ in }))
             LinkView(viewModel: LinkViewModel(link: link3,
                                               imageLoader: ImageLoader(),
                                               selectHandler: { _ in }))
@@ -95,18 +90,19 @@ struct LinkView_Previews: PreviewProvider {
 
 class LinkViewModel: ObservableObject {
 
-    let link: Link
+    let link: IdsvrHaapiSdk.Link
     let imageLoader: ImageLoader
-    let selectHandler: (Link) -> Void
+    let selectHandler: (IdsvrHaapiSdk.Link) -> Void
 
     @Published var image: UIImage?
     private var subscriber: AnyCancellable?
 
-    init(link: Link,
+    init(link: IdsvrHaapiSdk.Link,
          imageLoader: ImageLoader,
-         selectHandler: @escaping (Link) -> Void)
+         selectHandler: @escaping (IdsvrHaapiSdk.Link) -> Void)
     {
         self.link = link
+
         self.imageLoader = imageLoader
         self.selectHandler = selectHandler
         image = link.dataImage()
@@ -121,7 +117,7 @@ class LinkViewModel: ObservableObject {
     var title: String? {
         let result: String?
         if let linkTitle = link.title {
-            result = linkTitle
+            result = linkTitle.literal
         } else {
             if isDataType {
                 result = nil

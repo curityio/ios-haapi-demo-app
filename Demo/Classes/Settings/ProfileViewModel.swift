@@ -84,13 +84,14 @@ class ProfileViewModel: ObservableObject {
 
         cancellable = urlSession.dataTaskPublisher(for: url)
             .map { $0.data }
-            .tryMap { data -> (String, String, [String]) in
+            .tryMap { data -> (String, String, [String], String) in
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                    let tokenEndpoint = json["token_endpoint"] as? String,
                    let authEndPoint = json["authorization_endpoint"] as? String,
-                   let supportedScopes = json["scopes_supported"] as? [String]
+                   let supportedScopes = json["scopes_supported"] as? [String],
+                   let userinfoEndpoint = json["userinfo_endpoint"] as? String
                 {
-                    return (tokenEndpoint, authEndPoint, supportedScopes)
+                    return (tokenEndpoint, authEndPoint, supportedScopes, userinfoEndpoint)
                 } else {
                     throw ProfileViewModelError.invalidJSON
                 }
@@ -109,6 +110,7 @@ class ProfileViewModel: ObservableObject {
                 self?.profile.tokenEndpointURI = tuple.0
                 self?.profile.authorizationEndpointURI = tuple.1
                 self?.profile.supportedScopes = tuple.2
+                self?.profile.userInfoEndpointURI = tuple.3
                 self?.profile.fetchedAt = Date()
                 self?.update()
                 self?.updateScopeViewModel()
@@ -125,6 +127,10 @@ class ProfileViewModel: ObservableObject {
 
     var errorAuthorizationEndpointString: String? {
         return profile.authorizationEndpointURI.errorInvalidURL
+    }
+
+    var errorUserinfoEndpointString: String? {
+        return profile.userInfoEndpointURI.errorInvalidURL
     }
 }
 

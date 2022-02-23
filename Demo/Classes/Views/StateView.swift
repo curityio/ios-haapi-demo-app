@@ -15,6 +15,7 @@
 //
 
 import SwiftUI
+import IdsvrHaapiSdk
 
 struct StateView: View {
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
@@ -30,16 +31,18 @@ struct StateView: View {
             ScrollView {
                 VStack (spacing: UIConstants.spacing) {
                     HeaderView(flowViewModel.title, imageName: flowViewModel.imageLogo)
-                    ForEach(flowViewModel.messages, id: \.self) { msg in
+                    ForEach(flowViewModel.messageBundles, id: \.id) { msg in
                         MessageView(text: msg.text,
                                     messageType: msg.messageType)
                     }
-                    
                     contentView
 
-                    if !flowViewModel.links.isEmpty {
-                        ForEach(flowViewModel.links, id: \.self) { link in
-                            LinkView(viewModel: LinkViewModel(link: link,
+                    if !(flowViewModel.haapiRepresentation is OAuthAuthorizationResponseStep),
+                        let links = flowViewModel.haapiRepresentation?.links
+                    {
+                        let idLinks = links.map { LinkBundle(link: $0) }
+                        ForEach(idLinks, id: \.id) { linkBundle in
+                            LinkView(viewModel: LinkViewModel(link: linkBundle.link,
                                                               imageLoader: imageLoader,
                                                               selectHandler:
                                                                 { link in
@@ -69,13 +72,18 @@ struct StateView: View {
         .alert(isPresented: .constant(flowViewModel.error != nil), content: {
             Alert(
                 title: Text(flowViewModel.error?.title ?? ""),
-                message: Text(flowViewModel.error?.localizedDescription ?? ""),
+                message: Text(flowViewModel.error?.reason ?? ""),
                 dismissButton: .default(Text("Ok"), action: {
                     presentationMode.wrappedValue.dismiss()
                     flowViewModel.reset()
                 })
             )
         })
+        .onChange(of: flowViewModel.tokenResponse) { arg in
+            if arg != nil {
+                presentationMode.wrappedValue.dismiss()
+            }
+        }
     }
 
     @ViewBuilder
@@ -93,29 +101,42 @@ struct StateView: View {
 
     @ViewBuilder
     private var contentView: some View {
-        if let pollingViewModel = flowViewModel.pollingViewModel {
-            PollingView(viewModel: pollingViewModel)
-        }
-        else if let authorizedViewModel = flowViewModel.authorizedViewModel {
-            AuthorizedView(viewModel: authorizedViewModel)
-        }
-        else if let tokensViewModel = flowViewModel.tokensViewModel {
-            TokensView(viewModel: tokensViewModel)
-        }
-        else if let selectorViewModel = flowViewModel.selectorViewModel {
+        if let selectorViewModel = flowViewModel.selectorViewModel {
             SelectorView(viewModel: selectorViewModel)
-        }
-        else if let formViewModels = flowViewModel.formViewModels {
-            ForEach(formViewModels, id: \.self) { viewModel in
+        } else if !flowViewModel.formViewModels.isEmpty { // Form
+            ForEach(flowViewModel.formViewModels, id: \.self) { viewModel in
                 FormView(formViewModel: viewModel)
             }
+        } else if let authorizedViewModel = flowViewModel.authorizedViewModel {
+            AuthorizedView(viewModel: authorizedViewModel)
+        } else if let pollingViewModel = flowViewModel.pollingViewModel {
+            PollingView(viewModel: pollingViewModel)
+        } else if let genericHaapiViewModel = flowViewModel.genericHaapiViewModel {
+            GenericHaapiView(viewModel: genericHaapiViewModel)
+        }
+        else {
+            EmptyView()
         }
     }
 }
 
-struct StateView_Previews: PreviewProvider {
-    static var previews: some View {
-        StateView()
-            .environmentObject(FlowViewModel(controller: HaapiController()))
+// MARK: - UI Models helpers
+
+struct LinkBundle: Identifiable {
+    let link: IdsvrHaapiSdk.Link
+
+    var id: String {
+        return link.href
     }
+}
+
+struct ErrorInfo {
+    let title: String?
+    let reason: String
+}
+
+struct MessageBundle: Identifiable {
+    let id: String = UUID().uuidString
+    let text: String
+    let messageType: MessageType
 }

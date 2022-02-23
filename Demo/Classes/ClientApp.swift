@@ -15,23 +15,23 @@
 //
 
 import Foundation
-import IdsvrHaapiSdk
 import os
 import SwiftUI
+import IdsvrHaapiSdk
 
 @main
 struct ClientApp: App {
-    let haapiController: HaapiController
+    @StateObject var flowViewModel = FlowViewModel()
     @StateObject var profileManager = ProfileManager()
     @StateObject var imageLoader = ImageLoader(with: .dev)
     
     init() {
-        haapiController = HaapiController()
+        HaapiSdkLogger.enabled = true
     }
     
     var body: some Scene {
         WindowGroup {
-            MainView(viewModel: FlowViewModel(controller: haapiController))
+            MainView(viewModel: flowViewModel)
                 .environmentObject(profileManager)
                 .environmentObject(imageLoader)
                 .onOpenURL(perform: handleUrl)
@@ -40,6 +40,8 @@ struct ClientApp: App {
     
     func handleUrl(url: URL) {
         Logger.clientApp.debug("Incoming URL: \(url)")
-        haapiController.handleURL(url)
+        if flowViewModel.canHandleURL(url) {
+            flowViewModel.handleURL(url)
+        }
     }
 }

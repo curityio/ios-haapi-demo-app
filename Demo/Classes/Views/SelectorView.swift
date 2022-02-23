@@ -16,23 +16,22 @@
 
 import SwiftUI
 import os
+import IdsvrHaapiSdk
 
 struct SelectorView: View {
     @ObservedObject var viewModel: SelectorViewModel
-    
+
     var body: some View {
         LazyVStack {
             ForEach(viewModel.options, id: \.id) { option in
-                if let form = option.model as? FormModel {
-                    AuthenticatorButton(imageName: option.authenticatorTypeImageName,
-                                        title: LocalizedStringKey(option.title ?? "N/A"))
-                    { btn in
-                        viewModel.submitForm(form: form) {
-                            btn.reset()
-                        }
+                AuthenticatorButton(imageName: option.imageName,
+                                    title: LocalizedStringKey(option.title))
+                { btn in
+                    viewModel.submitForm(form: option.formActionModel) {
+                        btn.reset()
                     }
-                    .disabled(viewModel.isProcessing)
                 }
+                .disabled(viewModel.isProcessing)
             }
         }
         .paddingContentView([.top, .bottom])
@@ -45,37 +44,23 @@ struct SelectorView: View {
     }
 }
 
-// swiftlint:disable force_try force_cast force_unwrapping
-struct SelectorView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            SelectorView(viewModel: SelectorViewModel(options: SelectorView_Previews.sampleOptions,
-                                                      haapiSubmiter: HaapiController()))
-        }.environmentObject(HaapiController())
-    }
-
-    static var sampleOptions: [Option] {
-        return (try! Representation(Data(.selectAuthentication)).actions.first!.model as! SelectorModel).options
-    }
-}
-
 // MARK: - SelectorViewModel
 
 class SelectorViewModel: ObservableObject {
-    let options: [Option]
-    private let haapiSubmiter: HaapiSubmitable?
+    let options: [SelectorOption]
+    private weak var submitter: FlowViewModelSubmitable?
     private var observer: NSObjectProtocol?
     private let notificationCenter: NotificationCenter
 
     @Published var isProcessing = false
     var isViewVisible = false
 
-    init(options: [Option],
-         haapiSubmiter: HaapiSubmitable?,
+    init(options: [SelectorOption],
+         submitter: FlowViewModelSubmitable,
          notificationCenter: NotificationCenter = .default)
     {
         self.options = options
-        self.haapiSubmiter = haapiSubmiter
+        self.submitter = submitter
         self.notificationCenter = notificationCenter
 
         observer = self.notificationCenter.addObserver(forName: FlowViewModel.isProcessingNotification,
@@ -94,14 +79,23 @@ class SelectorViewModel: ObservableObject {
         }
     }
 
-    func submitForm(form: FormModel,
+    func submitForm(form: FormActionModel,
                     completionHandler: @escaping () -> Void)
     {
-        isProcessing = true
-        haapiSubmiter?.submitForm(form: form,
-                                  parameterOverrides: [:])
-        { _ in
+        submitter?.submitForm(form: form,
+                              parameterOverrides: [:])
+        {
             completionHandler()
         }
+    }
+
+    struct SelectorOption: Identifiable {
+        var id: String {
+            return title
+        }
+
+        let imageName: String
+        let title: String
+        let formActionModel: FormActionModel
     }
 }

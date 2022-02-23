@@ -19,23 +19,13 @@ import SwiftUI
 struct AuthorizedView: View {
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @ObservedObject var viewModel: AuthorizedViewModel
-    
+
     var body: some View {
         VStack {
-            Group {
-                if let error = viewModel.error {
-                    Text("Error")
-                    Text(error.localizedDescription)
-                    ColorButton(title: "Return to start") { _ in
-                        viewModel.reset(presentationMode: presentationMode)
-                    }
-                } else {
-                    Text("Authorization Code:")
-                    Text(viewModel.authorizationCode).bold().padding()
-                    ColorButton(title: "Get Access token") { _ in
-                        viewModel.getAccessToken()
-                    }
-                }
+            Text("Authorization Code:")
+            Text(viewModel.authorizationCode).bold().padding()
+            ColorButton(title: "Get Access token") { _ in
+                viewModel.getAccessToken()
             }
         }
     }
@@ -44,36 +34,23 @@ struct AuthorizedView: View {
 struct AuthorizedView_Previews: PreviewProvider {
     static var previews: some View {
         AuthorizedView(viewModel: AuthorizedViewModel(authorizationCode: "0",
-                                                      controller: nil))
+                                                      tokenServices: nil))
     }
 }
 
 class AuthorizedViewModel: ObservableObject {
 
     let authorizationCode: String
-    private(set) weak var controller: HaapiFlowable?
-
-    @Published var error: ErrorInfo?
+    weak var tokenServices: TokenServices?
 
     init(authorizationCode: String,
-         controller: HaapiFlowable?)
+         tokenServices: TokenServices?)
     {
         self.authorizationCode = authorizationCode
-        self.controller = controller
+        self.tokenServices = tokenServices
     }
 
     func getAccessToken() {
-        controller?.getAccessToken(authorizationCode) { [unowned self] result in
-            switch result {
-            case .systemError(let error):
-                self.error = error
-            default: break // ignore the rest
-            }
-        }
-    }
-
-    func reset(presentationMode: Binding<PresentationMode>) {
-        presentationMode.wrappedValue.dismiss()
-        controller?.reset()
+        tokenServices?.fetchAccessToken(code: authorizationCode)
     }
 }

@@ -42,11 +42,11 @@ extension ProfileView: View {
                              textInputConfiguration: .url,
                              errorMessage: viewModel.errorBaseURLString)
                 }
-                Section(header: Text("Meta data configuration"), footer: fetchedView) {
-                    EditText(placeholder: "Meta data URL",
+                Section(header: Text("Metadata configuration"), footer: fetchedView) {
+                    EditText(placeholder: "Issuer URL",
                              text: $viewModel.profile.metaDataBaseURLString,
                              textInputConfiguration: .url)
-                    FetchButton(text: "Fetch latest configuration", isLoading: isPulling) {
+                    FetchButton(text: "Fetch the latest configuration", isLoading: isPulling) {
                         isPulling = true
                         viewModel.pullMetaData {
                             isPulling = false
@@ -64,6 +64,10 @@ extension ProfileView: View {
                              text: $viewModel.profile.authorizationEndpointURI,
                              textInputConfiguration: .url,
                              errorMessage: viewModel.errorAuthorizationEndpointString)
+                    EditText(placeholder: "Userinfo endpoint URI",
+                             text: $viewModel.profile.userInfoEndpointURI,
+                             textInputConfiguration: .url,
+                             errorMessage: viewModel.errorUserinfoEndpointString)
                 }
                 Section(header: Text("Supported Scopes")) {
                     if let scopeViewModel = viewModel.scopeViewModel {

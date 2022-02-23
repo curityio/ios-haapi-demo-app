@@ -14,14 +14,10 @@
 // limitations under the License.
 //
 
-import Foundation
 import SwiftUI
+import IdsvrHaapiSdk
 
-extension Message {
-
-    static func invalid(text: String) -> Message {
-        return Message(text: text, classList: ["error"])
-    }
+extension UserMessage {
 
     var messageType: MessageType {
         let result: MessageType

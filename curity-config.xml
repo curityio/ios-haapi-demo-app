@@ -19,6 +19,8 @@
         <id>haapi-ios-dev-client</id>
         <no-authentication>true</no-authentication>
         <redirect-uris>haapi:start</redirect-uris>
+        <scope>openid</scope>
+        <scope>profile</scope>
         <user-authentication>
         </user-authentication>
         <capabilities>
@@ -40,3 +42,4 @@
   </profile>
   </profiles>
 </config>
+
