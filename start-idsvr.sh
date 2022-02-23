@@ -12,8 +12,8 @@
 # By default the Curity Identity Server will use a dynamic NGROK base URL
 # Set USE_NGROK to false and provide an IP address based URL otherwise
 #
-USE_NGROK=true
-BASE_URL=https://192.168.0.2:8443
+USE_NGROK=false
+BASE_URL=https://localhost:8443
 
 #
 # First check prerequisites
@@ -49,3 +49,4 @@ fi
 #
 IDENTITY_SERVER_BASE_URL=$(cat './deployment/output.txt')
 echo "Curity Identity Server is running at $IDENTITY_SERVER_BASE_URL"
+

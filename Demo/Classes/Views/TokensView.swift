@@ -46,7 +46,10 @@ struct TokensView: View {
                     .padding()
 
                 if let userInfo = viewModel.userInfo {
-                    Text(userInfo)
+                    let sub = userInfo["sub"] as? String ?? ""
+                    DisclosureView(title: "Userinfo response") {
+                        DisclosureContentView(text: sub, details: viewModel.userinfoDetails)
+                    }
                 }
 
                 // Access Token
@@ -87,20 +90,20 @@ struct TokensView: View {
 final class TokensViewModel: ObservableObject {
 
     @Published private(set) var oauthTokenResponse: SuccessfulTokenResponse
-    @Published private(set) var userInfo: String?
+    @Published private(set) var userInfo: [String: Any]?
     let oauthTokenManager: OAuthTokenManager
     let urlSession: URLSession
-    let tokenEndpointURL: URL
+    let userinfoEndpointURL: URL?
 
     init(_ oauthTokenResponse: SuccessfulTokenResponse,
          oauthTokenConfiguration: OAuthTokenConfigurable,
+         userinfoEndpointURL: String,
          urlSession: URLSession)
     {
         self.oauthTokenResponse = oauthTokenResponse
         self.oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: oauthTokenConfiguration)
         self.urlSession = urlSession
-        self.tokenEndpointURL = oauthTokenConfiguration.tokenEndpointURL
-            .deletingLastPathComponent().appendingPathComponent("userinfo")
+        self.userinfoEndpointURL = URL(string: userinfoEndpointURL)
 
         fetchUserInfo()
     }
@@ -117,6 +120,15 @@ final class TokensViewModel: ObservableObject {
                         value: oauthTokenResponse.tokenType ?? ""),
             CardDetails(header: "scope",
                         value: oauthTokenResponse.scope ?? "")
+        ]
+    }
+
+    var userinfoDetails: [CardDetails] {
+        let familyName = userInfo?["family_name"] as? String ?? ""
+        let givenName = userInfo?["given_name"] as? String ?? ""
+        return [
+            CardDetails(header: "sub", value: userInfo?["sub"] as? String ?? ""),
+            CardDetails(header: "name", value: givenName + " " + familyName)
         ]
     }
 
@@ -141,7 +153,11 @@ final class TokensViewModel: ObservableObject {
     }
 
     private func fetchUserInfo() {
-        var urlRequest = URLRequest(url: tokenEndpointURL,
+        if userinfoEndpointURL == nil {
+            return
+        }
+
+        var urlRequest = URLRequest(url: userinfoEndpointURL.unsafelyUnwrapped,
                                     cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
                                     timeoutInterval: 20)
         urlRequest.httpMethod = "GET"
@@ -160,7 +176,7 @@ final class TokensViewModel: ObservableObject {
                     return
                 }
 
-                self.userInfo = userInfo.description
+                self.userInfo = userInfo
             }
         }
         .resume()

@@ -1,0 +1,21 @@
+image: atlassian/default-image:2
+
+pipelines:
+  branches:
+    driver-sdk:
+      - step:
+          script:
+            - git remote add sync git@github.com:curityio/ios-haapi-demo-app.git
+            - git checkout driver-sdk
+            - git rm bitbucket-pipelines.yml
+            - git commit --amend -C HEAD
+            - git push -f sync driver-sdk
+    sdk:
+      - step:
+          script:
+            - git remote add sync git@github.com:curityio/ios-haapi-demo-app.git
+            - git checkout sdk
+            - git rm bitbucket-pipelines.yml
+            - git commit --amend -C HEAD
+            - git push -f sync sdk:master
+
