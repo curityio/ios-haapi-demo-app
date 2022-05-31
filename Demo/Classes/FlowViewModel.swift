@@ -286,7 +286,9 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                 fatalError("How to recover from it ?")
             }
             if profile?.followRedirects == true {
-                fetchAccessToken(code: code)
+                DispatchQueue.main.async {
+                    self.fetchAccessToken(code: code)
+                }
             } else {
                 title = "OAuth authorization completed"
                 authorizedViewModel = AuthorizedViewModel(authorizationCode: code,
