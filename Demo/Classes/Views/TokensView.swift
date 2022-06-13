@@ -16,6 +16,8 @@
 
 import IdsvrHaapiSdk
 import SwiftUI
+import JWTDecode
+import os
 
 struct TokensView: View {
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
@@ -137,7 +139,7 @@ final class TokensViewModel: ObservableObject {
     }
 
     var idToken: String? {
-        return oauthTokenResponse.idToken
+        return decodeJWT(token: oauthTokenResponse.idToken)
     }
 
     func requestRefreshToken() {
@@ -150,6 +152,40 @@ final class TokensViewModel: ObservableObject {
                 }
             }
         }
+    }
+
+    private func decodeJWT(token: String?) -> String? {
+        guard let token = token else { return token }
+        
+        var mapResult: [String: Any] = [:]
+        var result: String?
+        do {
+            let jwt = try decode(jwt: token)
+            // header
+            if !jwt.header.keys.isEmpty {
+                var values = [String: Any]()
+                jwt.header.keys.forEach { key in
+                    values[key] = jwt.header[key]
+                }
+                mapResult["header"] = values
+            }
+            // body
+            if !jwt.body.keys.isEmpty {
+                var values = [String: Any]()
+                jwt.body.keys.forEach { key in
+                    values[key] = jwt.body[key]
+                }
+                mapResult["body"] = values
+            }
+            // signature
+            mapResult["signature"] = jwt.signature
+            let jsonData = try JSONSerialization.data(withJSONObject: mapResult, options: .prettyPrinted)
+            result = token + "\n\n" + (jsonData.asPrettyJsonString() ?? "")
+        } catch {
+            Logger.clientApp.debug("Something went wrong when decoding JWT \(error.localizedDescription)")
+        }
+
+        return result
     }
 
     private func fetchUserInfo() {
