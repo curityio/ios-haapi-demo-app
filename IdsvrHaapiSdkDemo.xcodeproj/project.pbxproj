@@ -138,6 +138,7 @@
 		66B3BBD52601077C001355C2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 66B3BBD32601077C001355C2 /* LaunchScreen.storyboard */; };
 		66B602A7265FD7A7009B9F41 /* FlowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B602A6265FD7A7009B9F41 /* FlowViewModel.swift */; };
 		66B602A8265FD7A7009B9F41 /* FlowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B602A6265FD7A7009B9F41 /* FlowViewModel.swift */; };
+		66BB1CA028578E45003234BD /* JWTDecode in Frameworks */ = {isa = PBXBuildFile; productRef = 66BB1C9F28578E45003234BD /* JWTDecode */; };
 		66CC7B682615BCFA00028FB7 /* TrustAllCertsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CC7B672615BCFA00028FB7 /* TrustAllCertsDelegate.swift */; };
 		66CC7B692615BCFA00028FB7 /* TrustAllCertsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CC7B672615BCFA00028FB7 /* TrustAllCertsDelegate.swift */; };
 		66E1266B2667C63800326637 /* Bundle+HaapiRedirect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669FADA7263FF33C00BC4293 /* Bundle+HaapiRedirect.swift */; };
@@ -270,6 +271,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66BB1CA028578E45003234BD /* JWTDecode in Frameworks */,
 				90CE3CB927BFD0BC00EA5416 /* IdsvrHaapiSdk in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -514,6 +516,7 @@
 			name = IdsvrHaapiSdkDemo;
 			packageProductDependencies = (
 				90CE3CB827BFD0BC00EA5416 /* IdsvrHaapiSdk */,
+				66BB1C9F28578E45003234BD /* JWTDecode */,
 			);
 			productName = Demo;
 			productReference = 1BB29325255BE0EB0091ABDC /* IdsvrHaapiSdkDemo.app */;
@@ -609,6 +612,7 @@
 			mainGroup = 1BB2931C255BE0EB0091ABDC;
 			packageReferences = (
 				90CE3CB527BFD0A300EA5416 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */,
+				66BB1C9E28578E45003234BD /* XCRemoteSwiftPackageReference "JWTDecode.swift" */,
 			);
 			productRefGroup = 1BB29326255BE0EB0091ABDC /* Products */;
 			projectDirPath = "";
@@ -1215,6 +1219,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		66BB1C9E28578E45003234BD /* XCRemoteSwiftPackageReference "JWTDecode.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/auth0/JWTDecode.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 		90CE3CB527BFD0A300EA5416 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/curityio/ios-idsvr-haapi-sdk-dist";
@@ -1226,6 +1238,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		66BB1C9F28578E45003234BD /* JWTDecode */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 66BB1C9E28578E45003234BD /* XCRemoteSwiftPackageReference "JWTDecode.swift" */;
+			productName = JWTDecode;
+		};
 		90CE3CB827BFD0BC00EA5416 /* IdsvrHaapiSdk */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 90CE3CB527BFD0A300EA5416 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */;
