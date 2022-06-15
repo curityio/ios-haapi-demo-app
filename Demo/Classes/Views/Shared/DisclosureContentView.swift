@@ -19,6 +19,7 @@ import SwiftUI
 struct DisclosureContentView: View {
     let text: String
     let details: [CardDetails]
+    let decodeJWTModels: [DecodeJWTModel]
 
     private let columns = [
         GridItem(.flexible()),
@@ -28,10 +29,12 @@ struct DisclosureContentView: View {
     @Environment(\.colorScheme) var colorScheme
 
     init(text: String,
-         details: [CardDetails] = [])
+         details: [CardDetails] = [],
+         decodeJWTModels: [DecodeJWTModel] = [])
     {
         self.text = text
         self.details = details
+        self.decodeJWTModels = decodeJWTModels
     }
 
     var body: some View {
@@ -56,6 +59,12 @@ struct DisclosureContentView: View {
                         .font(.system(.caption, design: .monospaced))
                     }
                 }
+                if !decodeJWTModels.isEmpty {
+                    ForEach(decodeJWTModels, id: \.title) { model in
+                        DecodeJWTView(model: model)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
             }
         }
     }
@@ -70,6 +79,16 @@ struct CardView_Previews: PreviewProvider {
                               ])
         DisclosureContentView(text: "Hello World",
                               details: [])
+        DisclosureContentView(text: "Hello World",
+                              decodeJWTModels: [
+                                DecodeJWTModel(title: "HEADER",
+                                               contents: [
+                                                DecodeJWTContent(name: "iss",
+                                                                 value: "https://localhost:8443/dev/oauth/anonymous"),
+                                                DecodeJWTContent(name: "iat",
+                                                                 value: 137_213_891_273)
+                                               ])
+                              ])
     }
 }
 

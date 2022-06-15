@@ -49,24 +49,24 @@ struct TokensView: View {
 
                 if let userInfo = viewModel.userInfo {
                     let sub = userInfo["sub"] as? String ?? ""
-                    DisclosureView(title: "Userinfo response") {
+                    DisclosureView(title: "Userinfo response", textToClipboard: sub) {
                         DisclosureContentView(text: sub, details: viewModel.userinfoDetails)
                     }
                 }
 
                 // Access Token
-                DisclosureView(title: "Access token") {
+                DisclosureView(title: "Access token", textToClipboard: viewModel.accessToken) {
                     DisclosureContentView(text: viewModel.accessToken,
                                           details: viewModel.details)
                 }
                 // ID Token
-                if let idToken = viewModel.idToken {
-                    DisclosureView(title: "ID Token") {
-                        DisclosureContentView(text: idToken)
+                if let tokenIdInfo = viewModel.tokenIdInfo {
+                    DisclosureView(title: "ID Token", textToClipboard: tokenIdInfo.textToClipboard) {
+                        DisclosureContentView(text: tokenIdInfo.text, decodeJWTModels: tokenIdInfo.decodeJWTModels)
                     }
                 }
                 // Refresh Token
-                DisclosureView(title: "Refresh Token") {
+                DisclosureView(title: "Refresh Token", textToClipboard: viewModel.refreshToken) {
                     DisclosureContentView(text: viewModel.refreshToken)
                 }
 
@@ -138,7 +138,7 @@ final class TokensViewModel: ObservableObject {
         return oauthTokenResponse.refreshToken ?? ""
     }
 
-    var idToken: String? {
+    fileprivate var tokenIdInfo: TokenIDInfo? {
         return decodeJWT(token: oauthTokenResponse.idToken)
     }
 
@@ -154,38 +154,45 @@ final class TokensViewModel: ObservableObject {
         }
     }
 
-    private func decodeJWT(token: String?) -> String? {
-        guard let token = token else { return token }
+    private func decodeJWT(token: String?) -> TokenIDInfo? {
+        guard let token = token else { return nil }
         
         var mapResult: [String: Any] = [:]
         var result: String?
+        var decodeJWTModels = [DecodeJWTModel]()
         do {
             let jwt = try decode(jwt: token)
             // header
             if !jwt.header.keys.isEmpty {
                 var values = [String: Any]()
+                var decodeJWTContents = [DecodeJWTContent]()
                 jwt.header.keys.forEach { key in
                     values[key] = jwt.header[key]
+                    decodeJWTContents.append(DecodeJWTContent(name: key, value: jwt.header[key] ?? ""))
                 }
-                mapResult["header"] = values
+                mapResult["HEADER"] = values
+                decodeJWTModels.append(DecodeJWTModel(title: "HEADER", contents: decodeJWTContents))
             }
             // body
             if !jwt.body.keys.isEmpty {
                 var values = [String: Any]()
+                var decodeJWTContents = [DecodeJWTContent]()
                 jwt.body.keys.forEach { key in
                     values[key] = jwt.body[key]
+                    decodeJWTContents.append(DecodeJWTContent(name: key, value: jwt.body[key] ?? ""))
                 }
-                mapResult["body"] = values
+                mapResult["BODY"] = values
+                decodeJWTModels.append(DecodeJWTModel(title: "BODY", contents: decodeJWTContents))
             }
             // signature
-            mapResult["signature"] = jwt.signature
+            mapResult["SIGNATURE"] = jwt.signature
             let jsonData = try JSONSerialization.data(withJSONObject: mapResult, options: .prettyPrinted)
             result = token + "\n\n" + (jsonData.asPrettyJsonString() ?? "")
         } catch {
             Logger.clientApp.debug("Something went wrong when decoding JWT \(error.localizedDescription)")
         }
 
-        return result
+        return TokenIDInfo(text: token, textToClipboard: result ?? token, decodeJWTModels: decodeJWTModels)
     }
 
     private func fetchUserInfo() {
@@ -217,4 +224,10 @@ final class TokensViewModel: ObservableObject {
         }
         .resume()
     }
+}
+
+private struct TokenIDInfo {
+    let text: String
+    let textToClipboard: String
+    let decodeJWTModels: [DecodeJWTModel]
 }

@@ -19,15 +19,22 @@ import SwiftUI
 struct DisclosureView<ChildView: View>: View {
     let title: String
     let childView: ChildView
+    let textToClipboard: String
 
     @State private var isExpanded = false
     @Environment(\.colorScheme) var colorScheme
 
     init(title: String,
+         textToClipboard: String? = nil,
          @ViewBuilder childView: @escaping () -> ChildView)
     {
         self.title = title
         self.childView = childView()
+        if let textToClipboard = textToClipboard {
+            self.textToClipboard = textToClipboard
+        } else {
+            self.textToClipboard = title
+        }
     }
 
     var body: some View {
