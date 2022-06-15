@@ -16,6 +16,10 @@
 
 import SwiftUI
 
+extension Notification.Name {
+    static let copyToClipoard = Notification.Name("copyToClipoard")
+}
+
 struct DisclosureView<ChildView: View>: View {
     let title: String
     let childView: ChildView
@@ -44,6 +48,16 @@ struct DisclosureView<ChildView: View>: View {
                     .font(.text)
                     .fontWeight(.medium)
                 Spacer()
+                Button {
+                    UIPasteboard.general.string = textToClipboard
+
+                    NotificationCenter.default
+                        .post(name: NSNotification.Name.copyToClipoard,
+                              object: nil)
+                } label: {
+                    Image("Copy")
+                        .padding([.leading, .trailing], UIConstants.spacing)
+                }
                 if isExpanded {
                     Image("ChevronActive")
                 } else {
