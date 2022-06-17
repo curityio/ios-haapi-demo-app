@@ -71,7 +71,7 @@ struct MainView: View {
                                     userinfoEndpointURL: profileManager.activeProfile.userInfoEndpointURI,
                                     urlSession: haapiConfiguration.urlSession))
                                     .environmentObject(viewModel)
-                                    .configureToast(message: "Copied to clipboard.",
+                                    .configureToast(message: "copied_to_clipboard",
                                                     isShowing: $isShowingToast)
                             } else {
                                 EmptyView()

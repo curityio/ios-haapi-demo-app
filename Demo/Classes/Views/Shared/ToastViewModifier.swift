@@ -17,7 +17,7 @@
 import SwiftUI
 
 struct ToastViewModifier: ViewModifier {
-    let message: String
+    let message: LocalizedStringKey
     @Binding var isShowing: Bool
 
     func body(content: Content) -> some View {
@@ -53,6 +53,6 @@ struct ToastViewModifier: ViewModifier {
 
 extension View {
     func configureToast(message: String, isShowing: Binding<Bool>) -> some View {
-        modifier(ToastViewModifier(message: message, isShowing: isShowing))
+        modifier(ToastViewModifier(message: LocalizedStringKey(message), isShowing: isShowing))
     }
 }
