@@ -49,7 +49,7 @@ struct TokensView: View {
 
                 if let userInfo = viewModel.userInfo {
                     let sub = userInfo["sub"] as? String ?? ""
-                    DisclosureView(title: "Userinfo response", textToClipboard: sub) {
+                    DisclosureView(title: "Userinfo response") {
                         DisclosureContentView(text: sub, details: viewModel.userinfoDetails)
                     }
                 }

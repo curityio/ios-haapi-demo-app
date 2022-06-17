@@ -23,7 +23,7 @@ extension Notification.Name {
 struct DisclosureView<ChildView: View>: View {
     let title: String
     let childView: ChildView
-    let textToClipboard: String
+    let textToClipboard: String?
 
     @State private var isExpanded = false
     @Environment(\.colorScheme) var colorScheme
@@ -34,11 +34,7 @@ struct DisclosureView<ChildView: View>: View {
     {
         self.title = title
         self.childView = childView()
-        if let textToClipboard = textToClipboard {
-            self.textToClipboard = textToClipboard
-        } else {
-            self.textToClipboard = title
-        }
+        self.textToClipboard = textToClipboard
     }
 
     var body: some View {
@@ -48,15 +44,17 @@ struct DisclosureView<ChildView: View>: View {
                     .font(.text)
                     .fontWeight(.medium)
                 Spacer()
-                Button {
-                    UIPasteboard.general.string = textToClipboard
+                if let textToClipboard = textToClipboard {
+                    Button {
+                        UIPasteboard.general.string = textToClipboard
 
-                    NotificationCenter.default
-                        .post(name: NSNotification.Name.copyToClipoard,
-                              object: nil)
-                } label: {
-                    Image("Copy")
-                        .padding([.leading, .trailing], UIConstants.spacing)
+                        NotificationCenter.default
+                            .post(name: NSNotification.Name.copyToClipoard,
+                                  object: nil)
+                    } label: {
+                        Image("Copy")
+                            .padding([.leading, .trailing], UIConstants.spacing)
+                    }
                 }
                 if isExpanded {
                     Image("ChevronActive")
