@@ -1,5 +1,6 @@
 {
     "token_endpoint": "TokenEndpoint",
     "authorization_endpoint": "AuthEndpoint",
-    "scopes_supported": ["MyScope"]
+    "scopes_supported": ["MyScope"],
+    "userinfo_endpoint": "UserInfoEndpoint"
 }

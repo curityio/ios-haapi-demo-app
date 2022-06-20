@@ -25,6 +25,7 @@ struct MainView: View {
     @ObservedObject var viewModel: FlowViewModel
     @State private var startFlow = false
     @State private var canOpenToken = false
+    @State private var isShowingToast = false
     
     var body: some View {
         TabView {
@@ -70,6 +71,8 @@ struct MainView: View {
                                     userinfoEndpointURL: profileManager.activeProfile.userInfoEndpointURI,
                                     urlSession: haapiConfiguration.urlSession))
                                     .environmentObject(viewModel)
+                                    .configureToast(message: "copied_to_clipboard",
+                                                    isShowing: $isShowingToast)
                             } else {
                                 EmptyView()
                             }
@@ -81,5 +84,11 @@ struct MainView: View {
                 dismissButton: .default(Text("Ok"), action: { viewModel.reset() })
             )
         })
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name.copyToClipoard)) { _ in
+            isShowingToast = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                isShowingToast = false
+            }
+        }
     }
 }
