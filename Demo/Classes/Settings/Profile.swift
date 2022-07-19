@@ -26,12 +26,13 @@ struct Profile: Codable, Identifiable, Hashable {
         static let defaultName = "Default"
         static let scopes = ["openid", "profile"]
 
-        static let defaultAuthorizationEndpointURI = "https://localhost:8443/oauth/v2/oauth-authorize"
-        static let defaultTokenEndpointURI = "https://localhost:8443/oauth/v2/oauth-token"
-        static let defaultUserinfoEndpointURI = "https://localhost:8443/oauth/v2/oauth-userinfo"
+        static let baseUrl = Bundle.main.object(forInfoDictionaryKey: "CURITY_BASE_URL") as? String ?? "localhost:8443" // swiftlint:disable:this line_length
+        static let defaultAuthorizationEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-authorize"
+        static let defaultTokenEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-token"
+        static let defaultUserinfoEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-userinfo"
         static let defaultClientId = "haapi-ios-dev-client"
-        static let defaultBaseURLString = "https://localhost:8443"
-        static let defaultMetaBaseURLString = "https://localhost:8443/oauth/v2/oauth-anonymous"
+        static let defaultBaseURLString = "https://\(baseUrl)"
+        static let defaultMetaBaseURLString = "\(defaultBaseURLString)/oauth/v2/oauth-anonymous"
 
         // Dev constants, for Curity developers' use
         static let defaultDevAuthorizationEndpointURI = "https://localhost:8443/dev/oauth/authorize"
