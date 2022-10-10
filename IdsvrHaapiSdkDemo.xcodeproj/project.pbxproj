@@ -12,6 +12,10 @@
 		6604F6DC260A13FF001AFCEB /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6604F6DB260A13FF001AFCEB /* Profile.swift */; };
 		6604F6E7260A1D7B001AFCEB /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6604F6E6260A1D7B001AFCEB /* ProfileView.swift */; };
 		6604F6EC260A4018001AFCEB /* ProfileListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6604F6EB260A4018001AFCEB /* ProfileListView.swift */; };
+		6605113D2859E33300EDB1E3 /* DecodeJWTView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6605113C2859E33300EDB1E3 /* DecodeJWTView.swift */; };
+		6605113E2859E33300EDB1E3 /* DecodeJWTView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6605113C2859E33300EDB1E3 /* DecodeJWTView.swift */; };
+		6614A1A1285A0AAD0044979D /* ToastViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6614A1A0285A0AAD0044979D /* ToastViewModifier.swift */; };
+		6614A1A2285A0AAD0044979D /* ToastViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6614A1A0285A0AAD0044979D /* ToastViewModifier.swift */; };
 		66181009262EF96A0039234E /* Color+Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66181008262EF96A0039234E /* Color+Brand.swift */; };
 		6618100A262EF96A0039234E /* Color+Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66181008262EF96A0039234E /* Color+Brand.swift */; };
 		66181017262EFD910039234E /* Roboto-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 66181012262EFD910039234E /* Roboto-Italic.ttf */; };
@@ -138,6 +142,9 @@
 		66B3BBD52601077C001355C2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 66B3BBD32601077C001355C2 /* LaunchScreen.storyboard */; };
 		66B602A7265FD7A7009B9F41 /* FlowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B602A6265FD7A7009B9F41 /* FlowViewModel.swift */; };
 		66B602A8265FD7A7009B9F41 /* FlowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B602A6265FD7A7009B9F41 /* FlowViewModel.swift */; };
+		66BB1CA028578E45003234BD /* JWTDecode in Frameworks */ = {isa = PBXBuildFile; productRef = 66BB1C9F28578E45003234BD /* JWTDecode */; };
+		66BB1CA228586DC8003234BD /* JWTDecode in Frameworks */ = {isa = PBXBuildFile; productRef = 66BB1CA128586DC8003234BD /* JWTDecode */; };
+		66BB1CA428586DF4003234BD /* IdsvrHaapiSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 66BB1CA328586DF4003234BD /* IdsvrHaapiSdk */; };
 		66CC7B682615BCFA00028FB7 /* TrustAllCertsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CC7B672615BCFA00028FB7 /* TrustAllCertsDelegate.swift */; };
 		66CC7B692615BCFA00028FB7 /* TrustAllCertsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66CC7B672615BCFA00028FB7 /* TrustAllCertsDelegate.swift */; };
 		66E1266B2667C63800326637 /* Bundle+HaapiRedirect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669FADA7263FF33C00BC4293 /* Bundle+HaapiRedirect.swift */; };
@@ -195,6 +202,8 @@
 		6604F6DB260A13FF001AFCEB /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		6604F6E6260A1D7B001AFCEB /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		6604F6EB260A4018001AFCEB /* ProfileListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileListView.swift; sourceTree = "<group>"; };
+		6605113C2859E33300EDB1E3 /* DecodeJWTView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecodeJWTView.swift; sourceTree = "<group>"; };
+		6614A1A0285A0AAD0044979D /* ToastViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastViewModifier.swift; sourceTree = "<group>"; };
 		66181008262EF96A0039234E /* Color+Brand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Brand.swift"; sourceTree = "<group>"; };
 		66181012262EFD910039234E /* Roboto-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-Italic.ttf"; sourceTree = "<group>"; };
 		66181013262EFD910039234E /* Roboto-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-Light.ttf"; sourceTree = "<group>"; };
@@ -270,6 +279,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66BB1CA028578E45003234BD /* JWTDecode in Frameworks */,
 				90CE3CB927BFD0BC00EA5416 /* IdsvrHaapiSdk in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -292,6 +302,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66BB1CA428586DF4003234BD /* IdsvrHaapiSdk in Frameworks */,
+				66BB1CA228586DC8003234BD /* JWTDecode in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -478,6 +490,8 @@
 				6634245B26394F24003DA575 /* CheckboxView.swift */,
 				66B3BB8E2601071C001355C2 /* ColorButton.swift */,
 				662807E3260B4D0500D4017C /* CTextField.swift */,
+				6605113C2859E33300EDB1E3 /* DecodeJWTView.swift */,
+				6614A1A0285A0AAD0044979D /* ToastViewModifier.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -514,6 +528,7 @@
 			name = IdsvrHaapiSdkDemo;
 			packageProductDependencies = (
 				90CE3CB827BFD0BC00EA5416 /* IdsvrHaapiSdk */,
+				66BB1C9F28578E45003234BD /* JWTDecode */,
 			);
 			productName = Demo;
 			productReference = 1BB29325255BE0EB0091ABDC /* IdsvrHaapiSdkDemo.app */;
@@ -571,6 +586,8 @@
 			);
 			name = Debug;
 			packageProductDependencies = (
+				66BB1CA128586DC8003234BD /* JWTDecode */,
+				66BB1CA328586DF4003234BD /* IdsvrHaapiSdk */,
 			);
 			productName = Demo;
 			productReference = 66994DAE2615015500880758 /* Debug.app */;
@@ -609,6 +626,7 @@
 			mainGroup = 1BB2931C255BE0EB0091ABDC;
 			packageReferences = (
 				90CE3CB527BFD0A300EA5416 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */,
+				66BB1C9E28578E45003234BD /* XCRemoteSwiftPackageReference "JWTDecode.swift" */,
 			);
 			productRefGroup = 1BB29326255BE0EB0091ABDC /* Products */;
 			projectDirPath = "";
@@ -735,6 +753,7 @@
 				663DFC3826417AA20040B969 /* DisclosureView.swift in Sources */,
 				66B3BBC12601071C001355C2 /* FormView.swift in Sources */,
 				6618105D263045B80039234E /* ArcSpinner.swift in Sources */,
+				6605113D2859E33300EDB1E3 /* DecodeJWTView.swift in Sources */,
 				66B3BBC02601071C001355C2 /* PollingView.swift in Sources */,
 				66B3BBBD2601071C001355C2 /* StateView.swift in Sources */,
 				66B3BBB72601071C001355C2 /* Scheduler.swift in Sources */,
@@ -775,6 +794,7 @@
 				6604F6EC260A4018001AFCEB /* ProfileListView.swift in Sources */,
 				66B3BBCA2601071C001355C2 /* StatefulPreviewWrapper.swift in Sources */,
 				6604F6DC260A13FF001AFCEB /* Profile.swift in Sources */,
+				6614A1A1285A0AAD0044979D /* ToastViewModifier.swift in Sources */,
 				66CC7B682615BCFA00028FB7 /* TrustAllCertsDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -811,6 +831,7 @@
 				66994D672615015500880758 /* PollingView.swift in Sources */,
 				66994D682615015500880758 /* StateView.swift in Sources */,
 				663DFC3926417AA20040B969 /* DisclosureView.swift in Sources */,
+				6605113E2859E33300EDB1E3 /* DecodeJWTView.swift in Sources */,
 				66994D692615015500880758 /* Scheduler.swift in Sources */,
 				66994D6C2615015500880758 /* ProblemView.swift in Sources */,
 				66994D6D2615015500880758 /* ColorButton.swift in Sources */,
@@ -851,6 +872,7 @@
 				66994D922615015500880758 /* ProfileListView.swift in Sources */,
 				66994D932615015500880758 /* StatefulPreviewWrapper.swift in Sources */,
 				66994D952615015500880758 /* Profile.swift in Sources */,
+				6614A1A2285A0AAD0044979D /* ToastViewModifier.swift in Sources */,
 				66CC7B692615BCFA00028FB7 /* TrustAllCertsDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1003,8 +1025,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = ALY8Q7BNK9;
+				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Demo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1012,6 +1036,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = io.curity.cat.ios.client;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = iOS_development_provisional_certs;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1022,8 +1047,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = ALY8Q7BNK9;
+				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Demo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1031,6 +1058,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = io.curity.cat.ios.client;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "Distribution Test App";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -1209,6 +1237,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		66BB1C9E28578E45003234BD /* XCRemoteSwiftPackageReference "JWTDecode.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/auth0/JWTDecode.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 		90CE3CB527BFD0A300EA5416 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/curityio/ios-idsvr-haapi-sdk-dist";
@@ -1220,6 +1256,21 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		66BB1C9F28578E45003234BD /* JWTDecode */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 66BB1C9E28578E45003234BD /* XCRemoteSwiftPackageReference "JWTDecode.swift" */;
+			productName = JWTDecode;
+		};
+		66BB1CA128586DC8003234BD /* JWTDecode */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 66BB1C9E28578E45003234BD /* XCRemoteSwiftPackageReference "JWTDecode.swift" */;
+			productName = JWTDecode;
+		};
+		66BB1CA328586DF4003234BD /* IdsvrHaapiSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 90CE3CB527BFD0A300EA5416 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */;
+			productName = IdsvrHaapiSdk;
+		};
 		90CE3CB827BFD0BC00EA5416 /* IdsvrHaapiSdk */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 90CE3CB527BFD0A300EA5416 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */;
