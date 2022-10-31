@@ -18,6 +18,7 @@ import Foundation
 import IdsvrHaapiSdk
 import os
 import UIKit
+import AuthenticationServices
 
 protocol FlowViewModelSubmitable: AnyObject {
     func submitForm(form: FormActionModel,
@@ -40,7 +41,7 @@ protocol TokenServices: AnyObject {
  `FlowViewModel.links`,  `FlowViewModel.title` or `FlowViewModel.imageLogo`.
  */
 // swiftlint:disable:next type_body_length
-final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServices {
+final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, TokenServices, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
 
     static let isProcessingNotification = NSNotification.Name("flowViewModel.isProcessing")
     static let problemRepresentationNotification = NSNotification.Name("flowViewModel.problemRepresentation")
@@ -204,8 +205,200 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
                     }
                 }
             }
-
+        case let genericOperationStep as GenericClientOperationStep:
+            Logger.clientApp.debug("A genericOperationStep: \(genericOperationStep.type.rawValue)")
+            if genericOperationStep.actionModel.name.rawValue == "WebAuthn" {
+                if let platformJson = genericOperationStep.actionModel.arguments["platformJson"] as? [String: Any],
+                   let data = try? JSONSerialization.data(withJSONObject: platformJson, options: .prettyPrinted)
+                {
+                    if #available(iOS 15.0, *) {
+                        doRegistrationCreation(data: data)
+                    } else {
+                        // Fallback on earlier versions
+                    }
+                }
+                if let assertionRequest = genericOperationStep.actionModel.arguments["assertionRequest"] as? [String: Any],
+                    let data = try? JSONSerialization.data(withJSONObject: assertionRequest, options: .prettyPrinted)
+                {
+                    if #available(iOS 15.0, *) {
+                        doAssertionRequest(data: data)
+                    } else {
+                        // Fallback on earlier versions
+                    }
+                }
+            } else {
+                // NOP
+                Logger.clientApp.debug("ERROR")
+            }
         default:break
+        }
+    }
+
+    @available(iOS 15.0, *)
+    private func doRegistrationCreation(data: Data) {
+        guard let regisModel = try? JSONDecoder().decode(RegistrationWebAuthN.self, from: data),
+              let challengeData = regisModel.publicKey.challenge.decodeBase64Url(),
+              let userIdData = regisModel.publicKey.user.id.decodeBase64Url()  else {
+            fatalError("Invalid data")
+        }
+
+        let credProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: regisModel.publicKey.rp.id)
+        let registrationRequest = credProvider.createCredentialRegistrationRequest(challenge: challengeData,
+                                                                                   name: regisModel.publicKey.user.name,
+                                                                                   userID: userIdData)
+
+        registrationRequest.userVerificationPreference = ASAuthorizationPublicKeyCredentialUserVerificationPreference(rawValue: regisModel.publicKey.authenticatorSelection.userVerification)
+        let controller = ASAuthorizationController(authorizationRequests: [registrationRequest])
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        controller.performRequests()
+    }
+
+    @available(iOS 15.0, *)
+    private func doAssertionRequest(data: Data) {
+        guard let assertionModel = try? JSONDecoder().decode(AssertionRequest.self, from: data),
+              let challengeData = assertionModel.publicKey.challenge.decodeBase64Url()
+        else {
+            fatalError("Invalid model for assertionModel")
+        }
+
+        let publicKeyCredentialProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: assertionModel.publicKey.rpId)
+        let assertionRequest = publicKeyCredentialProvider.createCredentialAssertionRequest(challenge: challengeData)
+
+        assertionRequest.userVerificationPreference = ASAuthorizationPublicKeyCredentialUserVerificationPreference(rawValue: assertionModel.publicKey.userVerification)
+
+        let allowedCredentials: [ASAuthorizationPlatformPublicKeyCredentialDescriptor] = assertionModel.publicKey.allowCredentials.compactMap {
+            guard let credentialID = $0.id.decodeBase64Url() else { return nil }
+            return ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: credentialID)
+        }
+
+        assertionRequest.allowedCredentials = allowedCredentials
+
+        let controller = ASAuthorizationController(authorizationRequests: [assertionRequest])
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        controller.performRequests()
+    }
+
+    func authorizationController(controller: ASAuthorizationController,
+                                 didCompleteWithError error: Error)
+    {
+        Logger.clientApp.debug("Error for authorizationController: \(error.localizedDescription)")
+        DispatchQueue.main.async {
+            self.error = ErrorInfo(title: "Unexpected error",
+                                   reason: error.localizedDescription)
+        }
+    }
+
+    func authorizationController(controller: ASAuthorizationController,
+                                 didCompleteWithAuthorization authorization: ASAuthorization)
+    {
+        if #available(iOS 15.0, *) {
+            switch authorization.credential {
+            case let credentialReg as ASAuthorizationPlatformPublicKeyCredentialRegistration:
+                Logger.clientApp.debug("Authorization completed for registration")
+                sendRegistration(credentialReg: credentialReg)
+            case let assertion as ASAuthorizationPlatformPublicKeyCredentialAssertion:
+                Logger.clientApp.debug("Authorization completed for assertion")
+                sendAssertion(credentialAssertion: assertion)
+            default:
+                fatalError("Not handled")
+            }
+        } else {
+            // Fallback on earlier versions
+        }
+    }
+
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        guard let appWindow = UIApplication.shared.delegate?.window,
+              let window = appWindow
+        else {
+            fatalError("There is no window")
+        }
+        return window
+    }
+
+    @available(iOS 15.0, *)
+    private func sendRegistration(credentialReg: ASAuthorizationPlatformPublicKeyCredentialRegistration) {
+        guard let operationStep = pendingOperationStep as? GenericClientOperationStep else {
+            fatalError("Expecting a GenericClientOperationStep")
+        }
+
+        guard let continueAction = operationStep.actionModel.continueActions.first,
+              let formAction = continueAction as? FormAction else
+        {
+            fatalError("Developer mistake")
+        }
+
+        let response = [
+            // swiftlint:disable:next force_unwrapping
+            "attestationObject": credentialReg.rawAttestationObject!.toBase64Url(),
+            "clientDataJSON": credentialReg.rawClientDataJSON.toBase64Url()
+        ]
+
+        let parameters: [String: Any] = [
+            "type": "public-key",
+            "id": credentialReg.credentialID.toBase64Url(),
+            "rawId": credentialReg.credentialID.toBase64Url(),
+            "response": response,
+            "clientExtensionResults": [:]
+        ]
+
+        // swiftlint:disable:next force_try line_length
+        var formParameters = [String: Any]()
+        for field in formAction.model.fields {
+            if let hiddenField = field as? HiddenFormField {
+                formParameters[field.name] = hiddenField.value
+            } else if field is ContextFormField {
+                formParameters[field.name] = parameters
+            }
+        }
+
+        submitForm(form: formAction.model, parameterOverrides: formParameters) {
+
+        }
+    }
+
+    @available(iOS 15.0, *)
+    private func sendAssertion(credentialAssertion: ASAuthorizationPlatformPublicKeyCredentialAssertion) {
+        guard let operationStep = pendingOperationStep as? GenericClientOperationStep else {
+            fatalError("Expecting a GenericClientOperationStep")
+        }
+
+        guard let continueAction = operationStep.actionModel.continueActions.first,
+              let formAction = continueAction as? FormAction else
+        {
+            fatalError("Developer mistake")
+        }
+
+        let response = [
+            "authenticatorData": credentialAssertion.rawAuthenticatorData.toBase64Url(),
+            "clientDataJSON": credentialAssertion.rawClientDataJSON.toBase64Url(),
+            "signature": credentialAssertion.signature.toBase64Url(),
+            "userHandle": nil
+        ]
+
+        let paramsID = credentialAssertion.credentialID.toBase64Url()
+        let parameters: [String: Any] = [
+            "type": "public-key",
+            "id": paramsID,
+            "rawId": paramsID,
+            "response": response,
+            "clientExtensionResults": [:]
+        ]
+
+        // swiftlint:disable:next force_try line_length
+        var formParameters = [String: Any]()
+        for field in formAction.model.fields {
+            if let hiddenField = field as? HiddenFormField {
+                formParameters[field.name] = hiddenField.value
+            } else if field is ContextFormField {
+                formParameters[field.name] = parameters
+            }
+        }
+
+        submitForm(form: formAction.model, parameterOverrides: formParameters) {
+
         }
     }
 
@@ -398,6 +591,23 @@ final class FlowViewModel: ObservableObject, FlowViewModelSubmitable, TokenServi
         })
     }
 
+    func submitForm(form: FormActionModel,
+                        parameterOverrides: [String: Any],
+                        completionHandler: @escaping () -> Void)
+        {
+            guard !isProcessing else { return }
+            DispatchQueue.main.async {
+                self.isProcessing = true
+            }
+
+            haapiManager?.submitForm2(form,
+                                      parameters: parameterOverrides,
+                                      completionHandler:
+                                        { haapiResult in
+                                            self.processHaapiResult(haapiResult)
+                                            completionHandler()
+                                        })
+        }
     /**
      Follows a `Link` and invokes the `completionHandler`.
      - Parameter link: A `Link`
@@ -540,5 +750,78 @@ extension Array where Element == FormField {
                 return FieldViewModel(field: $0)
             }
         }
+    }
+}
+
+// MARK: Registration
+struct RegistrationWebAuthN: Codable {
+    let publicKey: RegistrationWebAuthnContent
+}
+
+struct RegistrationWebAuthnContent: Codable {
+    // swiftlint:disable:next identifier_name
+    let rp: RegistrationWebAuthNProperties
+    let user: RegistrationWebAuthNUser
+    let challenge: String
+    let authenticatorSelection: WebAuthNAuthenticatorSelection
+    let attestation: String
+}
+
+struct RegistrationWebAuthNProperties: Codable {
+    let name: String
+    /// RelyingPartyIdentifier - Domain
+    let id: String
+}
+
+struct RegistrationWebAuthNUser: Codable {
+    let name: String
+    let displayName: String
+    let id: String
+}
+
+struct WebAuthNAuthenticatorSelection: Codable {
+    let authenticatorAttachment: String
+    let requireResidentKey: Bool
+    let userVerification: String
+}
+
+// MARK: AssertionRequest / Authentication
+
+struct AssertionRequest: Codable {
+    let publicKey: AssertionRequestContent
+}
+
+struct AssertionRequestContent: Codable {
+    let challenge: String
+    /// RelyingPartyIdentifier - Domain
+    let rpId: String
+    let allowCredentials: [AssertionRequestAllowCredential]
+    let userVerification: String
+}
+
+struct AssertionRequestAllowCredential: Codable {
+    let type: String
+    let id: String
+}
+
+private extension String {
+    func decodeBase64Url() -> Data? {
+        var base64 = self
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        // swiftlint:disable:next legacy_multiple
+        if base64.count % 4 != 0 {
+            base64.append(String(repeating: "=", count: 4 - base64.count % 4))
+        }
+        return Data(base64Encoded: base64)
+    }
+}
+
+private extension Data {
+    func toBase64Url() -> String {
+        return self.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
     }
 }
