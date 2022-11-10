@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1BB2934B255BE0EC0091ABDC /* DemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB2934A255BE0EC0091ABDC /* DemoUITests.swift */; };
+		42CFF496291A9E68002FA0C8 /* IdsvrHaapiSdk.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 42CFF495291A9E68002FA0C8 /* IdsvrHaapiSdk.xcframework */; };
 		6604F60B2605461D001AFCEB /* fieldValid.json in Resources */ = {isa = PBXBuildFile; fileRef = 6604F60A2605461D001AFCEB /* fieldValid.json */; };
 		6604F6DC260A13FF001AFCEB /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6604F6DB260A13FF001AFCEB /* Profile.swift */; };
 		6604F6E7260A1D7B001AFCEB /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6604F6E6260A1D7B001AFCEB /* ProfileView.swift */; };
@@ -57,8 +58,6 @@
 		6634245D26394F24003DA575 /* CheckboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6634245B26394F24003DA575 /* CheckboxView.swift */; };
 		663424712639A3C8003DA575 /* AuthenticatorButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663424702639A3C8003DA575 /* AuthenticatorButton.swift */; };
 		663424722639A3C8003DA575 /* AuthenticatorButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663424702639A3C8003DA575 /* AuthenticatorButton.swift */; };
-		66372DEA290936A500A1E34E /* IdsvrHaapiSdk.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66372DE9290936A500A1E34E /* IdsvrHaapiSdk.xcframework */; };
-		66372DEB290936A500A1E34E /* IdsvrHaapiSdk.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 66372DE9290936A500A1E34E /* IdsvrHaapiSdk.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6638E4CF2615117E0022D0D9 /* ScopesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6638E4CE2615117E0022D0D9 /* ScopesView.swift */; };
 		6638E4D02615117E0022D0D9 /* ScopesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6638E4CE2615117E0022D0D9 /* ScopesView.swift */; };
 		663D5C6E26243F7900885FBF /* Logger+HaapiDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663D5C6D26243F7900885FBF /* Logger+HaapiDemo.swift */; };
@@ -175,7 +174,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				66372DEB290936A500A1E34E /* IdsvrHaapiSdk.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -199,6 +197,7 @@
 		1BB29346255BE0EC0091ABDC /* IdsvrHaapiSdkDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IdsvrHaapiSdkDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1BB2934A255BE0EC0091ABDC /* DemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoUITests.swift; sourceTree = "<group>"; };
 		1BB2934C255BE0EC0091ABDC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		42CFF495291A9E68002FA0C8 /* IdsvrHaapiSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = IdsvrHaapiSdk.xcframework; path = "../ios-cat/build/IdsvrHaapiSdk.xcframework"; sourceTree = "<group>"; };
 		6604F60A2605461D001AFCEB /* fieldValid.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fieldValid.json; sourceTree = "<group>"; };
 		6604F6DB260A13FF001AFCEB /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		6604F6E6260A1D7B001AFCEB /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
@@ -230,7 +229,6 @@
 		6634245B26394F24003DA575 /* CheckboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckboxView.swift; sourceTree = "<group>"; };
 		663424702639A3C8003DA575 /* AuthenticatorButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatorButton.swift; sourceTree = "<group>"; };
 		66372D6428F8353900A1E34E /* IdsvrHaapiSdkDemo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IdsvrHaapiSdkDemo.entitlements; sourceTree = "<group>"; };
-		66372DE9290936A500A1E34E /* IdsvrHaapiSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = IdsvrHaapiSdk.xcframework; path = "../../ios-cat/build/IdsvrHaapiSdk.xcframework"; sourceTree = "<group>"; };
 		6638E4CE2615117E0022D0D9 /* ScopesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopesView.swift; sourceTree = "<group>"; };
 		663D5C6D26243F7900885FBF /* Logger+HaapiDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logger+HaapiDemo.swift"; sourceTree = "<group>"; };
 		663DFC2B26414AFE0040B969 /* View+NavigationBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "View+NavigationBar.swift"; sourceTree = "<group>"; };
@@ -283,7 +281,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				66BB1CA028578E45003234BD /* JWTDecode in Frameworks */,
-				66372DEA290936A500A1E34E /* IdsvrHaapiSdk.xcframework in Frameworks */,
+				42CFF496291A9E68002FA0C8 /* IdsvrHaapiSdk.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -374,7 +372,7 @@
 		1BB29360255BE14D0091ABDC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				66372DE9290936A500A1E34E /* IdsvrHaapiSdk.xcframework */,
+				42CFF495291A9E68002FA0C8 /* IdsvrHaapiSdk.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

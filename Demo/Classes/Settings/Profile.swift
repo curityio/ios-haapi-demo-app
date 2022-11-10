@@ -35,12 +35,12 @@ struct Profile: Codable, Identifiable, Hashable {
         static let defaultMetaBaseURLString = "\(defaultBaseURLString)/oauth/v2/oauth-anonymous"
 
         // Dev constants, for Curity developers' use
-        static let defaultDevAuthorizationEndpointURI = "https://hla.eu.ngrok.io/dev/oauth/authorize"
-        static let defaultDevTokenEndpointURI = "https://hla.eu.ngrok.io/dev/oauth/token"
-        static let defaultDevUserinfoEndpointURI = "https://hla.eu.ngrok.io/dev/oauth/userinfo"
+        static let defaultDevAuthorizationEndpointURI = "https://2191-2001-818-e915-6a00-5ca9-7924-bdb0-812e.eu.ngrok.io/dev/oauth/authorize"
+        static let defaultDevTokenEndpointURI = "https://2191-2001-818-e915-6a00-5ca9-7924-bdb0-812e.eu.ngrok.io/dev/oauth/token"
+        static let defaultDevUserinfoEndpointURI = "https://2191-2001-818-e915-6a00-5ca9-7924-bdb0-812e.eu.ngrok.io/dev/oauth/userinfo"
         static let defaultDevClientId = "haapi-ios-client-emulator"
-        static let defaultDevBaseURLString = "https://hla.eu.ngrok.io"
-        static let defaultDevMetaBaseURLString = "https://hla.eu.ngrok.io/dev/oauth/anonymous"
+        static let defaultDevBaseURLString = "https://2191-2001-818-e915-6a00-5ca9-7924-bdb0-812e.eu.ngrok.io"
+        static let defaultDevMetaBaseURLString = "https://2191-2001-818-e915-6a00-5ca9-7924-bdb0-812e.eu.ngrok.io/dev/oauth/anonymous"
     }
 
     var name: String
