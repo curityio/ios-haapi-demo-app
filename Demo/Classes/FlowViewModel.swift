@@ -234,7 +234,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     }
 
     @available(iOS 15.0, *)
-    private func doRegistrationCreation(registrationModel: WebAuthnPublicKeyRegistration) {
+    private func doRegistrationCreation(registrationModel: WebAuthnRegistrationClientOperationActionModel.PublicKey) {
         guard let authenticatorAttachment = registrationModel.authenticatorSelection?.authenticatorAttachment,
             let challengeData = registrationModel.challengeData,
               let userIdData = registrationModel.userIdData,
@@ -282,7 +282,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                     return ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor.Transport(rawValue: transport)
                 }
                 
-                return ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(credentialID: credential.credentialID, transports: credTransports)
+                return ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(credentialID: credential.id, transports: credTransports)
             } ?? []
             
             if let attestationPref = registrationModel.attestation {
@@ -306,11 +306,11 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     }
 
     @available(iOS 15.0, *)
-    private func doAssertionRequest(data: WebAuthnPublicKeyAssertion) {
+    private func doAssertionRequest(data: WebAuthnAssertionClientOperationActionModel.PublicKey) {
         guard let challengeData = data.challengeData,
               let rpId = data.relyingPartyId,
               let userVerification = data.userVerificationPreference,
-              let allowCredentials = data.allowedCredentials
+              let allowCredentials = data.allowCredentials
         else {
             fatalError("Invalid model for assertionModel")
         }
