@@ -213,7 +213,16 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                 if #available(iOS 15.0, *) {
                     doRegistrationCreation(registrationModel: model)
                 } else {
-                    // Fallback on earlier versions
+                    // Fallback on earlier versions ex: using device with iOS14
+                    if let registrationStep = pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
+                        if let errorAction = registrationStep.actionModel.errorActions.first,
+                            errorAction.kind == ActionKind.redirect,
+                        let formAction = errorAction as? FormAction {
+                            submitForm(form: formAction.model, parameterOverrides: [:]) {
+                                
+                            }
+                        }
+                    }
                 }
             }
         case let webauthnAssertionOperationStep as WebAuthnAssertionClientOperationStep:
@@ -338,10 +347,17 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                  didCompleteWithError error: Error)
     {
         Logger.clientApp.debug("Error for authorizationController: \(error.localizedDescription)")
-        DispatchQueue.main.async {
-            self.error = ErrorInfo(title: "Unexpected error",
-                                   reason: error.localizedDescription)
+
+        if let registrationStep = pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
+            if let errorAction = registrationStep.actionModel.errorActions.first,
+                errorAction.kind == ActionKind.redirect,
+            let formAction = errorAction as? FormAction {
+                submitForm(form: formAction.model, parameterOverrides: [:]) {
+                    
+                }
+            }
         }
+        
     }
 
     func authorizationController(controller: ASAuthorizationController,
