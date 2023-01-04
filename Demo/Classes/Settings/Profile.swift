@@ -26,7 +26,7 @@ struct Profile: Codable, Identifiable, Hashable {
         static let defaultName = "Default"
         static let scopes = ["openid", "profile"]
 
-        static let baseUrl = Bundle.main.object(forInfoDictionaryKey: "CURITY_BASE_URL") as? String ?? "localhost:8443" // swiftlint:disable:this line_length
+        static let baseUrl = Bundle.main.object(forInfoDictionaryKey: "CURITY_BASE_URL") as? String ?? "localhost:8443"
         static let defaultAuthorizationEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-authorize"
         static let defaultTokenEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-token"
         static let defaultUserinfoEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-userinfo"
@@ -35,12 +35,12 @@ struct Profile: Codable, Identifiable, Hashable {
         static let defaultMetaBaseURLString = "\(defaultBaseURLString)/oauth/v2/oauth-anonymous"
 
         // Dev constants, for Curity developers' use
-        static let defaultDevAuthorizationEndpointURI = "https://2191-2001-818-e915-6a00-5ca9-7924-bdb0-812e.eu.ngrok.io/dev/oauth/authorize"
-        static let defaultDevTokenEndpointURI = "https://2191-2001-818-e915-6a00-5ca9-7924-bdb0-812e.eu.ngrok.io/dev/oauth/token"
-        static let defaultDevUserinfoEndpointURI = "https://2191-2001-818-e915-6a00-5ca9-7924-bdb0-812e.eu.ngrok.io/dev/oauth/userinfo"
-        static let defaultDevClientId = "haapi-ios-client-emulator"
-        static let defaultDevBaseURLString = "https://2191-2001-818-e915-6a00-5ca9-7924-bdb0-812e.eu.ngrok.io"
-        static let defaultDevMetaBaseURLString = "https://2191-2001-818-e915-6a00-5ca9-7924-bdb0-812e.eu.ngrok.io/dev/oauth/anonymous"
+        static let defaultDevAuthorizationEndpointURI = "https://c9ef-2001-818-e915-6a00-74db-40ef-1517-d484.eu.ngrok.io/dev/oauth/authorize" // swiftlint:disable:this line_length
+        static let defaultDevTokenEndpointURI = "https://c9ef-2001-818-e915-6a00-74db-40ef-1517-d484.eu.ngrok.io/dev/oauth/token" // swiftlint:disable:this line_length
+        static let defaultDevUserinfoEndpointURI = "https://c9ef-2001-818-e915-6a00-74db-40ef-1517-d484.eu.ngrok.io/dev/oauth/userinfo" // swiftlint:disable:this line_length
+        static let defaultDevClientId = "haapi-ios-client-real"
+        static let defaultDevBaseURLString = "https://c9ef-2001-818-e915-6a00-74db-40ef-1517-d484.eu.ngrok.io"
+        static let defaultDevMetaBaseURLString = "https://c9ef-2001-818-e915-6a00-74db-40ef-1517-d484.eu.ngrok.io/dev/oauth/anonymous" // swiftlint:disable:this line_length
     }
 
     var name: String
@@ -64,10 +64,8 @@ struct Profile: Codable, Identifiable, Hashable {
             }
 
             var filteredScopes = [String]()
-            for scope in supportedScopes {
-                if selectedScopes.contains(scope) {
-                    filteredScopes.append(scope)
-                }
+            for scope in supportedScopes where selectedScopes.contains(scope) {
+                filteredScopes.append(scope)
             }
 
             self.selectedScopes = filteredScopes

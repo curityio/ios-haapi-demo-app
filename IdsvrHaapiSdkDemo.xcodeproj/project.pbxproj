@@ -8,7 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		1BB2934B255BE0EC0091ABDC /* DemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB2934A255BE0EC0091ABDC /* DemoUITests.swift */; };
-		42CFF496291A9E68002FA0C8 /* IdsvrHaapiSdk.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 42CFF495291A9E68002FA0C8 /* IdsvrHaapiSdk.xcframework */; };
+		42D954C3293A28CF00661CC9 /* IdsvrHaapiSdk.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 42D954C2293A28CF00661CC9 /* IdsvrHaapiSdk.xcframework */; };
+		42DD75CA29645EEE008878CE /* FlowViewModel+ASAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42DD75C929645EEE008878CE /* FlowViewModel+ASAuthorization.swift */; };
+		42DD75CB29645EEE008878CE /* FlowViewModel+ASAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42DD75C929645EEE008878CE /* FlowViewModel+ASAuthorization.swift */; };
 		6604F60B2605461D001AFCEB /* fieldValid.json in Resources */ = {isa = PBXBuildFile; fileRef = 6604F60A2605461D001AFCEB /* fieldValid.json */; };
 		6604F6DC260A13FF001AFCEB /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6604F6DB260A13FF001AFCEB /* Profile.swift */; };
 		6604F6E7260A1D7B001AFCEB /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6604F6E6260A1D7B001AFCEB /* ProfileView.swift */; };
@@ -197,7 +199,8 @@
 		1BB29346255BE0EC0091ABDC /* IdsvrHaapiSdkDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IdsvrHaapiSdkDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1BB2934A255BE0EC0091ABDC /* DemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoUITests.swift; sourceTree = "<group>"; };
 		1BB2934C255BE0EC0091ABDC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		42CFF495291A9E68002FA0C8 /* IdsvrHaapiSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = IdsvrHaapiSdk.xcframework; path = "../ios-cat/build/IdsvrHaapiSdk.xcframework"; sourceTree = "<group>"; };
+		42D954C2293A28CF00661CC9 /* IdsvrHaapiSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = IdsvrHaapiSdk.xcframework; path = "../ios-cat/build/IdsvrHaapiSdk.xcframework"; sourceTree = "<group>"; };
+		42DD75C929645EEE008878CE /* FlowViewModel+ASAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FlowViewModel+ASAuthorization.swift"; sourceTree = "<group>"; };
 		6604F60A2605461D001AFCEB /* fieldValid.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fieldValid.json; sourceTree = "<group>"; };
 		6604F6DB260A13FF001AFCEB /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		6604F6E6260A1D7B001AFCEB /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
@@ -281,7 +284,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				66BB1CA028578E45003234BD /* JWTDecode in Frameworks */,
-				42CFF496291A9E68002FA0C8 /* IdsvrHaapiSdk.xcframework in Frameworks */,
+				42D954C3293A28CF00661CC9 /* IdsvrHaapiSdk.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -372,7 +375,7 @@
 		1BB29360255BE14D0091ABDC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				42CFF495291A9E68002FA0C8 /* IdsvrHaapiSdk.xcframework */,
+				42D954C2293A28CF00661CC9 /* IdsvrHaapiSdk.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -432,6 +435,7 @@
 				66B3BB9B2601071C001355C2 /* Utilities */,
 				66B3BB872601071C001355C2 /* Views */,
 				66B602A6265FD7A7009B9F41 /* FlowViewModel.swift */,
+				42DD75C929645EEE008878CE /* FlowViewModel+ASAuthorization.swift */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -715,7 +719,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which swiftlint >/dev/null; then\n  swiftlint --path swiftlint.yml\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "### START MAC M1 https://github.com/realm/SwiftLint/issues/2992 ###\nif test -d \"/opt/homebrew/bin/\"; then\n  PATH=\"/opt/homebrew/bin/:${PATH}\"\nfi\nexport PATH\n### END MAC M1 ###\nif which swiftlint >/dev/null; then\n  swiftlint swiftlint.yml\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
 		};
 		66FEF61E26278D2F009D08D7 /* Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -792,6 +796,7 @@
 				66B3BBC32601071C001355C2 /* FieldView.swift in Sources */,
 				6604F6EC260A4018001AFCEB /* ProfileListView.swift in Sources */,
 				66B3BBCA2601071C001355C2 /* StatefulPreviewWrapper.swift in Sources */,
+				42DD75CA29645EEE008878CE /* FlowViewModel+ASAuthorization.swift in Sources */,
 				6604F6DC260A13FF001AFCEB /* Profile.swift in Sources */,
 				6614A1A1285A0AAD0044979D /* ToastViewModifier.swift in Sources */,
 				66CC7B682615BCFA00028FB7 /* TrustAllCertsDelegate.swift in Sources */,
@@ -870,6 +875,7 @@
 				66994D912615015500880758 /* FieldView.swift in Sources */,
 				66994D922615015500880758 /* ProfileListView.swift in Sources */,
 				66994D932615015500880758 /* StatefulPreviewWrapper.swift in Sources */,
+				42DD75CB29645EEE008878CE /* FlowViewModel+ASAuthorization.swift in Sources */,
 				66994D952615015500880758 /* Profile.swift in Sources */,
 				6614A1A2285A0AAD0044979D /* ToastViewModifier.swift in Sources */,
 				66CC7B692615BCFA00028FB7 /* TrustAllCertsDelegate.swift in Sources */,
