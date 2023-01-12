@@ -32,28 +32,28 @@ protocol TokenServices: AnyObject {
 /**
  FlowViewModel is representing a ViewModel that is aware of all HaapiState from `HaapiController`. This class interacts directly with `HaapiController`
  and has available methods to do that.
-
+ 
  This class is mainly used with SwiftUI. `FlowViewModel.state` and `FlowViewModel.isProcessing` are **@Published** parameters.
  With these parameters, you can be notified when a state has changed or when an interaction has been triggered.
-
+ 
  For UI layer and cusomization, check the viewModels or the following parameters : `FlowViewModel.messages`,
  `FlowViewModel.links`,  `FlowViewModel.title` or `FlowViewModel.imageLogo`.
  */
 // swiftlint:disable:next type_body_length
 final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, TokenServices {
-
+    
     static let isProcessingNotification = NSNotification.Name("flowViewModel.isProcessing")
     static let problemRepresentationNotification = NSNotification.Name("flowViewModel.problemRepresentation")
-
+    
     // MARK: @Published
-
+    
     @Published var isProcessing = false {
         didSet {
             notificationCenter.post(name: Self.isProcessingNotification,
                                     object: isProcessing)
         }
     }
-
+    
     @Published private(set) var haapiRepresentation: HaapiRepresentation?
     @Published private(set) var problemRepresentation: ProblemRepresentation? {
         didSet {
@@ -63,34 +63,31 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     }
     @Published private(set) var error: ErrorInfo?
     @Published private(set) var tokenResponse: SuccessfulTokenResponse?
-
+    
     // MARK: Configurations
     private var haapiManager: HaapiManager?
     private var oauthTokenManager: OAuthTokenManager?
     private var profile: Profile?
-
+    
     private let notificationCenter: NotificationCenter
-
+    
     private var pollingStatus: PollingStatus?
-
+    
     // MARK: Support UI
-
+    
     var messageBundles: [MessageBundle] {
         return haapiRepresentation?.messages.map {
             MessageBundle(text: $0.text.literal, messageType: $0.messageType)
         } ?? []
     }
-
+    
     private(set) var title: String = ""
     private(set) var imageLogo = "Logo"
     
-    enum FlowViewModelError: Error {
-        case invalidWebauthn
-    }
-    internal var webauthnAuthenticator: String?
-
+    internal var selectedWebauthnAuthenticator: WebauthnAttachmentType?
+    
     // MARK: - ViewModels
-
+    
     /// A `SelectorViewModel`is generated from `[Action]`. This ViewModel is used by a `SelectorView`.
     private(set) var selectorViewModel: SelectorViewModel?
     /// A `[FormViewModel]`is generated from `[Action]`. This ViewModel is used by a `FormView`.
@@ -101,15 +98,17 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     private(set) var authorizedViewModel: AuthorizedViewModel?
     /// A `GenericHaapiViewModel` for a GenericRepresentationStep
     private(set) var genericHaapiViewModel: GenericHaapiViewModel?
-
+    /// A `WebauthnAuthenticatorsViewModel` for a WebauthnClientOperation
+    private(set) var webauthnViewModel: WebauthnAuthenticatorsViewModel?
+    
     // MARK: Init & Deinit
-
+    
     init(notificationCenter: NotificationCenter = .default) {
         self.notificationCenter = notificationCenter
     }
-
+    
     // MARK: - Process HaapiResult
-
+    
     private func processHaapiResult(_ haapiResult: HaapiResult) {
         DispatchQueue.main.async {
             self.isProcessing = false
@@ -140,7 +139,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             }
         }
     }
-
+    
     private func prepareFormViewModelsForActions(_ actions: [Action],
                                                  defaultTitle: String)
     {
@@ -148,7 +147,8 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         formViewModels.removeAll()
         authorizedViewModel = nil
         genericHaapiViewModel = nil
-
+        webauthnViewModel = nil
+        
         var shouldShowSectionTitle = false
         if actions.count == 1 {
             if let actionTitle = actions.first?.title?.literal {
@@ -169,16 +169,15 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                                 submitter: self))
         }
     }
-
+    
     internal var pendingOperationStep: ClientOperationStep?
     
-    // swiftlint:disable:next cyclomatic_complexity
     private func processOperationStep(_ operationStep: ClientOperationStep) {
         pendingOperationStep = operationStep
         switch operationStep {
         case let externalBrowserStep as ExternalBrowserClientOperationStep:
             guard let redirect = Bundle.main.haapiRedirectURI,
-                    let externalURL = externalBrowserStep.urlToLaunch(redirectTo: redirect)
+                  let externalURL = externalBrowserStep.urlToLaunch(redirectTo: redirect)
             else {
                 Logger.clientApp.debug("No external URL")
                 return
@@ -213,56 +212,27 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             }
         case let webauthnRegistrationOperationStep as WebAuthnRegistrationClientOperationStep:
             Logger.clientApp.debug("A webauthnOperationStep: \(webauthnRegistrationOperationStep.type.rawValue)")
-            
-            if #available(iOS 15.0, *) {
-                do { try doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel) }
-                catch let error {
-                    Logger.clientApp.error("WebAuthn Registration failed: \(error)")
-                }
-            } else {
-                // Fallback on earlier versions ex: using device with iOS14
-                if let registrationStep = pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
-                    if let errorAction = registrationStep.errorActions.first,
-                        errorAction.kind == ActionKind.redirect,
-                    let formAction = errorAction as? FormAction {
-                        submitForm(form: formAction.model, parameterOverrides: [:]) { }
-                    }
-                }
-            }
+            prepareWebAuthnRegistration(webauthnRegistrationOperationStep)
         case let webauthnAssertionOperationStep as WebAuthnAssertionClientOperationStep:
             Logger.clientApp.debug("A webauthnOperationStep: \(webauthnAssertionOperationStep.type.rawValue)")
-            
-            if let assertionRequest = webauthnAssertionOperationStep.actionModel.assertion
-            {
-                if #available(iOS 15.0, *) {
-                    doWebauthnAssertion(data: assertionRequest)
-                } else {
-                    // Fallback on earlier versions ex: using device with iOS14
-                    if let registrationStep = pendingOperationStep as? WebAuthnAssertionClientOperationStep {
-                        if let errorAction = registrationStep.errorActions.first,
-                            errorAction.kind == ActionKind.redirect,
-                        let formAction = errorAction as? FormAction {
-                            submitForm(form: formAction.model, parameterOverrides: [:]) { }
-                        }
-                    }
-                }
-            }
+            prepareWebAuthnAssertion(webauthnAssertionOperationStep)
         default:
             Logger.clientApp.debug("No behaviour defined for: \(String(describing: operationStep))")
         }
     }
-
+    
     // swiftlint:disable:next cyclomatic_complexity
     private func processHaapiRepresentation(_ representation: HaapiRepresentation) {
         selectorViewModel = nil
         formViewModels.removeAll()
         authorizedViewModel = nil
         genericHaapiViewModel = nil
-
+        webauthnViewModel = nil
+        
         if !(representation is PollingStep) {
             pollingViewModel = nil
         }
-
+        
         switch representation {
         case let selectorStep as AuthenticatorSelectorStep:
             title = selectorStep.title.literal
@@ -296,7 +266,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                 ? "Authentication" : representation.type == .registrationStep
                 ? "Registration" : "User consent"
             }
-
+            
             interactiveFormStep.actions.forEach { formAction in
                 let fieldViewModels = formAction.model.fields.visibleFieldViewModel
                 formViewModels.append(FormViewModel(formAction: formAction,
@@ -345,7 +315,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                                     submitter: self,
                                                     automaticPolling: profile?.automaticPolling == true)
                 if pollingStatus == .done,
-                    profile?.followRedirects == true
+                   profile?.followRedirects == true
                 {
                     submitForm(form: pollingStep.mainAction.model,
                                parameterOverrides: [:],
@@ -366,7 +336,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         default: break
         }
     }
-
+    
     private func processProblemRepresentation(_ problem: ProblemRepresentation) {
         switch problem {
         case let authorizationProblem as AuthorizationProblem:
@@ -380,9 +350,148 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             }
         }
     }
-
+    
+    // MARK: - WebAuthn
+    // swiftlint:disable:next line_length
+    private func prepareWebAuthnRegistration(_ webauthnRegistrationOperationStep: WebAuthnRegistrationClientOperationStep) {
+        selectorViewModel = nil
+        formViewModels.removeAll()
+        authorizedViewModel = nil
+        genericHaapiViewModel = nil
+        webauthnViewModel = nil
+        
+        let shouldShowSelection = webauthnRegistrationOperationStep.actionModel.platformJson != nil &&
+        webauthnRegistrationOperationStep.actionModel.crossPlatformJson != nil
+        
+        if #available(iOS 15.0, *) {
+            if shouldShowSelection {
+                title = webauthnRegistrationOperationStep.actionModel.continueActions.first?.title?.literal ?? ""
+                
+                self.webauthnViewModel = WebauthnAuthenticatorsViewModel(platformAction: {
+                    self.doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
+                                                attachment: WebauthnAttachmentType.platformAttachment)
+                },
+                                                                         crossPlatformAction: {
+                    self.doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
+                                                attachment: WebauthnAttachmentType.crossPlatformAttachment)
+                })
+            } else {
+                if webauthnRegistrationOperationStep.actionModel.platformJson != nil {
+                    self.doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
+                                                attachment: WebauthnAttachmentType.platformAttachment)
+                } else if webauthnRegistrationOperationStep.actionModel.crossPlatformJson != nil {
+                    self.doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
+                                                attachment: WebauthnAttachmentType.crossPlatformAttachment)
+                }
+            }
+        } else {
+            // show Fallback view interaction for earlier versions ex: using device with iOS14
+            prepareWebAuthnError(canRetry: false)
+        }
+    }
+    
+    private func prepareWebAuthnAssertion(_ webauthnAssertionOperationStep: WebAuthnAssertionClientOperationStep) {
+        selectorViewModel = nil
+        formViewModels.removeAll()
+        authorizedViewModel = nil
+        genericHaapiViewModel = nil
+        webauthnViewModel = nil
+        
+        // swiftlint:disable:next line_length
+        let shouldShowSelection = webauthnAssertionOperationStep.actionModel.assertion?.platformAllowCredentials != nil &&
+        webauthnAssertionOperationStep.actionModel.assertion?.securityKeyAllowCredentials != nil
+        
+        if #available(iOS 15.0, *) {
+            if shouldShowSelection {
+                title = webauthnAssertionOperationStep.actionModel.continueActions.first?.title?.literal ?? ""
+                
+                self.webauthnViewModel = WebauthnAuthenticatorsViewModel(platformAction: {
+                    self.doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
+                                             attachment: WebauthnAttachmentType.platformAttachment)
+                },
+                                                                         crossPlatformAction: {
+                    self.doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
+                                             attachment: WebauthnAttachmentType.crossPlatformAttachment)
+                })
+            } else {
+                if webauthnAssertionOperationStep.actionModel.assertion?.platformAllowCredentials != nil {
+                    self.doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
+                                             attachment: WebauthnAttachmentType.platformAttachment)
+                } else if webauthnAssertionOperationStep.actionModel.assertion?.securityKeyAllowCredentials != nil {
+                    self.doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
+                                             attachment: WebauthnAttachmentType.crossPlatformAttachment)
+                }
+            }
+        } else {
+            // show Fallback view interaction for earlier versions ex: using device with iOS14
+            prepareWebAuthnError()
+        }
+    }
+    
+    func prepareWebAuthnError(canRetry: Bool = false){
+        selectorViewModel = nil
+        formViewModels.removeAll()
+        authorizedViewModel = nil
+        genericHaapiViewModel = nil
+        webauthnViewModel = nil
+        
+        var errorText = "An error has ocurred or WebAuthn is not supported by this device. Please open the browser"
+        + " instead to complete the flow."
+        var errorAction: Action?
+        var retry: (() -> Void)?
+        if let registrationStep = self.pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
+            title = registrationStep.actionModel.continueActions.first?.title?.literal ?? ""
+            errorAction = registrationStep.errorActions.first
+            if canRetry, #available(iOS 15.0, *), let attachment = self.selectedWebauthnAuthenticator {
+                errorText += " Or You can retry your previous Authenticator action."
+                retry = {
+                    self.doWebauthnRegistration(registrationModel: registrationStep.actionModel,
+                                                attachment: attachment)
+                }
+            }
+        } else if let assertionStep = pendingOperationStep as? WebAuthnAssertionClientOperationStep {
+            title = assertionStep.actionModel.continueActions.first?.title?.literal ?? ""
+            errorAction = assertionStep.errorActions.first
+            if canRetry, #available(iOS 15.0, *), let attachment = self.selectedWebauthnAuthenticator {
+                errorText += " Or You can retry your previous Authenticator action."
+                retry = {
+                    self.doWebauthnAssertion(assertionModel: assertionStep.actionModel,
+                                             attachment: attachment)
+                }
+            }
+        }
+        
+        if let retryAction = retry {
+            self.webauthnViewModel = WebauthnAuthenticatorsViewModel(errorText: errorText,
+                                                                     retryAction: {
+                retryAction()
+            },
+                                                                     errorAction: {
+                if errorAction?.kind == ActionKind.redirect, let formAction = errorAction as? FormAction {
+                    self.submitForm(form: formAction.model, parameterOverrides: [:]) {
+                        self.selectedWebauthnAuthenticator = nil
+                    }
+                }
+            })
+        } else {
+            self.webauthnViewModel = WebauthnAuthenticatorsViewModel(errorText: errorText,
+                                                                     errorAction: {
+                if errorAction?.kind == ActionKind.redirect, let formAction = errorAction as? FormAction {
+                    self.submitForm(form: formAction.model, parameterOverrides: [:]) {
+                        self.selectedWebauthnAuthenticator = nil
+                    }
+                }
+            })
+        }
+        
+        // hack to force reload of StateView since there isn't a new representation to present but we need UI update
+        DispatchQueue.main.async {
+            self.haapiRepresentation = self.pendingOperationStep
+        }
+    }
+    
     // MARK: - Haapi Manager
-
+    
     /**
      Starts the HaapiFlow according to the provided `Profile` and invokes the `completionHandler`.
      - Parameter profile: A `Profile` that contains the configurations for Haapi.
@@ -400,13 +509,13 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             return
         }
         self.profile = profile
-
+        
         haapiManager = HaapiManager(haapiConfiguration: haapiConfiguration)
         oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: haapiConfiguration)
-
+        
         haapiManager?.start(OAuthAuthorizationParameters(scopes: profile.selectedScopes ?? []),
                             completionHandler:
-        { haapiResult in
+                                { haapiResult in
             self.processHaapiResult(haapiResult)
             switch haapiResult {
             case .error, .problem:
@@ -416,7 +525,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             }
         })
     }
-
+    
     /**
      Submits a `FormModel`with a dictionary `parameterOverrides` and invokes the `completionHandler`.
      - Parameter form: A `FormModel`
@@ -426,20 +535,20 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     func submitForm(form: FormActionModel,
                     parameterOverrides: [String: Any],
                     completionHandler: @escaping () -> Void)
-        {
-            guard !isProcessing else { return }
-            DispatchQueue.main.async {
-                self.isProcessing = true
-            }
-
-            haapiManager?.submitForm(form,
-                                     parameters: parameterOverrides,
-                                     completionHandler:
-                                        { haapiResult in
-                                            self.processHaapiResult(haapiResult)
-                                            completionHandler()
-                                        })
+    {
+        guard !isProcessing else { return }
+        DispatchQueue.main.async {
+            self.isProcessing = true
         }
+        
+        haapiManager?.submitForm(form,
+                                 parameters: parameterOverrides,
+                                 completionHandler:
+                                    { haapiResult in
+            self.processHaapiResult(haapiResult)
+            completionHandler()
+        })
+    }
     /**
      Follows a `Link` and invokes the `completionHandler`.
      - Parameter link: A `Link`
@@ -450,16 +559,16 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         DispatchQueue.main.async {
             self.isProcessing = true
         }
-
+        
         haapiManager?.followLink(link,
                                  completionHandler:
-        { haapiResult in
+                                    { haapiResult in
             self.processHaapiResult(haapiResult)
         })
     }
-
+    
     // MARK: - HaapiManager client operations
-
+    
     func canHandleURL(_ url: URL) -> Bool {
         if let externalBrowser = pendingOperationStep as? ExternalBrowserClientOperationStep {
             return (try? externalBrowser.formattedParametersFromURL(url)) != nil
@@ -467,7 +576,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             return false
         }
     }
-
+    
     func handleURL(_ url: URL) {
         guard haapiManager != nil,
               let externalBrowserStep = pendingOperationStep as? ExternalBrowserClientOperationStep,
@@ -475,36 +584,36 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         else {
             fatalError("There is no haapiManager - The flow was not started or canHandleURL was not called")
         }
-
+        
         submitForm(form: externalBrowserStep.continueFormActionModel,
                    parameterOverrides: formattedParameters,
                    completionHandler: {})
     }
-
+    
     // MARK: Token service
-
+    
     func fetchAccessToken(code: String) {
         guard !isProcessing else { return }
         DispatchQueue.main.async {
             self.isProcessing = true
         }
-
+        
         oauthTokenManager?.fetchAccessToken(with: code,
                                             completionHandler:
-        { oAuthResponse in
+                                                { oAuthResponse in
             DispatchQueue.main.async {
                 self.processOAuthResponse(oAuthResponse)
                 self.isProcessing = false
             }
         })
     }
-
+    
     private func processOAuthResponse(_ oAuthResponse: TokenResponse) {
         selectorViewModel = nil
         formViewModels.removeAll()
         authorizedViewModel = nil
         genericHaapiViewModel = nil
-
+        
         Logger.controllerFlow.debug("Received an OAuthResponse: \(String(describing: oAuthResponse))")
         switch oAuthResponse {
         case .successfulToken(let successfulTokenResponse):
@@ -522,9 +631,9 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             }
         }
     }
-
+    
     // MARK: Reset
-
+    
     /// Resets the HaapiFlow by clearing the internal state and notify the controller to reset itself.
     func reset() {
         resetState()
@@ -532,20 +641,21 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         haapiManager = nil
         oauthTokenManager = nil
     }
-
+    
     /// Resets the internal state of FlowViewModel
     private func resetState() {
         isProcessing = false
-
+        
         haapiRepresentation = nil
         error = nil
-
+        
         selectorViewModel = nil
         formViewModels.removeAll()
         authorizedViewModel = nil
         genericHaapiViewModel = nil
+        webauthnViewModel = nil
     }
-
+    
     func clearTokenResponse() {
         tokenResponse = nil
     }
@@ -555,10 +665,10 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
 
 private let defaultImageName = "icon-user"
 private extension AuthenticatorSelectorStep.AuthenticatorOption {
-
+    
     var imageName: String {
         guard let type = type else { return defaultImageName }
-
+        
         var result = "icon-\(type)"
         if UIImage(named: result) == nil {
             result = defaultImageName
@@ -571,7 +681,7 @@ extension Array where Element == FormField {
     var visibleFormField: [FormField] {
         return filter { !($0 is HiddenFormField) }
     }
-
+    
     var visibleFieldViewModel: [FieldViewModel] {
         return visibleFormField.map {
             if let formFieldCheckbox = $0 as? CheckboxFormField{

@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		1BB2934B255BE0EC0091ABDC /* DemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB2934A255BE0EC0091ABDC /* DemoUITests.swift */; };
+		42A22F76296ECDAF00883B85 /* WebauthnAuthenticatorsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A22F72296C640900883B85 /* WebauthnAuthenticatorsView.swift */; };
+		42A22F77296ECDAF00883B85 /* WebauthnAuthenticatorsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A22F72296C640900883B85 /* WebauthnAuthenticatorsView.swift */; };
 		42D954C3293A28CF00661CC9 /* IdsvrHaapiSdk.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 42D954C2293A28CF00661CC9 /* IdsvrHaapiSdk.xcframework */; };
 		42DD75CA29645EEE008878CE /* FlowViewModel+ASAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42DD75C929645EEE008878CE /* FlowViewModel+ASAuthorization.swift */; };
 		42DD75CB29645EEE008878CE /* FlowViewModel+ASAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42DD75C929645EEE008878CE /* FlowViewModel+ASAuthorization.swift */; };
@@ -199,6 +201,7 @@
 		1BB29346255BE0EC0091ABDC /* IdsvrHaapiSdkDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IdsvrHaapiSdkDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1BB2934A255BE0EC0091ABDC /* DemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoUITests.swift; sourceTree = "<group>"; };
 		1BB2934C255BE0EC0091ABDC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		42A22F72296C640900883B85 /* WebauthnAuthenticatorsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebauthnAuthenticatorsView.swift; sourceTree = "<group>"; };
 		42D954C2293A28CF00661CC9 /* IdsvrHaapiSdk.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = IdsvrHaapiSdk.xcframework; path = "../ios-cat/build/IdsvrHaapiSdk.xcframework"; sourceTree = "<group>"; };
 		42DD75C929645EEE008878CE /* FlowViewModel+ASAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FlowViewModel+ASAuthorization.swift"; sourceTree = "<group>"; };
 		6604F60A2605461D001AFCEB /* fieldValid.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = fieldValid.json; sourceTree = "<group>"; };
@@ -380,6 +383,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		42A22F75296ECD8D00883B85 /* WebAuthn */ = {
+			isa = PBXGroup;
+			children = (
+				42A22F72296C640900883B85 /* WebauthnAuthenticatorsView.swift */,
+			);
+			path = WebAuthn;
+			sourceTree = "<group>";
+		};
 		6604F4D92603ABA7001AFCEB /* Ressources */ = {
 			isa = PBXGroup;
 			children = (
@@ -463,10 +474,12 @@
 		66B3BB872601071C001355C2 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				42A22F75296ECD8D00883B85 /* WebAuthn */,
 				66B3BB892601071C001355C2 /* AuthorizedView.swift */,
 				663DFC3726417AA20040B969 /* DisclosureView.swift */,
 				66B3BB912601071C001355C2 /* FormView.swift */,
 				66B3BB962601071C001355C2 /* MainView.swift */,
+				66A6CD0927675D800076B9D0 /* GenericHaapiView.swift */,
 				66B3BB902601071C001355C2 /* PollingView.swift */,
 				66B3BB952601071C001355C2 /* ProblemView.swift */,
 				66B3BB922601071C001355C2 /* SelectorView.swift */,
@@ -475,7 +488,6 @@
 				66B3BB8C2601071C001355C2 /* StateView.swift */,
 				663DFC31264179C40040B969 /* TokensView.swift */,
 				669877E4264C10C200D8C377 /* UIConstants.swift */,
-				66A6CD0927675D800076B9D0 /* GenericHaapiView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -750,6 +762,7 @@
 				663DFC32264179C40040B969 /* TokensView.swift in Sources */,
 				66A34AD927329CEF003BBC7C /* HaapiLink+Helpers.swift in Sources */,
 				66B3BBBA2601071C001355C2 /* AuthorizedView.swift in Sources */,
+				42A22F76296ECDAF00883B85 /* WebauthnAuthenticatorsView.swift in Sources */,
 				663DFC2C26414AFE0040B969 /* View+NavigationBar.swift in Sources */,
 				66B602A7265FD7A7009B9F41 /* FlowViewModel.swift in Sources */,
 				662807E4260B4D0500D4017C /* CTextField.swift in Sources */,
@@ -829,6 +842,7 @@
 				66994D632615015500880758 /* AuthorizedView.swift in Sources */,
 				66A34ADA27329CEF003BBC7C /* HaapiLink+Helpers.swift in Sources */,
 				66994D642615015500880758 /* CTextField.swift in Sources */,
+				42A22F77296ECDAF00883B85 /* WebauthnAuthenticatorsView.swift in Sources */,
 				66994D652615015500880758 /* FormView.swift in Sources */,
 				6618105E263045B80039234E /* ArcSpinner.swift in Sources */,
 				663DFC2D26414AFE0040B969 /* View+NavigationBar.swift in Sources */,
@@ -1031,8 +1045,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = IdsvrHaapiSdkDemo.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = ALY8Q7BNK9;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Demo/Info.plist;
@@ -1042,7 +1056,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = io.curity.cat.ios.client;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = iOS_development_provisional_certs;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

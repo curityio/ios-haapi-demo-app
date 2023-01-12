@@ -21,37 +21,41 @@ import UIKit
 import AuthenticationServices
 
 extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
-
+    enum WebauthnAttachmentType: String {
+        case platformAttachment = "platform"
+        case crossPlatformAttachment = "cross-platform"
+    }
+    
     @available(iOS 15.0, *) // swiftlint:disable:next cyclomatic_complexity
-    func doWebauthnRegistration(registrationModel: WebAuthnRegistrationClientOperationActionModel) throws {
-        // give preference to platform, else use crossplatform
-        var authenticatorModel = registrationModel.platformJson
-        if authenticatorModel == nil {
+    func doWebauthnRegistration(registrationModel: WebAuthnRegistrationClientOperationActionModel,
+                                attachment: WebauthnAttachmentType) {
+        var authenticatorModel: WebAuthnRegistrationClientOperationActionModel.PublicKey?
+        switch attachment {
+        case .platformAttachment:
+            authenticatorModel = registrationModel.platformJson
+        case .crossPlatformAttachment:
             authenticatorModel = registrationModel.crossPlatformJson
-        }
-        
-        guard authenticatorModel != nil else {
-            throw FlowViewModelError.invalidWebauthn
         }
         
         Logger.clientApp.debug("WebAuthn Authenticator : \(authenticatorModel.debugDescription)")
         
-        webauthnAuthenticator = authenticatorModel?.authenticatorSelection?.authenticatorAttachment
+        selectedWebauthnAuthenticator = attachment
         guard let challengeData = authenticatorModel?.challengeData,
               let userIdData = authenticatorModel?.userIdData,
               let rpId = authenticatorModel?.relyingPartyId,
               let userName = authenticatorModel?.userName,
-              let userPreference = authenticatorModel?.authenticatorSelection?.userVerification,
-              webauthnAuthenticator != nil else {
+              let userPreference = authenticatorModel?.authenticatorSelection?.userVerification else {
             fatalError("Invalid model registration")
         }
-
+        
+        self.selectedWebauthnAuthenticator = attachment
+        
         var registrationRequest: ASAuthorizationRequest?
         
-        // TODO: cannot use the attachment value because it may be empty for passkeys which are platform...
-        // may be necessary to find another way of routing here - platform / crossplatform
-        switch webauthnAuthenticator {
-        case "platform":
+        // when passkeys are added, it will be necessary to revise the logic
+        // to find another way of routing here - platform / crossplatform / no restrictions
+        switch attachment {
+        case WebauthnAttachmentType.platformAttachment:
             let credProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: rpId)
             let registration = credProvider.createCredentialRegistrationRequest(challenge: challengeData,
                                                                                 name: userName,
@@ -82,15 +86,21 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
                 registration.displayName = displayName
             }
             
+            registration.userVerificationPreference = ASAuthorizationPublicKeyCredentialUserVerificationPreference(
+                rawValue: userPreference
+            )
+            
+            if let attestationPref = authenticatorModel?.attestation {
+                registration.attestationPreference = ASAuthorizationPublicKeyCredentialAttestationKind(
+                    rawValue: attestationPref
+                )
+            }
+            
             if let residentKeyPref = authenticatorModel?.authenticatorSelection?.residentKey {
                 registration.residentKeyPreference = ASAuthorizationPublicKeyCredentialResidentKeyPreference(
                     rawValue: residentKeyPref
                 )
             }
-    
-            registration.userVerificationPreference = ASAuthorizationPublicKeyCredentialUserVerificationPreference(
-                rawValue: userPreference
-            )
             
             registration.excludedCredentials = authenticatorModel?.excludedCredentials?.map { credential in
                 let credTransports = credential.transports.map { transport in
@@ -101,13 +111,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
                                                                                transports: credTransports)
             } ?? []
             
-            if let attestationPref = authenticatorModel?.attestation {
-                registration.attestationPreference = ASAuthorizationPublicKeyCredentialAttestationKind(
-                    rawValue: attestationPref
-                )
-            }
-    
-            // add public key algorithms
+            // public key algorithms
             var algorithmParams = [ASAuthorizationPublicKeyCredentialParameters]()
             authenticatorModel?.publicKeyCredParams?.forEach({ dictionary in
                 algorithmParams.append(ASAuthorizationPublicKeyCredentialParameters(
@@ -126,60 +130,81 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
             controller.performRequests()
         }
     }
-
+    
     @available(iOS 15.0, *)
-    func doWebauthnAssertion(data: WebAuthnAssertionClientOperationActionModel.PublicKey) {
-        guard let challengeData = data.challengeData,
-              let rpId = data.relyingPartyId,
-              let userVerification = data.userVerificationPreference,
-              let allowCredentials = data.allowCredentials
+    func doWebauthnAssertion(assertionModel: WebAuthnAssertionClientOperationActionModel,
+                             attachment: WebauthnAttachmentType) {
+        guard let challengeData = assertionModel.assertion?.challengeData,
+              let rpId = assertionModel.assertion?.relyingPartyId,
+              let userVerification = assertionModel.assertion?.userVerificationPreference
         else {
             fatalError("Invalid model for assertionModel")
         }
         
-        // TODO: authenticator attachment diferentiation is not present in assertion request... necessary because of
-        // the necessity of using different APIs depending on platform / crossplatform
+        self.selectedWebauthnAuthenticator = attachment
         
-        let publicKeyCredentialProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(
-            relyingPartyIdentifier: rpId
-        )
-        let assertionRequest = publicKeyCredentialProvider.createCredentialAssertionRequest(challenge: challengeData)
-
-        assertionRequest.userVerificationPreference = ASAuthorizationPublicKeyCredentialUserVerificationPreference(
-            rawValue: userVerification
-        )
-
-        let allowedCredentials: [ASAuthorizationPlatformPublicKeyCredentialDescriptor] = allowCredentials.map { cred in
-            return ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: cred.idData)
+        var assertionRequest: ASAuthorizationRequest?
+        switch attachment {
+        case .platformAttachment:
+            if let platformAllowCredentials = assertionModel.assertion?.platformAllowCredentials {
+                
+                let publicKeyCredentialProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(
+                    relyingPartyIdentifier: rpId
+                )
+                let request = publicKeyCredentialProvider.createCredentialAssertionRequest(challenge: challengeData)
+                
+                request.userVerificationPreference = ASAuthorizationPublicKeyCredentialUserVerificationPreference(
+                    rawValue: userVerification
+                )
+                
+                let allowedCredentials: [ASAuthorizationPlatformPublicKeyCredentialDescriptor] =
+                platformAllowCredentials.map { cred in
+                    return ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: cred.idData)
+                }
+                
+                request.allowedCredentials = allowedCredentials
+                assertionRequest = request
+            }
+        case .crossPlatformAttachment:
+            if let securityKeysAllowCredentials = assertionModel.assertion?.securityKeyAllowCredentials {
+                let publicKeyCredentialProvider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
+                    relyingPartyIdentifier: rpId
+                )
+                let request = publicKeyCredentialProvider.createCredentialAssertionRequest(challenge: challengeData)
+                
+                request.userVerificationPreference = ASAuthorizationPublicKeyCredentialUserVerificationPreference(
+                    rawValue: userVerification
+                )
+                
+                let allowedCredentials: [ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor] =
+                securityKeysAllowCredentials.map { cred in
+                    return ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(credentialID: cred.idData,
+                                                                                   transports: [])
+                }
+                
+                request.allowedCredentials = allowedCredentials
+                assertionRequest = request
+            }
         }
-
-        assertionRequest.allowedCredentials = allowedCredentials
-
-        let controller = ASAuthorizationController(authorizationRequests: [assertionRequest])
-        controller.delegate = self
-        controller.presentationContextProvider = self
-        controller.performRequests()
+        
+        if let request = assertionRequest {
+            let controller = ASAuthorizationController(authorizationRequests: [request])
+            controller.delegate = self
+            controller.presentationContextProvider = self
+            controller.performRequests()
+        }
     }
-
+    
     func authorizationController(controller: ASAuthorizationController,
                                  didCompleteWithError error: Error)
     {
         Logger.clientApp.debug("Error for authorizationController: \(error.localizedDescription)")
-
-        var errorAction: Action?
-        if let registrationStep = pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
-            errorAction = registrationStep.errorActions.first
-        } else if let assertionStep = pendingOperationStep as? WebAuthnAssertionClientOperationStep {
-            errorAction = assertionStep.errorActions.first
-        }
+        prepareWebAuthnError(canRetry: (error as? NSError)?.code != 1_004)
         
-        if errorAction?.kind == ActionKind.redirect, let formAction = errorAction as? FormAction {
-            submitForm(form: formAction.model, parameterOverrides: [:]) {
-                self.webauthnAuthenticator = nil
-            }
-        }
+        // error code 1001 - cancel/timeout : can retry
+        // error code 1004 - not enrolled: cannot retry
     }
-
+    
     func authorizationController(controller: ASAuthorizationController,
                                  didCompleteWithAuthorization authorization: ASAuthorization)
     {
@@ -194,11 +219,9 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
             default:
                 fatalError("Not handled")
             }
-        } else {
-            // Fallback on earlier versions
         }
     }
-
+    
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         guard let appWindow = UIApplication.shared.delegate?.window,
               let window = appWindow
@@ -207,21 +230,21 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         }
         return window
     }
-
+    
     @available(iOS 15.0, *)
     func sendRegistration(credentialReg: ASAuthorizationPublicKeyCredentialRegistration) {
         guard let operationStep = pendingOperationStep as? WebAuthnRegistrationClientOperationStep else {
             fatalError("Expecting a WebAuthnRegistrationClientOperationStep")
         }
-
+        
         guard let formAction = operationStep.continueAction,
               let attestationObject = credentialReg.rawAttestationObject,
-              let authenticatorAttachment = webauthnAuthenticator else {
+              let authenticatorAttachment = selectedWebauthnAuthenticator else {
             fatalError("Developer mistake")
         }
-
+        
         let webauthnParameters = operationStep.formattedParametersForRegistration(
-            authenticatorAttachment: authenticatorAttachment,
+            authenticatorAttachment: authenticatorAttachment.rawValue,
             attestationObject: attestationObject,
             clientData: credentialReg.rawClientDataJSON,
             credentialID: credentialReg.credentialID
@@ -230,27 +253,29 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         Logger.clientApp.debug("Raw client data JSON \(credentialReg.rawClientDataJSON.toBase64Url())")
         
         submitForm(form: formAction.model, parameterOverrides: webauthnParameters) {
-            self.webauthnAuthenticator = nil
+            self.selectedWebauthnAuthenticator = nil
         }
     }
-
+    
     @available(iOS 15.0, *)
     func sendAssertion(credentialAssertion: ASAuthorizationPublicKeyCredentialAssertion) {
         guard let operationStep = pendingOperationStep as? WebAuthnAssertionClientOperationStep else {
-            fatalError("Expecting a GenericClientOperationStep")
+            fatalError("Expecting a WebAuthnAssertionClientOperationStep")
         }
-
+        
         guard let formAction = operationStep.continueAction else {
             fatalError("Developer mistake")
         }
-
+        
         let assertionParams = operationStep.formattedParametersForAssertion(
-          attestationObject: credentialAssertion.rawAuthenticatorData,
-          clientData: credentialAssertion.rawClientDataJSON,
-          signature: credentialAssertion.signature,
-          credentialID: credentialAssertion.credentialID
+            attestationObject: credentialAssertion.rawAuthenticatorData,
+            clientData: credentialAssertion.rawClientDataJSON,
+            signature: credentialAssertion.signature,
+            credentialID: credentialAssertion.credentialID
         )
-
-        submitForm(form: formAction.model, parameterOverrides: assertionParams) { }
+        
+        submitForm(form: formAction.model, parameterOverrides: assertionParams) {
+            self.selectedWebauthnAuthenticator = nil
+        }
     }
 }
