@@ -21,15 +21,25 @@ struct WebauthnAuthenticatorsView: View {
     @ObservedObject var viewModel: WebauthnAuthenticatorsViewModel
     
     var body: some View {
+        header
         contentView
+    }
+    
+    @ViewBuilder
+    private var header: some View {
+        if let problem = viewModel.problem {
+            ProblemView(viewModel: problem)
+        } else {
+            EmptyView() }
     }
     
     @ViewBuilder
     private var contentView: some View {
         if viewModel.platformAuthenticatorAction != nil && viewModel.crossPlatforAuthenticatorAction != nil {
             VStack (alignment: .leading) {
-                ColorButton(title: "webauthn_platform_button_text") { _ in
+                ColorButton(title: "webauthn_platform_button_text") { btn in
                     viewModel.platformAuthenticatorAction?()
+                    btn.reset()
                 }
                 .padding([.top], UIConstants.spacing * 2)
                 .padding([.bottom], UIConstants.smallSpacing)
@@ -37,8 +47,9 @@ struct WebauthnAuthenticatorsView: View {
                     .font(.text)
                     .multilineTextAlignment(.center)
                     .padding([.bottom], UIConstants.spacing * 2)
-                ColorButton(title: "webauthn_crossplatform_button_text") { _ in
+                ColorButton(title: "webauthn_crossplatform_button_text") { btn in
                     viewModel.crossPlatforAuthenticatorAction?()
+                    btn.reset()
                 }
                 .padding([.bottom], UIConstants.smallSpacing)
                 Text("webauthn_crossplatform_message_text")
@@ -49,21 +60,16 @@ struct WebauthnAuthenticatorsView: View {
         }
         else if viewModel.errorAction != nil {
             VStack (alignment: .leading) {
-                ProblemView(viewModel:
-                                ProblemViewModel(title: "",
-                                                 messages: [
-                                                    ProblemMessageBundle(text: viewModel.errorText ?? "",
-                                                                         messageType: .error)
-                                                 ])
-                )
                 if viewModel.retryAction != nil {
-                    ColorButton(title: "webauthn_retry_button_text") { _ in
+                    ColorButton(title: "webauthn_retry_button_text") { btn in
                         viewModel.retryAction?()
+                        btn.reset()
                     }
                     .padding([.top], UIConstants.spacing)
                 }
-                ColorButton(title: "webauthn_error_button_text") { _ in
+                ColorButton(title: "webauthn_error_button_text") { btn in
                     viewModel.errorAction?()
+                    btn.reset()
                 }
                 .padding([.top], UIConstants.spacing)
             }
@@ -76,13 +82,15 @@ struct WebauthnAuthenticatorsView: View {
 struct WebauthnAuthenticatorsView_Previews: PreviewProvider {
     // swiftlint:disable:next line_length
     static let errorText = "An error has ocurred or WebAuthn is not supported by this device. Please open the browser instead to complete the flow or retry."
+    // swiftlint:disable:next line_length
+    static let problem = ProblemViewModel(title: "", messages: [ProblemMessageBundle(text: errorText, messageType: .error)])
     
     static var previews: some View {
         Group {
             
             WebauthnAuthenticatorsView(viewModel: WebauthnAuthenticatorsViewModel(platformAction: {},
                                                                                   crossPlatformAction: {}))
-            WebauthnAuthenticatorsView(viewModel: WebauthnAuthenticatorsViewModel(errorText: errorText,
+            WebauthnAuthenticatorsView(viewModel: WebauthnAuthenticatorsViewModel(problem: problem,
                                                                                   retryAction: {},
                                                                                   errorAction: {}))
                 .previewDevice("iPhone 11 Pro")
@@ -92,19 +100,19 @@ struct WebauthnAuthenticatorsView_Previews: PreviewProvider {
 
 // MARK: - FormViewModel
 class WebauthnAuthenticatorsViewModel: NSObject, ObservableObject {
-    let errorText: String?
+    let problem: ProblemViewModel?
     var platformAuthenticatorAction: (() -> Void)?
     var crossPlatforAuthenticatorAction: (() -> Void)?
     var retryAction: (() -> Void)?
     var errorAction: (() -> Void)?
     
-    init(platformAction: (() -> Void)? = nil,
+    init(problem: ProblemViewModel? = nil,
+         platformAction: (() -> Void)? = nil,
          crossPlatformAction: (() -> Void)? = nil,
-         errorText: String? = nil,
          retryAction: (() -> Void)? = nil,
          errorAction: (() -> Void)? = nil)
     {
-        self.errorText = errorText
+        self.problem = problem
         self.platformAuthenticatorAction = platformAction
         self.crossPlatforAuthenticatorAction = crossPlatformAction
         self.retryAction = retryAction

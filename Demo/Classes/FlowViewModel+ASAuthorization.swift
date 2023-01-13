@@ -199,10 +199,10 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
                                  didCompleteWithError error: Error)
     {
         Logger.clientApp.debug("Error for authorizationController: \(error.localizedDescription)")
-        prepareWebAuthnError(canRetry: (error as? NSError)?.code != 1_004)
+        prepareWebAuthnError(canRetry: (error as? NSError)?.code == ASAuthorizationError.Code.canceled.rawValue)
         
-        // error code 1001 - cancel/timeout : can retry
-        // error code 1004 - not enrolled: cannot retry
+        // error code 1001 (ASAuthorizationError.Code.cancel) - cancel/timeout : can retry
+        // error code 1004 (ASAuthorizationError.Code.failed) - not enrolled: cannot retry
     }
     
     func authorizationController(controller: ASAuthorizationController,

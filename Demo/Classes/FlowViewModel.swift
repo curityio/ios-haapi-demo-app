@@ -435,59 +435,143 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         genericHaapiViewModel = nil
         webauthnViewModel = nil
         
-        var errorText = "An error has ocurred or WebAuthn is not supported by this device. Please open the browser"
-        + " instead to complete the flow."
-        var errorAction: Action?
-        var retry: (() -> Void)?
+        var modelErrorAction: Action? = getWebAuthnErrorAction()
+        var retry: (() -> Void)? = buildWebAuthnErrorRetry(canRetry: canRetry)
+        var isShowingSelection = false
+        var platformAction: (() -> Void)? = buildWebAuthnErrorPlatformAction()
+        var crossPlatformAction: (() -> Void)? = buildWebauthnErrorCrossPlatformAction()
+        var retryActionType: String = ""
         if let registrationStep = self.pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
             title = registrationStep.actionModel.continueActions.first?.title?.literal ?? ""
-            errorAction = registrationStep.errorActions.first
-            if canRetry, #available(iOS 15.0, *), let attachment = self.selectedWebauthnAuthenticator {
-                errorText += " Or You can retry your previous Authenticator action."
-                retry = {
-                    self.doWebauthnRegistration(registrationModel: registrationStep.actionModel,
-                                                attachment: attachment)
-                }
-            }
+            isShowingSelection = registrationStep.actionModel.platformJson != nil &&
+            registrationStep.actionModel.crossPlatformJson != nil
+            retryActionType = "Registration"
         } else if let assertionStep = pendingOperationStep as? WebAuthnAssertionClientOperationStep {
             title = assertionStep.actionModel.continueActions.first?.title?.literal ?? ""
-            errorAction = assertionStep.errorActions.first
-            if canRetry, #available(iOS 15.0, *), let attachment = self.selectedWebauthnAuthenticator {
-                errorText += " Or You can retry your previous Authenticator action."
-                retry = {
-                    self.doWebauthnAssertion(assertionModel: assertionStep.actionModel,
-                                             attachment: attachment)
+            isShowingSelection = assertionStep.actionModel.assertion?.platformAllowCredentials != nil &&
+            assertionStep.actionModel.assertion?.securityKeyAllowCredentials != nil
+            retryActionType = "Authentication"
+        }
+        
+        var errorText = "An error has ocurred or WebAuthn is not supported by this device. Please open the browser"
+        + " instead to complete the flow."
+        var errorType = MessageType.error
+        if canRetry {
+            errorType = .info
+            errorText = retryActionType + " of device was cancelled or timed out."
+        }
+        
+        let problem = ProblemViewModel(title: "",
+                                       messages: [ProblemMessageBundle(text: errorText, messageType: errorType)])
+        
+        let errorAction = {
+            if modelErrorAction?.kind == ActionKind.redirect, let formAction = modelErrorAction as? FormAction {
+                self.submitForm(form: formAction.model, parameterOverrides: [:]) {
+                    self.selectedWebauthnAuthenticator = nil
                 }
             }
         }
         
-        if let retryAction = retry {
-            self.webauthnViewModel = WebauthnAuthenticatorsViewModel(errorText: errorText,
-                                                                     retryAction: {
-                retryAction()
-            },
-                                                                     errorAction: {
-                if errorAction?.kind == ActionKind.redirect, let formAction = errorAction as? FormAction {
-                    self.submitForm(form: formAction.model, parameterOverrides: [:]) {
-                        self.selectedWebauthnAuthenticator = nil
-                    }
+        if canRetry {
+            if isShowingSelection {
+                self.webauthnViewModel = WebauthnAuthenticatorsViewModel(problem: problem,
+                                                                         platformAction: platformAction,
+                                                                         crossPlatformAction: crossPlatformAction)
+            } else {
+                if let retryAction = retry {
+                    self.webauthnViewModel = WebauthnAuthenticatorsViewModel(problem: problem,
+                                                                             retryAction: retryAction,
+                                                                             errorAction: errorAction)
+                } else {
+                    // should not get here, but handling just in case
+                    self.webauthnViewModel = WebauthnAuthenticatorsViewModel(problem: problem,
+                                                                             errorAction: errorAction)
                 }
-            })
+            }
         } else {
-            self.webauthnViewModel = WebauthnAuthenticatorsViewModel(errorText: errorText,
-                                                                     errorAction: {
-                if errorAction?.kind == ActionKind.redirect, let formAction = errorAction as? FormAction {
-                    self.submitForm(form: formAction.model, parameterOverrides: [:]) {
-                        self.selectedWebauthnAuthenticator = nil
-                    }
-                }
-            })
+            // critical error - show only fallback
+            self.webauthnViewModel = WebauthnAuthenticatorsViewModel(problem: problem,
+                                                                     errorAction: errorAction)
         }
         
         // hack to force reload of StateView since there isn't a new representation to present but we need UI update
         DispatchQueue.main.async {
             self.haapiRepresentation = self.pendingOperationStep
         }
+    }
+    
+    private func getWebAuthnErrorAction() -> Action? {
+        var errorAction: Action?
+        
+        if let registrationStep = self.pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
+            errorAction = registrationStep.errorActions.first
+        } else if let assertionStep = pendingOperationStep as? WebAuthnAssertionClientOperationStep {
+            errorAction = assertionStep.errorActions.first
+        }
+        
+        return errorAction
+    }
+    
+    private func buildWebAuthnErrorRetry(canRetry: Bool) -> (() -> Void)? {
+        var retry: (() -> Void)?
+        if let registrationStep = self.pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
+            title = registrationStep.actionModel.continueActions.first?.title?.literal ?? ""
+            
+            if canRetry, #available(iOS 15.0, *), let attachment = self.selectedWebauthnAuthenticator {
+                retry = {
+                    self.doWebauthnRegistration(registrationModel: registrationStep.actionModel,
+                                                attachment: attachment)
+                }
+            }
+        } else if let assertionStep = pendingOperationStep as? WebAuthnAssertionClientOperationStep {
+            if canRetry, #available(iOS 15.0, *), let attachment = self.selectedWebauthnAuthenticator {
+                retry = {
+                    self.doWebauthnAssertion(assertionModel: assertionStep.actionModel,
+                                             attachment: attachment)
+                }
+            }
+        }
+        return retry
+    }
+    
+    private func buildWebAuthnErrorPlatformAction() -> (() -> Void)? {
+        var platformAction: (() -> Void)?
+        if let registrationStep = self.pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
+            if registrationStep.actionModel.platformJson != nil, #available(iOS 15.0, *) {
+                platformAction = {
+                    self.doWebauthnRegistration(registrationModel: registrationStep.actionModel,
+                                                attachment: WebauthnAttachmentType.platformAttachment)
+                }
+            }
+        } else if let assertionStep = pendingOperationStep as? WebAuthnAssertionClientOperationStep {
+            if assertionStep.actionModel.assertion?.platformAllowCredentials != nil, #available(iOS 15.0, *) {
+                platformAction = {
+                    self.doWebauthnAssertion(assertionModel: assertionStep.actionModel,
+                                             attachment: WebauthnAttachmentType.platformAttachment)
+                }
+            }
+        }
+        return platformAction
+    }
+    
+    private func buildWebauthnErrorCrossPlatformAction() -> (() -> Void)? {
+        var crossPlatformAction: (() -> Void)?
+        if let registrationStep = self.pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
+            if registrationStep.actionModel.platformJson != nil, #available(iOS 15.0, *) {
+                crossPlatformAction = {
+                    self.doWebauthnRegistration(registrationModel: registrationStep.actionModel,
+                                                attachment: WebauthnAttachmentType.crossPlatformAttachment)
+                }
+            }
+        } else if let assertionStep = pendingOperationStep as? WebAuthnAssertionClientOperationStep {
+            if assertionStep.actionModel.assertion?.platformAllowCredentials != nil, #available(iOS 15.0, *) {
+                crossPlatformAction = {
+                    self.doWebauthnAssertion(assertionModel: assertionStep.actionModel,
+                                             attachment: WebauthnAttachmentType.crossPlatformAttachment)
+                }
+            }
+        }
+        return crossPlatformAction
     }
     
     // MARK: - Haapi Manager
