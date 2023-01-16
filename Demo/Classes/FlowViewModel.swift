@@ -118,10 +118,11 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         case .representation(let representation):
             if let clientOperationStep = representation as? ClientOperationStep {
                 Logger.controllerFlow.debug("Received an operation: \(String(describing: clientOperationStep))")
-                processOperationStep(clientOperationStep)
-                DispatchQueue.main.async {
-                    self.haapiRepresentation = clientOperationStep
-                }
+                processOperationStep(clientOperationStep, updateState: {
+                    DispatchQueue.main.async {
+                        self.haapiRepresentation = clientOperationStep
+                    }
+                })
             } else {
                 Logger.controllerFlow.debug("Received a representation: \(String(describing: representation))")
                 processHaapiRepresentation(representation)
@@ -172,7 +173,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     
     internal var pendingOperationStep: ClientOperationStep?
     
-    private func processOperationStep(_ operationStep: ClientOperationStep) {
+    private func processOperationStep(_ operationStep: ClientOperationStep, updateState: @escaping (() -> Void)) {
         pendingOperationStep = operationStep
         switch operationStep {
         case let externalBrowserStep as ExternalBrowserClientOperationStep:
@@ -187,6 +188,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                     if succeed {
                         self.prepareFormViewModelsForActions(externalBrowserStep.actionsToPresent,
                                                              defaultTitle: "External browser operation")
+                        updateState()
                     } else {
                         self.error = ErrorInfo(title: "No available web browser",
                                                reason: "A web browser is required")
@@ -208,14 +210,15 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                         self.prepareFormViewModelsForActions(bankIdStep.errorActions,
                                                              defaultTitle: "Bank ID operation error")
                     }
+                    updateState()
                 }
             }
         case let webauthnRegistrationOperationStep as WebAuthnRegistrationClientOperationStep:
             Logger.clientApp.debug("A webauthnOperationStep: \(webauthnRegistrationOperationStep.type.rawValue)")
-            prepareWebAuthnRegistration(webauthnRegistrationOperationStep)
+            prepareWebAuthnRegistration(webauthnRegistrationOperationStep, updateState: updateState)
         case let webauthnAssertionOperationStep as WebAuthnAssertionClientOperationStep:
             Logger.clientApp.debug("A webauthnOperationStep: \(webauthnAssertionOperationStep.type.rawValue)")
-            prepareWebAuthnAssertion(webauthnAssertionOperationStep)
+            prepareWebAuthnAssertion(webauthnAssertionOperationStep, updateState: updateState)
         default:
             Logger.clientApp.debug("No behaviour defined for: \(String(describing: operationStep))")
         }
@@ -353,7 +356,8 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     
     // MARK: - WebAuthn
     // swiftlint:disable:next line_length
-    private func prepareWebAuthnRegistration(_ webauthnRegistrationOperationStep: WebAuthnRegistrationClientOperationStep) {
+    private func prepareWebAuthnRegistration(_ webauthnRegistrationOperationStep: WebAuthnRegistrationClientOperationStep,
+                                             updateState: @escaping (() -> Void)) {
         selectorViewModel = nil
         formViewModels.removeAll()
         authorizedViewModel = nil
@@ -375,6 +379,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                     self.doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
                                                 attachment: WebauthnAttachmentType.crossPlatformAttachment)
                 })
+                updateState()
             } else {
                 if webauthnRegistrationOperationStep.actionModel.platformJson != nil {
                     self.doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
@@ -386,11 +391,12 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             }
         } else {
             // show Fallback view interaction for earlier versions ex: using device with iOS14
-            prepareWebAuthnError(canRetry: false)
+            prepareWebAuthnError(canRetry: false, updateState: updateState)
         }
     }
     
-    private func prepareWebAuthnAssertion(_ webauthnAssertionOperationStep: WebAuthnAssertionClientOperationStep) {
+    private func prepareWebAuthnAssertion(_ webauthnAssertionOperationStep: WebAuthnAssertionClientOperationStep,
+                                          updateState: @escaping (() -> Void)) {
         selectorViewModel = nil
         formViewModels.removeAll()
         authorizedViewModel = nil
@@ -413,6 +419,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                     self.doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
                                              attachment: WebauthnAttachmentType.crossPlatformAttachment)
                 })
+                updateState()
             } else {
                 if webauthnAssertionOperationStep.actionModel.assertion?.platformAllowCredentials != nil {
                     self.doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
@@ -424,11 +431,11 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             }
         } else {
             // show Fallback view interaction for earlier versions ex: using device with iOS14
-            prepareWebAuthnError()
+            prepareWebAuthnError(updateState: updateState)
         }
     }
     
-    func prepareWebAuthnError(canRetry: Bool = false){
+    func prepareWebAuthnError(canRetry: Bool = false, updateState: (() -> Void)? = nil){
         selectorViewModel = nil
         formViewModels.removeAll()
         authorizedViewModel = nil
@@ -494,9 +501,14 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                                                      errorAction: errorAction)
         }
         
-        // hack to force reload of StateView since there isn't a new representation to present but we need UI update
-        DispatchQueue.main.async {
-            self.haapiRepresentation = self.pendingOperationStep
+        if let triggerUpdate = updateState {
+            triggerUpdate()
+        } else {
+            // hack to force reload of StateView because the methods is being called in a place where there isn't a new
+            // representation to present but we need UI update, ex: error thrown on authenticator API
+            DispatchQueue.main.async {
+                self.haapiRepresentation = self.pendingOperationStep
+            }
         }
     }
     

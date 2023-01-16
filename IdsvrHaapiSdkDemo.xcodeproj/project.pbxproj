@@ -8,9 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		1BB2934B255BE0EC0091ABDC /* DemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BB2934A255BE0EC0091ABDC /* DemoUITests.swift */; };
+		42871B862975AFFB00EB69E9 /* IdsvrHaapiSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 42871B852975AFFB00EB69E9 /* IdsvrHaapiSdk */; };
 		42A22F76296ECDAF00883B85 /* WebauthnAuthenticatorsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A22F72296C640900883B85 /* WebauthnAuthenticatorsView.swift */; };
 		42A22F77296ECDAF00883B85 /* WebauthnAuthenticatorsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A22F72296C640900883B85 /* WebauthnAuthenticatorsView.swift */; };
-		42D954C3293A28CF00661CC9 /* IdsvrHaapiSdk.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 42D954C2293A28CF00661CC9 /* IdsvrHaapiSdk.xcframework */; };
 		42DD75CA29645EEE008878CE /* FlowViewModel+ASAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42DD75C929645EEE008878CE /* FlowViewModel+ASAuthorization.swift */; };
 		42DD75CB29645EEE008878CE /* FlowViewModel+ASAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42DD75C929645EEE008878CE /* FlowViewModel+ASAuthorization.swift */; };
 		6604F60B2605461D001AFCEB /* fieldValid.json in Resources */ = {isa = PBXBuildFile; fileRef = 6604F60A2605461D001AFCEB /* fieldValid.json */; };
@@ -287,7 +287,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				66BB1CA028578E45003234BD /* JWTDecode in Frameworks */,
-				42D954C3293A28CF00661CC9 /* IdsvrHaapiSdk.xcframework in Frameworks */,
+				42871B862975AFFB00EB69E9 /* IdsvrHaapiSdk in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -546,6 +546,7 @@
 			name = IdsvrHaapiSdkDemo;
 			packageProductDependencies = (
 				66BB1C9F28578E45003234BD /* JWTDecode */,
+				42871B852975AFFB00EB69E9 /* IdsvrHaapiSdk */,
 			);
 			productName = Demo;
 			productReference = 1BB29325255BE0EB0091ABDC /* IdsvrHaapiSdkDemo.app */;
@@ -642,6 +643,7 @@
 			mainGroup = 1BB2931C255BE0EB0091ABDC;
 			packageReferences = (
 				66BB1C9E28578E45003234BD /* XCRemoteSwiftPackageReference "JWTDecode.swift" */,
+				42871B842975AFFB00EB69E9 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */,
 			);
 			productRefGroup = 1BB29326255BE0EB0091ABDC /* Products */;
 			projectDirPath = "";
@@ -1258,6 +1260,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		42871B842975AFFB00EB69E9 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/curityio/ios-idsvr-haapi-sdk-dist";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 		66BB1C9E28578E45003234BD /* XCRemoteSwiftPackageReference "JWTDecode.swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/auth0/JWTDecode.swift.git";
@@ -1269,6 +1279,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		42871B852975AFFB00EB69E9 /* IdsvrHaapiSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 42871B842975AFFB00EB69E9 /* XCRemoteSwiftPackageReference "ios-idsvr-haapi-sdk-dist" */;
+			productName = IdsvrHaapiSdk;
+		};
 		66BB1C9F28578E45003234BD /* JWTDecode */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 66BB1C9E28578E45003234BD /* XCRemoteSwiftPackageReference "JWTDecode.swift" */;
