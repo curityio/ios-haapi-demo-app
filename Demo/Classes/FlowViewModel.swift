@@ -399,7 +399,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         
         // swiftlint:disable:next line_length
         let shouldShowSelection = webauthnAssertionOperationStep.actionModel.assertion?.platformAllowCredentials != nil &&
-        webauthnAssertionOperationStep.actionModel.assertion?.securityKeyAllowCredentials != nil
+        webauthnAssertionOperationStep.actionModel.assertion?.crossPlatformAllowCredentials != nil
         
         if #available(iOS 15.0, *) {
             if shouldShowSelection {
@@ -417,7 +417,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                 if webauthnAssertionOperationStep.actionModel.assertion?.platformAllowCredentials != nil {
                     self.doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
                                              attachment: WebauthnAttachmentType.platformAttachment)
-                } else if webauthnAssertionOperationStep.actionModel.assertion?.securityKeyAllowCredentials != nil {
+                } else if webauthnAssertionOperationStep.actionModel.assertion?.crossPlatformAllowCredentials != nil {
                     self.doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
                                              attachment: WebauthnAttachmentType.crossPlatformAttachment)
                 }
@@ -435,11 +435,11 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         genericHaapiViewModel = nil
         webauthnViewModel = nil
         
-        var modelErrorAction: Action? = getWebAuthnErrorAction()
-        var retry: (() -> Void)? = buildWebAuthnErrorRetry(canRetry: canRetry)
+        let modelErrorAction: Action? = getWebAuthnErrorAction()
+        let retry: (() -> Void)? = buildWebAuthnErrorRetry(canRetry: canRetry)
         var isShowingSelection = false
-        var platformAction: (() -> Void)? = buildWebAuthnErrorPlatformAction()
-        var crossPlatformAction: (() -> Void)? = buildWebauthnErrorCrossPlatformAction()
+        let platformAction: (() -> Void)? = buildWebAuthnErrorPlatformAction()
+        let crossPlatformAction: (() -> Void)? = buildWebauthnErrorCrossPlatformAction()
         var retryActionType: String = ""
         if let registrationStep = self.pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
             title = registrationStep.actionModel.continueActions.first?.title?.literal ?? ""
@@ -449,7 +449,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         } else if let assertionStep = pendingOperationStep as? WebAuthnAssertionClientOperationStep {
             title = assertionStep.actionModel.continueActions.first?.title?.literal ?? ""
             isShowingSelection = assertionStep.actionModel.assertion?.platformAllowCredentials != nil &&
-            assertionStep.actionModel.assertion?.securityKeyAllowCredentials != nil
+            assertionStep.actionModel.assertion?.crossPlatformAllowCredentials != nil
             retryActionType = "Authentication"
         }
         

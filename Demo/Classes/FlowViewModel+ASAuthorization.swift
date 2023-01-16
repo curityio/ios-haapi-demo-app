@@ -166,7 +166,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
                 assertionRequest = request
             }
         case .crossPlatformAttachment:
-            if let securityKeysAllowCredentials = assertionModel.assertion?.securityKeyAllowCredentials {
+            if let crossPlatformAllowCredentials = assertionModel.assertion?.crossPlatformAllowCredentials {
                 let publicKeyCredentialProvider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
                     relyingPartyIdentifier: rpId
                 )
@@ -177,7 +177,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
                 )
                 
                 let allowedCredentials: [ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor] =
-                securityKeysAllowCredentials.map { cred in
+                crossPlatformAllowCredentials.map { cred in
                     return ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(credentialID: cred.idData,
                                                                                    transports: [])
                 }
@@ -199,7 +199,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
                                  didCompleteWithError error: Error)
     {
         Logger.clientApp.debug("Error for authorizationController: \(error.localizedDescription)")
-        prepareWebAuthnError(canRetry: (error as? NSError)?.code == ASAuthorizationError.Code.canceled.rawValue)
+        prepareWebAuthnError(canRetry: (error as NSError).code == ASAuthorizationError.Code.canceled.rawValue)
         
         // error code 1001 (ASAuthorizationError.Code.cancel) - cancel/timeout : can retry
         // error code 1004 (ASAuthorizationError.Code.failed) - not enrolled: cannot retry
