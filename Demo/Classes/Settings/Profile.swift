@@ -40,7 +40,7 @@ struct Profile: Codable, Identifiable, Hashable {
         static let defaultDevUserinfoEndpointURI = "https://d256-2001-818-e915-6a00-fd11-5b00-165d-5291.eu.ngrok.io/dev/oauth/userinfo" // swiftlint:disable:this line_length
         static let defaultDevClientId = "haapi-ios-client-real"
         static let defaultDevBaseURLString = "https://d256-2001-818-e915-6a00-fd11-5b00-165d-5291.eu.ngrok.io"
-        static let defaultDevMetaBaseURLString = "https://c9ef-2001-818-e915-6a00-74db-40ef-1517-d484.eu.ngrok.io/dev/oauth/anonymous" // swiftlint:disable:this line_length
+        static let defaultDevMetaBaseURLString = "https://d256-2001-818-e915-6a00-fd11-5b00-165d-5291.eu.ngrok.io/dev/oauth/anonymous" // swiftlint:disable:this line_length
     }
 
     var name: String

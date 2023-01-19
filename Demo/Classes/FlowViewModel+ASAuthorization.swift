@@ -134,9 +134,9 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
     @available(iOS 15.0, *)
     func doWebauthnAssertion(assertionModel: WebAuthnAssertionClientOperationActionModel,
                              attachment: WebauthnAttachmentType) {
-        guard let challengeData = assertionModel.assertion?.challengeData,
-              let rpId = assertionModel.assertion?.relyingPartyId,
-              let userVerification = assertionModel.assertion?.userVerificationPreference
+        guard let challengeData = assertionModel.assertion.challengeData,
+              let rpId = assertionModel.assertion.relyingPartyId,
+              let userVerification = assertionModel.assertion.userVerificationPreference
         else {
             fatalError("Invalid model for assertionModel")
         }
@@ -146,7 +146,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         var assertionRequest: ASAuthorizationRequest?
         switch attachment {
         case .platformAttachment:
-            if let platformAllowCredentials = assertionModel.assertion?.platformAllowCredentials {
+            if let platformAllowCredentials = assertionModel.assertion.platformAllowCredentials {
                 
                 let publicKeyCredentialProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(
                     relyingPartyIdentifier: rpId
@@ -166,7 +166,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
                 assertionRequest = request
             }
         case .crossPlatformAttachment:
-            if let crossPlatformAllowCredentials = assertionModel.assertion?.crossPlatformAllowCredentials {
+            if let crossPlatformAllowCredentials = assertionModel.assertion.crossPlatformAllowCredentials {
                 let publicKeyCredentialProvider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
                     relyingPartyIdentifier: rpId
                 )
@@ -244,9 +244,9 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         }
         
         let webauthnParameters = operationStep.formattedParametersForRegistration(
-            authenticatorAttachment: authenticatorAttachment.rawValue,
+            authenticatorAttachmentRawValue: authenticatorAttachment.rawValue,
             attestationObject: attestationObject,
-            clientData: credentialReg.rawClientDataJSON,
+            rawClientDataJSON: credentialReg.rawClientDataJSON,
             credentialID: credentialReg.credentialID
         )
         
@@ -268,8 +268,8 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         }
         
         let assertionParams = operationStep.formattedParametersForAssertion(
-            attestationObject: credentialAssertion.rawAuthenticatorData,
-            clientData: credentialAssertion.rawClientDataJSON,
+            rawAuthenticatorData: credentialAssertion.rawAuthenticatorData,
+            rawClientDataJSON: credentialAssertion.rawClientDataJSON,
             signature: credentialAssertion.signature,
             credentialID: credentialAssertion.credentialID
         )
