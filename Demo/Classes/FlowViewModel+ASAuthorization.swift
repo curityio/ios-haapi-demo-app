@@ -29,7 +29,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
     @available(iOS 15.0, *) // swiftlint:disable:next cyclomatic_complexity
     func doWebauthnRegistration(registrationModel: WebAuthnRegistrationClientOperationActionModel,
                                 attachment: WebauthnAttachmentType) {
-        var authenticatorModel: WebAuthnRegistrationClientOperationActionModel.PublicKey?
+        var authenticatorModel: WebAuthnRegistrationClientOperationActionModel.PlatformPublicKey?
         switch attachment {
         case .platformAttachment:
             authenticatorModel = registrationModel.platformJson
@@ -44,7 +44,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
               let userIdData = authenticatorModel?.userIdData,
               let rpId = authenticatorModel?.relyingPartyId,
               let userName = authenticatorModel?.userName,
-              let userPreference = authenticatorModel?.authenticatorSelection?.userVerification else {
+              let userPreference = authenticatorModel?.userVerification else {
             fatalError("Invalid model registration")
         }
         
@@ -96,24 +96,27 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
                 )
             }
             
-            if let residentKeyPref = authenticatorModel?.authenticatorSelection?.residentKey {
+            // swiftlint:disable:next line_length
+            let crossPlatformAuthenticatorModel = authenticatorModel as? WebAuthnRegistrationClientOperationActionModel.CrossPlatformPublicKey
+            
+            if let residentKeyPref = crossPlatformAuthenticatorModel?.residentKey {
                 registration.residentKeyPreference = ASAuthorizationPublicKeyCredentialResidentKeyPreference(
                     rawValue: residentKeyPref
                 )
             }
             
-            registration.excludedCredentials = authenticatorModel?.excludedCredentials?.map { credential in
+            registration.excludedCredentials = crossPlatformAuthenticatorModel?.excludedCredentials?.map { credential in
                 let credTransports = credential.transports.map { transport in
                     return ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor.Transport(rawValue: transport)
                 }
                 
-                return ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(credentialID: credential.id,
+                return ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(credentialID: credential.credentialID,
                                                                                transports: credTransports)
             } ?? []
             
             // public key algorithms
             var algorithmParams = [ASAuthorizationPublicKeyCredentialParameters]()
-            authenticatorModel?.publicKeyCredParams?.forEach({ dictionary in
+            crossPlatformAuthenticatorModel?.publicKeyCredParams?.forEach({ dictionary in
                 algorithmParams.append(ASAuthorizationPublicKeyCredentialParameters(
                     algorithm: ASCOSEAlgorithmIdentifier(rawValue: dictionary.algorithmId))
                 )
@@ -159,7 +162,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
                 
                 let allowedCredentials: [ASAuthorizationPlatformPublicKeyCredentialDescriptor] =
                 platformAllowCredentials.map { cred in
-                    return ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: cred.idData)
+                    return ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: cred.credentialID)
                 }
                 
                 request.allowedCredentials = allowedCredentials
@@ -178,7 +181,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
                 
                 let allowedCredentials: [ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor] =
                 crossPlatformAllowCredentials.map { cred in
-                    return ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(credentialID: cred.idData,
+                    return ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(credentialID: cred.credentialID,
                                                                                    transports: [])
                 }
                 

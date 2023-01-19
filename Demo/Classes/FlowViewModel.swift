@@ -798,4 +798,4 @@ extension Data {
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
     }
-}
+}  // swiftlint:disable:this file_length
