@@ -26,10 +26,10 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         case crossPlatformAttachment = "cross-platform"
     }
     
-    @available(iOS 15.0, *) // swiftlint:disable:next cyclomatic_complexity
+    @available(iOS 15.0, *)
     func doWebauthnRegistration(registrationModel: WebAuthnRegistrationClientOperationActionModel,
                                 attachment: WebauthnAttachmentType) {
-        var authenticatorModel: WebAuthnRegistrationClientOperationActionModel.PlatformPublicKey?
+        var authenticatorModel: WebAuthnRegistrationClientOperationActionModel.PublicKeyModel?
         switch attachment {
         case .platformAttachment:
             authenticatorModel = registrationModel.platformJson
@@ -97,13 +97,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
             }
             
             // swiftlint:disable:next line_length
-            let crossPlatformAuthenticatorModel = authenticatorModel as? WebAuthnRegistrationClientOperationActionModel.CrossPlatformPublicKey
-            
-            if let residentKeyPref = crossPlatformAuthenticatorModel?.residentKey {
-                registration.residentKeyPreference = ASAuthorizationPublicKeyCredentialResidentKeyPreference(
-                    rawValue: residentKeyPref
-                )
-            }
+            let crossPlatformAuthenticatorModel = authenticatorModel as? WebAuthnRegistrationClientOperationActionModel.CrossPlatformPublicKeyModel
             
             registration.excludedCredentials = crossPlatformAuthenticatorModel?.excludedCredentials?.map { credential in
                 let credTransports = credential.transports.map { transport in
@@ -240,14 +234,21 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
             fatalError("Expecting a WebAuthnRegistrationClientOperationStep")
         }
         
-        guard let formAction = operationStep.continueAction,
-              let attestationObject = credentialReg.rawAttestationObject,
-              let authenticatorAttachment = selectedWebauthnAuthenticator else {
-            fatalError("Developer mistake")
+        guard let attestationObject = credentialReg.rawAttestationObject,
+              let authenticatorAttachment = selectedWebauthnAuthenticator,
+              let attachment = {
+                  switch authenticatorAttachment {
+                  case .platformAttachment:
+                      return operationStep.actionModel.platformJson?.attachment
+                  case .crossPlatformAttachment:
+                      return operationStep.actionModel.crossPlatformJson?.attachment
+                  }
+              }() else {
+                  fatalError("Developer mistake")
         }
         
         let webauthnParameters = operationStep.formattedParametersForRegistration(
-            authenticatorAttachmentRawValue: authenticatorAttachment.rawValue,
+            authenticatorAttachment: attachment,
             attestationObject: attestationObject,
             rawClientDataJSON: credentialReg.rawClientDataJSON,
             credentialID: credentialReg.credentialID
@@ -255,7 +256,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         
         Logger.clientApp.debug("Raw client data JSON \(credentialReg.rawClientDataJSON.toBase64Url())")
         
-        submitForm(form: formAction.model, parameterOverrides: webauthnParameters) {
+        submitForm(form: operationStep.continueAction.model, parameterOverrides: webauthnParameters) {
             self.selectedWebauthnAuthenticator = nil
         }
     }
@@ -266,10 +267,6 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
             fatalError("Expecting a WebAuthnAssertionClientOperationStep")
         }
         
-        guard let formAction = operationStep.continueAction else {
-            fatalError("Developer mistake")
-        }
-        
         let assertionParams = operationStep.formattedParametersForAssertion(
             rawAuthenticatorData: credentialAssertion.rawAuthenticatorData,
             rawClientDataJSON: credentialAssertion.rawClientDataJSON,
@@ -277,7 +274,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
             credentialID: credentialAssertion.credentialID
         )
         
-        submitForm(form: formAction.model, parameterOverrides: assertionParams) {
+        submitForm(form: operationStep.continueAction.model, parameterOverrides: assertionParams) {
             self.selectedWebauthnAuthenticator = nil
         }
     }
