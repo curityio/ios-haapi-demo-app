@@ -29,12 +29,12 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
     @available(iOS 15.0, *)
     func doWebauthnRegistration(registrationModel: WebAuthnRegistrationClientOperationActionModel,
                                 attachment: WebauthnAttachmentType) {
-        var authenticatorModel: WebAuthnRegistrationClientOperationActionModel.PublicKeyModel?
+        var authenticatorModel: WebAuthnRegistrationClientOperationActionModel.CredentialRequestOptions?
         switch attachment {
         case .platformAttachment:
-            authenticatorModel = registrationModel.platformJson
+            authenticatorModel = registrationModel.platformOptions
         case .crossPlatformAttachment:
-            authenticatorModel = registrationModel.crossPlatformJson
+            authenticatorModel = registrationModel.crossPlatformOptions
         }
         
         Logger.clientApp.debug("WebAuthn Authenticator : \(authenticatorModel.debugDescription)")
@@ -97,7 +97,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
             }
             
             // swiftlint:disable:next line_length
-            let crossPlatformAuthenticatorModel = authenticatorModel as? WebAuthnRegistrationClientOperationActionModel.CrossPlatformPublicKeyModel
+            let crossPlatformAuthenticatorModel = authenticatorModel as? WebAuthnRegistrationClientOperationActionModel.CrossPlatformCredentialRequestOptions
             
             registration.excludedCredentials = crossPlatformAuthenticatorModel?.excludedCredentials?.map { credential in
                 let credTransports = credential.transports.map { transport in
@@ -131,9 +131,9 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
     @available(iOS 15.0, *)
     func doWebauthnAssertion(assertionModel: WebAuthnAssertionClientOperationActionModel,
                              attachment: WebauthnAttachmentType) {
-        guard let challengeData = assertionModel.assertion.challengeData,
-              let rpId = assertionModel.assertion.relyingPartyId,
-              let userVerification = assertionModel.assertion.userVerificationPreference
+        guard let challengeData = assertionModel.assertionOptions.challengeData,
+              let rpId = assertionModel.assertionOptions.relyingPartyId,
+              let userVerification = assertionModel.assertionOptions.userVerificationPreference
         else {
             fatalError("Invalid model for assertionModel")
         }
@@ -143,7 +143,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         var assertionRequest: ASAuthorizationRequest?
         switch attachment {
         case .platformAttachment:
-            if let platformAllowCredentials = assertionModel.assertion.platformAllowCredentials {
+            if let platformAllowCredentials = assertionModel.assertionOptions.platformAllowCredentials {
                 
                 let publicKeyCredentialProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(
                     relyingPartyIdentifier: rpId
@@ -163,7 +163,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
                 assertionRequest = request
             }
         case .crossPlatformAttachment:
-            if let crossPlatformAllowCredentials = assertionModel.assertion.crossPlatformAllowCredentials {
+            if let crossPlatformAllowCredentials = assertionModel.assertionOptions.crossPlatformAllowCredentials {
                 let publicKeyCredentialProvider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
                     relyingPartyIdentifier: rpId
                 )
@@ -236,19 +236,19 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         
         guard let attestationObject = credentialReg.rawAttestationObject,
               let authenticatorAttachment = selectedWebauthnAuthenticator,
-              let attachment = {
+              let credentialOptions: WebAuthnRegistrationClientOperationActionModel.CredentialRequestOptions = {
                   switch authenticatorAttachment {
                   case .platformAttachment:
-                      return operationStep.actionModel.platformJson?.attachment
+                      return operationStep.actionModel.platformOptions
                   case .crossPlatformAttachment:
-                      return operationStep.actionModel.crossPlatformJson?.attachment
+                      return operationStep.actionModel.crossPlatformOptions
                   }
               }() else {
                   fatalError("Developer mistake")
         }
         
         let webauthnParameters = operationStep.formattedParametersForRegistration(
-            authenticatorAttachment: attachment,
+            credentialOptions: credentialOptions,
             attestationObject: attestationObject,
             rawClientDataJSON: credentialReg.rawClientDataJSON,
             credentialID: credentialReg.credentialID
