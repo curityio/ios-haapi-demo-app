@@ -100,12 +100,8 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
             let crossPlatformAuthenticatorModel = authenticatorModel as? WebAuthnRegistrationClientOperationActionModel.CrossPlatformCredentialRequestOptions
             
             registration.excludedCredentials = crossPlatformAuthenticatorModel?.excludedCredentials?.map { credential in
-                let credTransports = credential.transports.map { transport in
-                    return ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor.Transport(rawValue: transport)
-                }
-                
                 return ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(credentialID: credential.credentialID,
-                                                                               transports: credTransports)
+                                                                               transports: [])
             } ?? []
             
             // public key algorithms
@@ -129,11 +125,11 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
     }
     
     @available(iOS 15.0, *)
-    func doWebauthnAssertion(assertionModel: WebAuthnAssertionClientOperationActionModel,
+    func doWebauthnAssertion(assertionModel: WebAuthnAuthenticationClientOperationActionModel,
                              attachment: WebauthnAttachmentType) {
-        guard let challengeData = assertionModel.assertionOptions.challengeData,
-              let rpId = assertionModel.assertionOptions.relyingPartyId,
-              let userVerification = assertionModel.assertionOptions.userVerificationPreference
+        guard let challengeData = assertionModel.credentialOptions.challengeData,
+              let rpId = assertionModel.credentialOptions.relyingPartyId,
+              let userVerification = assertionModel.credentialOptions.userVerificationPreference
         else {
             fatalError("Invalid model for assertionModel")
         }
@@ -143,7 +139,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         var assertionRequest: ASAuthorizationRequest?
         switch attachment {
         case .platformAttachment:
-            if let platformAllowCredentials = assertionModel.assertionOptions.platformAllowCredentials {
+            if let platformAllowCredentials = assertionModel.credentialOptions.platformAllowCredentials {
                 
                 let publicKeyCredentialProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(
                     relyingPartyIdentifier: rpId
@@ -163,7 +159,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
                 assertionRequest = request
             }
         case .crossPlatformAttachment:
-            if let crossPlatformAllowCredentials = assertionModel.assertionOptions.crossPlatformAllowCredentials {
+            if let crossPlatformAllowCredentials = assertionModel.credentialOptions.crossPlatformAllowCredentials {
                 let publicKeyCredentialProvider = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(
                     relyingPartyIdentifier: rpId
                 )
@@ -263,7 +259,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
     
     @available(iOS 15.0, *)
     func sendAssertion(credentialAssertion: ASAuthorizationPublicKeyCredentialAssertion) {
-        guard let operationStep = pendingOperationStep as? WebAuthnAssertionClientOperationStep else {
+        guard let operationStep = pendingOperationStep as? WebAuthnAuthenticationClientOperationStep else {
             fatalError("Expecting a WebAuthnAssertionClientOperationStep")
         }
         
