@@ -20,7 +20,7 @@ import IdsvrHaapiSdk
 
 struct Profile: Codable, Identifiable, Hashable {
 
-    private static let curityDevMode = true
+    private static let curityDevMode = false
 
     private enum Constants {
         static let defaultName = "Default"
@@ -35,12 +35,12 @@ struct Profile: Codable, Identifiable, Hashable {
         static let defaultMetaBaseURLString = "\(defaultBaseURLString)/oauth/v2/oauth-anonymous"
 
         // Dev constants, for Curity developers' use
-        static let defaultDevAuthorizationEndpointURI = "https://d256-2001-818-e915-6a00-fd11-5b00-165d-5291.eu.ngrok.io/dev/oauth/authorize" // swiftlint:disable:this line_length
-        static let defaultDevTokenEndpointURI = "https://d256-2001-818-e915-6a00-fd11-5b00-165d-5291.eu.ngrok.io/dev/oauth/token" // swiftlint:disable:this line_length
-        static let defaultDevUserinfoEndpointURI = "https://d256-2001-818-e915-6a00-fd11-5b00-165d-5291.eu.ngrok.io/dev/oauth/userinfo" // swiftlint:disable:this line_length
+        static let defaultDevAuthorizationEndpointURI = "https://localhost:8443/dev/oauth/authorize" // swiftlint:disable:this line_length
+        static let defaultDevTokenEndpointURI = "https://localhost:8443/dev/oauth/token" // swiftlint:disable:this line_length
+        static let defaultDevUserinfoEndpointURI = "https://localhost:8443/dev/oauth/userinfo" // swiftlint:disable:this line_length
         static let defaultDevClientId = "haapi-ios-client-real"
-        static let defaultDevBaseURLString = "https://d256-2001-818-e915-6a00-fd11-5b00-165d-5291.eu.ngrok.io"
-        static let defaultDevMetaBaseURLString = "https://d256-2001-818-e915-6a00-fd11-5b00-165d-5291.eu.ngrok.io/dev/oauth/anonymous" // swiftlint:disable:this line_length
+        static let defaultDevBaseURLString = "https://localhost:8443"
+        static let defaultDevMetaBaseURLString = "https://localhost:8443/dev/oauth/anonymous" // swiftlint:disable:this line_length
     }
 
     var name: String
