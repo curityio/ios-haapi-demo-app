@@ -134,7 +134,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
             fatalError("Invalid model for assertionModel")
         }
         
-        self.selectedWebauthnAuthenticator = attachment
+        selectedWebauthnAuthenticator = attachment
         
         var assertionRequest: ASAuthorizationRequest?
         switch attachment {
@@ -253,7 +253,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         Logger.clientApp.debug("Raw client data JSON \(credentialReg.rawClientDataJSON.toBase64Url())")
         
         submitForm(form: operationStep.continueAction.model, parameterOverrides: webauthnParameters) {
-            self.selectedWebauthnAuthenticator = nil
+            selectedWebauthnAuthenticator = nil
         }
     }
     
@@ -271,7 +271,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         )
         
         submitForm(form: operationStep.continueAction.model, parameterOverrides: assertionParams) {
-            self.selectedWebauthnAuthenticator = nil
+            selectedWebauthnAuthenticator = nil
         }
     }
 }

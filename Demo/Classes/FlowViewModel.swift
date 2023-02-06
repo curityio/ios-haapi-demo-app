@@ -372,20 +372,20 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                 title = webauthnRegistrationOperationStep.actionModel.continueActions.first?.title?.literal ?? ""
                 
                 self.webauthnViewModel = WebauthnAuthenticatorsViewModel(platformAction: {
-                    self.doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
+                    doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
                                                 attachment: WebauthnAttachmentType.platformAttachment)
                 },
                                                                          crossPlatformAction: {
-                    self.doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
+                    doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
                                                 attachment: WebauthnAttachmentType.crossPlatformAttachment)
                 })
                 updateState()
             } else {
                 if webauthnRegistrationOperationStep.actionModel.platformOptions != nil {
-                    self.doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
+                    doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
                                                 attachment: WebauthnAttachmentType.platformAttachment)
                 } else if webauthnRegistrationOperationStep.actionModel.crossPlatformOptions != nil {
-                    self.doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
+                    doWebauthnRegistration(registrationModel: webauthnRegistrationOperationStep.actionModel,
                                                 attachment: WebauthnAttachmentType.crossPlatformAttachment)
                 }
             }
@@ -412,20 +412,20 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                 title = webauthnAssertionOperationStep.actionModel.continueActions.first?.title?.literal ?? ""
                 
                 self.webauthnViewModel = WebauthnAuthenticatorsViewModel(platformAction: {
-                    self.doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
+                    doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
                                              attachment: WebauthnAttachmentType.platformAttachment)
                 },
                                                                          crossPlatformAction: {
-                    self.doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
+                    doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
                                              attachment: WebauthnAttachmentType.crossPlatformAttachment)
                 })
                 updateState()
             } else {
                 if webauthnAssertionOperationStep.actionModel.credentialOptions.platformAllowCredentials != nil {
-                    self.doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
+                    doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
                                              attachment: WebauthnAttachmentType.platformAttachment)
                 } else if webauthnAssertionOperationStep.actionModel.credentialOptions.crossPlatformAllowCredentials != nil { // swiftlint:disable:this line_length
-                    self.doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
+                    doWebauthnAssertion(assertionModel: webauthnAssertionOperationStep.actionModel,
                                              attachment: WebauthnAttachmentType.crossPlatformAttachment)
                 }
             }
@@ -448,7 +448,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         let platformAction: (() -> Void)? = buildWebAuthnErrorPlatformAction()
         let crossPlatformAction: (() -> Void)? = buildWebauthnErrorCrossPlatformAction()
         var retryActionType: String = ""
-        if let registrationStep = self.pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
+        if let registrationStep = pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
             title = registrationStep.actionModel.continueActions.first?.title?.literal ?? ""
             isShowingSelection = registrationStep.actionModel.platformOptions != nil &&
             registrationStep.actionModel.crossPlatformOptions != nil
@@ -473,31 +473,31 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         
         let errorAction = {
             if modelErrorAction?.kind == ActionKind.redirect, let formAction = modelErrorAction as? FormAction {
-                self.submitForm(form: formAction.model, parameterOverrides: [:]) {
-                    self.selectedWebauthnAuthenticator = nil
+                submitForm(form: formAction.model, parameterOverrides: [:]) {
+                    selectedWebauthnAuthenticator = nil
                 }
             }
         }
         
         if canRetry {
             if isShowingSelection {
-                self.webauthnViewModel = WebauthnAuthenticatorsViewModel(problem: problem,
+                webauthnViewModel = WebauthnAuthenticatorsViewModel(problem: problem,
                                                                          platformAction: platformAction,
                                                                          crossPlatformAction: crossPlatformAction)
             } else {
                 if let retryAction = retry {
-                    self.webauthnViewModel = WebauthnAuthenticatorsViewModel(problem: problem,
+                    webauthnViewModel = WebauthnAuthenticatorsViewModel(problem: problem,
                                                                              retryAction: retryAction,
                                                                              errorAction: errorAction)
                 } else {
                     // should not get here, but handling just in case
-                    self.webauthnViewModel = WebauthnAuthenticatorsViewModel(problem: problem,
+                    webauthnViewModel = WebauthnAuthenticatorsViewModel(problem: problem,
                                                                              errorAction: errorAction)
                 }
             }
         } else {
             // critical error - show only fallback
-            self.webauthnViewModel = WebauthnAuthenticatorsViewModel(problem: problem,
+            webauthnViewModel = WebauthnAuthenticatorsViewModel(problem: problem,
                                                                      errorAction: errorAction)
         }
         
@@ -515,7 +515,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     private func getWebAuthnErrorAction() -> Action? {
         var errorAction: Action?
         
-        if let registrationStep = self.pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
+        if let registrationStep = pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
             errorAction = registrationStep.fallbackActions.first
         } else if let assertionStep = pendingOperationStep as? WebAuthnAuthenticationClientOperationStep {
             errorAction = assertionStep.fallbackActions.first
@@ -531,14 +531,14 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             
             if canRetry, #available(iOS 15.0, *), let attachment = self.selectedWebauthnAuthenticator {
                 retry = {
-                    self.doWebauthnRegistration(registrationModel: registrationStep.actionModel,
+                    doWebauthnRegistration(registrationModel: registrationStep.actionModel,
                                                 attachment: attachment)
                 }
             }
         } else if let assertionStep = pendingOperationStep as? WebAuthnAuthenticationClientOperationStep {
             if canRetry, #available(iOS 15.0, *), let attachment = self.selectedWebauthnAuthenticator {
                 retry = {
-                    self.doWebauthnAssertion(assertionModel: assertionStep.actionModel,
+                    doWebauthnAssertion(assertionModel: assertionStep.actionModel,
                                              attachment: attachment)
                 }
             }
@@ -551,14 +551,14 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         if let registrationStep = self.pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
             if registrationStep.actionModel.platformOptions != nil, #available(iOS 15.0, *) {
                 platformAction = {
-                    self.doWebauthnRegistration(registrationModel: registrationStep.actionModel,
+                    doWebauthnRegistration(registrationModel: registrationStep.actionModel,
                                                 attachment: WebauthnAttachmentType.platformAttachment)
                 }
             }
         } else if let assertionStep = pendingOperationStep as? WebAuthnAuthenticationClientOperationStep {
             if assertionStep.actionModel.credentialOptions.platformAllowCredentials != nil, #available(iOS 15.0, *) {
                 platformAction = {
-                    self.doWebauthnAssertion(assertionModel: assertionStep.actionModel,
+                    doWebauthnAssertion(assertionModel: assertionStep.actionModel,
                                              attachment: WebauthnAttachmentType.platformAttachment)
                 }
             }
@@ -571,14 +571,14 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         if let registrationStep = self.pendingOperationStep as? WebAuthnRegistrationClientOperationStep {
             if registrationStep.actionModel.platformOptions != nil, #available(iOS 15.0, *) {
                 crossPlatformAction = {
-                    self.doWebauthnRegistration(registrationModel: registrationStep.actionModel,
+                    doWebauthnRegistration(registrationModel: registrationStep.actionModel,
                                                 attachment: WebauthnAttachmentType.crossPlatformAttachment)
                 }
             }
         } else if let assertionStep = pendingOperationStep as? WebAuthnAuthenticationClientOperationStep {
             if assertionStep.actionModel.credentialOptions.platformAllowCredentials != nil, #available(iOS 15.0, *) {
                 crossPlatformAction = {
-                    self.doWebauthnAssertion(assertionModel: assertionStep.actionModel,
+                    doWebauthnAssertion(assertionModel: assertionStep.actionModel,
                                              attachment: WebauthnAttachmentType.crossPlatformAttachment)
                 }
             }

@@ -35,12 +35,12 @@ struct Profile: Codable, Identifiable, Hashable {
         static let defaultMetaBaseURLString = "\(defaultBaseURLString)/oauth/v2/oauth-anonymous"
 
         // Dev constants, for Curity developers' use
-        static let defaultDevAuthorizationEndpointURI = "https://localhost:8443/dev/oauth/authorize" // swiftlint:disable:this line_length
-        static let defaultDevTokenEndpointURI = "https://localhost:8443/dev/oauth/token" // swiftlint:disable:this line_length
-        static let defaultDevUserinfoEndpointURI = "https://localhost:8443/dev/oauth/userinfo" // swiftlint:disable:this line_length
+        static let defaultDevAuthorizationEndpointURI = "https://localhost:8443/dev/oauth/authorize"
+        static let defaultDevTokenEndpointURI = "https://localhost:8443/dev/oauth/token"
+        static let defaultDevUserinfoEndpointURI = "https://localhost:8443/dev/oauth/userinfo"
         static let defaultDevClientId = "haapi-ios-client-real"
         static let defaultDevBaseURLString = "https://localhost:8443"
-        static let defaultDevMetaBaseURLString = "https://localhost:8443/dev/oauth/anonymous" // swiftlint:disable:this line_length
+        static let defaultDevMetaBaseURLString = "https://localhost:8443/dev/oauth/anonymous"
     }
 
     var name: String
