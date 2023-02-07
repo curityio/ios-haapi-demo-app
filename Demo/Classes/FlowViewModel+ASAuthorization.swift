@@ -253,7 +253,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         Logger.clientApp.debug("Raw client data JSON \(credentialReg.rawClientDataJSON.toBase64Url())")
         
         submitForm(form: operationStep.continueAction.model, parameterOverrides: webauthnParameters) {
-            selectedWebauthnAuthenticator = nil
+            self.selectedWebauthnAuthenticator = nil
         }
     }
     
@@ -271,7 +271,7 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
         )
         
         submitForm(form: operationStep.continueAction.model, parameterOverrides: assertionParams) {
-            selectedWebauthnAuthenticator = nil
+            self.selectedWebauthnAuthenticator = nil
         }
     }
 }
