@@ -114,6 +114,9 @@ struct StateView: View {
         } else if let genericHaapiViewModel = flowViewModel.genericHaapiViewModel {
             GenericHaapiView(viewModel: genericHaapiViewModel)
         }
+        else if let webauthnViewModel = flowViewModel.webauthnViewModel {
+            WebauthnAuthenticatorsView(viewModel: webauthnViewModel)
+        }
         else {
             EmptyView()
         }

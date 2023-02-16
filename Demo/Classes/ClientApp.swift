@@ -27,6 +27,7 @@ struct ClientApp: App {
     
     init() {
         HaapiSdkLogger.enabled = true
+        HaapiSdkLogger.enabledLogDriver = true
     }
     
     var body: some Scene {
