@@ -26,4 +26,6 @@ enum UIConstants {
     static let buttonHeight: CGFloat = 50.0
     /// 16.0
     static let spacing: CGFloat = 16.0
+    /// 8.0
+    static let smallSpacing: CGFloat = 8.0
 }

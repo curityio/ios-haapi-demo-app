@@ -26,7 +26,7 @@ struct Profile: Codable, Identifiable, Hashable {
         static let defaultName = "Default"
         static let scopes = ["openid", "profile"]
 
-        static let baseUrl = Bundle.main.object(forInfoDictionaryKey: "CURITY_BASE_URL") as? String ?? "localhost:8443" // swiftlint:disable:this line_length
+        static let baseUrl = Bundle.main.object(forInfoDictionaryKey: "CURITY_BASE_URL") as? String ?? "localhost:8443"
         static let defaultAuthorizationEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-authorize"
         static let defaultTokenEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-token"
         static let defaultUserinfoEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-userinfo"
@@ -38,7 +38,7 @@ struct Profile: Codable, Identifiable, Hashable {
         static let defaultDevAuthorizationEndpointURI = "https://localhost:8443/dev/oauth/authorize"
         static let defaultDevTokenEndpointURI = "https://localhost:8443/dev/oauth/token"
         static let defaultDevUserinfoEndpointURI = "https://localhost:8443/dev/oauth/userinfo"
-        static let defaultDevClientId = "haapi-ios-dev-client"
+        static let defaultDevClientId = "haapi-ios-client-real"
         static let defaultDevBaseURLString = "https://localhost:8443"
         static let defaultDevMetaBaseURLString = "https://localhost:8443/dev/oauth/anonymous"
     }
@@ -64,10 +64,8 @@ struct Profile: Codable, Identifiable, Hashable {
             }
 
             var filteredScopes = [String]()
-            for scope in supportedScopes {
-                if selectedScopes.contains(scope) {
-                    filteredScopes.append(scope)
-                }
+            for scope in supportedScopes where selectedScopes.contains(scope) {
+                filteredScopes.append(scope)
             }
 
             self.selectedScopes = filteredScopes

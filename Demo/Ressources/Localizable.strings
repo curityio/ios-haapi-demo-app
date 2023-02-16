@@ -6,3 +6,12 @@
 "polling_title" = "Polling";
 
 "copied_to_clipboard" = "Copied to clipboard.";
+
+"webauthn_platform_button_text" = "Built-in";
+"webauthn_platform_message_text" = "A non-removable built-in device, such as face recognition or a finger print reader embedded in your device.";
+"webauthn_crossplatform_button_text" = "Security-Key";
+"webauthn_crossplatform_message_text" = "A security key, such as a portable key attached through USB or wirelessly through NFC or BLE";
+"webauthn_error_button_text" = "Open Browser";
+"webauthn_retry_button_text" = "Retry";
+
+
