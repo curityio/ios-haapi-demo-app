@@ -84,15 +84,19 @@ class ProfileViewModel: ObservableObject {
 
         cancellable = urlSession.dataTaskPublisher(for: url)
             .map { $0.data }
-            .tryMap { data -> (String, String, [String], String) in
+            .tryMap { data -> ServerConfig in
                 if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                    let tokenEndpoint = json["token_endpoint"] as? String,
                    let authEndPoint = json["authorization_endpoint"] as? String,
                    let supportedScopes = json["scopes_supported"] as? [String],
                    let userinfoEndpoint = json["userinfo_endpoint"] as? String
                 {
-                    return (tokenEndpoint, authEndPoint, supportedScopes, userinfoEndpoint)
-                } else {
+                    return ServerConfig(tokenEndpointUri: tokenEndpoint,
+                                        authorizationEndpointUri: authEndPoint,
+                                        supportedScopes: supportedScopes,
+                                        userInfoEndpointUri: userinfoEndpoint)
+                }
+                else {
                     throw ProfileViewModelError.invalidJSON
                 }
             }
@@ -106,11 +110,11 @@ class ProfileViewModel: ObservableObject {
                     break
                 }
                 completion()
-            } receiveValue: { [weak self] tuple in
-                self?.profile.tokenEndpointURI = tuple.0
-                self?.profile.authorizationEndpointURI = tuple.1
-                self?.profile.supportedScopes = tuple.2
-                self?.profile.userInfoEndpointURI = tuple.3
+            } receiveValue: { [weak self] serverConfig in
+                self?.profile.tokenEndpointURI = serverConfig.tokenEndpointUri
+                self?.profile.authorizationEndpointURI = serverConfig.authorizationEndpointUri
+                self?.profile.supportedScopes = serverConfig.supportedScopes
+                self?.profile.userInfoEndpointURI = serverConfig.userInfoEndpointUri
                 self?.profile.fetchedAt = Date()
                 self?.update()
                 self?.updateScopeViewModel()
@@ -164,6 +168,15 @@ final class IndexedProfileViewModel: ProfileViewModel {
     override func update() {
         profileManager?.update(profile, at: index)
     }
+}
+
+// MARK: - ServerConfig
+
+struct ServerConfig {
+    let tokenEndpointUri: String
+    let authorizationEndpointUri: String
+    let supportedScopes: [String]
+    let userInfoEndpointUri: String
 }
 
 private extension String {

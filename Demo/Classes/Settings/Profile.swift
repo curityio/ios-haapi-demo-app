@@ -135,6 +135,9 @@ extension Profile {
                                   tokenEndpointURL: tokenEndpointURL,
                                   authorizationEndpointURL: authorizationEndpointURL,
                                   appRedirect: appRedirect,
+                                  httpHeadersProvider: nil,
+                                  authorizationParametersProvider: { () -> OAuthAuthorizationParameters in
+                                    OAuthAuthorizationParameters(scopes: selectedScopes ?? []) },
                                   isAutoRedirect: followRedirects,
                                   urlSession: urlSession)
     }

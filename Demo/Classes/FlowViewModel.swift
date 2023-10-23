@@ -606,11 +606,16 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         }
         self.profile = profile
         
-        haapiManager = HaapiManager(haapiConfiguration: haapiConfiguration)
+        do {
+            haapiManager = try HaapiManager(haapiConfiguration: haapiConfiguration)
+        } catch {
+            completionHandler(false)
+            return
+        }
+        
         oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: haapiConfiguration)
         
-        haapiManager?.start(OAuthAuthorizationParameters(scopes: profile.selectedScopes ?? []),
-                            completionHandler:
+        haapiManager?.start(completionHandler:
                                 { haapiResult in
             self.processHaapiResult(haapiResult)
             switch haapiResult {

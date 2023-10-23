@@ -60,7 +60,7 @@ struct ProblemView_Previews: PreviewProvider {
 
 struct ProblemViewModel {
     let title: String?
-    let messages: [ProblemMessageBundle]
+    let messages: [ProblemMessageBundle]?
 }
 
 struct ProblemMessageBundle: Identifiable {
