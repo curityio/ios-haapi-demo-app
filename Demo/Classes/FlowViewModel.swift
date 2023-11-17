@@ -72,6 +72,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     private let notificationCenter: NotificationCenter
     
     private var pollingStatus: PollingStatus?
+    private var storedPollingStep: PollingStep?
     
     // MARK: Support UI
     
@@ -196,6 +197,8 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                 }
             }
         case let bankIdStep as BankIdClientOperationStep:
+            
+            // BankID logic in versions of the Curity Identity Server older than 8.0
             guard let redirect = Bundle.main.haapiRedirectURI,
                   let bankIDURL = bankIdStep.urlToLaunch(redirectTo: redirect) else {
                 Logger.clientApp.debug("No external URL")
@@ -223,7 +226,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             Logger.clientApp.debug("No behaviour defined for: \(String(describing: operationStep))")
         }
     }
-    
+
     // swiftlint:disable:next cyclomatic_complexity
     private func processHaapiRepresentation(_ representation: HaapiRepresentation) {
         selectorViewModel = nil
@@ -311,6 +314,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                                           tokenServices: self)
             }
         case let pollingStep as PollingStep:
+            
             if pollingStatus != pollingStep.pollingProperties.status {
                 title = "Polling"
                 pollingStatus = pollingStep.pollingProperties.status
@@ -324,10 +328,17 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                parameterOverrides: [:],
                                completionHandler: {})
                 }
+            
+                startBankIdIfRequired(pollingStep: pollingStep)
+
             } else {
+
                 // swiftlint:disable:next line_length
                 Logger.controllerFlow.debug("Ignoring new polling step: \(pollingStep.pollingProperties.status.rawValue)")
             }
+            
+            endBankIdIfRequired(pollingStep: pollingStep)
+            
         case let genericRepresentationStep as GenericRepresentationStep:
             if genericRepresentationStep.actions.count == 1 {
                 title = genericRepresentationStep.actions.first?.title?.literal ?? "Generic step"
@@ -337,6 +348,49 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             genericHaapiViewModel = GenericHaapiViewModel(genericRepresentationStep: genericRepresentationStep,
                                                           submitter: self)
         default: break
+        }
+    }
+    
+    // Logic to start interaction with BankID in version 8.0 or later of the Curity Identity Server
+    private func startBankIdIfRequired(pollingStep: PollingStep) {
+        
+        if storedPollingStep != nil {
+            return
+        }
+
+        if let clientOperation = pollingStep.actions.first(
+            where: { $0 is ClientOperationAction }) as? ClientOperationAction {
+            if let bankIdActionModel = clientOperation.model as? BankIdClientOperationActionModel {
+                
+                guard let redirect = Bundle.main.haapiRedirectURI,
+                      let bankIDURL = bankIdActionModel.urlToLaunch(redirectTo: redirect) else {
+                        Logger.clientApp.debug("No external URL")
+                        return
+                }
+                
+                storedPollingStep = pollingStep
+                DispatchQueue.main.async {
+                    UIApplication.shared.open(bankIDURL, options: [:]) { succeed in
+                        if succeed {
+                            self.prepareFormViewModelsForActions(bankIdActionModel.continueActions,
+                                                                 defaultTitle: "Bank ID operation")
+                        } else {
+                            self.prepareFormViewModelsForActions(bankIdActionModel.errorActions,
+                                                                 defaultTitle: "Bank ID operation error")
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Logic to end interaction with BankID in version 8.0 or later of the Curity Identity Server
+    private func endBankIdIfRequired(pollingStep: PollingStep) {
+        
+        if storedPollingStep != nil {
+            if pollingStep.pollingProperties.status == PollingStatus.done || pollingStep.pollingProperties.status == PollingStatus.failed {
+                storedPollingStep = nil
+            }
         }
     }
     
@@ -606,11 +660,12 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         }
         self.profile = profile
         
-        haapiManager = HaapiManager(haapiConfiguration: haapiConfiguration)
-        oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: haapiConfiguration)
+        // swiftlint:disable force_try
+        haapiManager = try! HaapiManager(haapiConfiguration: haapiConfiguration)
+        // swiftlint:enable force_try
         
-        haapiManager?.start(OAuthAuthorizationParameters(scopes: profile.selectedScopes ?? []),
-                            completionHandler:
+        oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: haapiConfiguration)
+        haapiManager?.start(completionHandler:
                                 { haapiResult in
             self.processHaapiResult(haapiResult)
             switch haapiResult {
