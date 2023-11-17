@@ -330,7 +330,6 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                 }
             
                 startBankIdIfRequired(pollingStep: pollingStep)
-
             } else {
 
                 // swiftlint:disable:next line_length
@@ -350,48 +349,64 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         default: break
         }
     }
-    
+
     // Logic to start interaction with BankID in version 8.0 or later of the Curity Identity Server
     private func startBankIdIfRequired(pollingStep: PollingStep) {
         
         if storedPollingStep != nil {
             return
         }
-
-        if let clientOperation = pollingStep.actions.first(
-            where: { $0 is ClientOperationAction }) as? ClientOperationAction {
-            if let bankIdActionModel = clientOperation.model as? BankIdClientOperationActionModel {
-                
-                guard let redirect = Bundle.main.haapiRedirectURI,
-                      let bankIDURL = bankIdActionModel.urlToLaunch(redirectTo: redirect) else {
-                        Logger.clientApp.debug("No external URL")
-                        return
-                }
-                
-                storedPollingStep = pollingStep
-                DispatchQueue.main.async {
-                    UIApplication.shared.open(bankIDURL, options: [:]) { succeed in
-                        if succeed {
-                            self.prepareFormViewModelsForActions(bankIdActionModel.continueActions,
-                                                                 defaultTitle: "Bank ID operation")
-                        } else {
-                            self.prepareFormViewModelsForActions(bankIdActionModel.errorActions,
-                                                                 defaultTitle: "Bank ID operation error")
-                        }
+        
+        if let bankIdActionModel = getBankIdActionModel(pollingStep: pollingStep) {
+            
+            guard let redirect = Bundle.main.haapiRedirectURI,
+                  let bankIDURL = bankIdActionModel.urlToLaunch(redirectTo: redirect) else {
+                    Logger.clientApp.debug("No external URL")
+                    return
+            }
+            
+            storedPollingStep = pollingStep
+            DispatchQueue.main.async {
+                UIApplication.shared.open(bankIDURL, options: [:]) { succeed in
+                    if succeed {
+                        self.prepareFormViewModelsForActions(bankIdActionModel.continueActions,
+                                                             defaultTitle: "Bank ID operation")
+                    } else {
+                        self.prepareFormViewModelsForActions(bankIdActionModel.errorActions,
+                                                             defaultTitle: "Bank ID operation error")
                     }
                 }
             }
         }
     }
-    
+
     // Logic to end interaction with BankID in version 8.0 or later of the Curity Identity Server
     private func endBankIdIfRequired(pollingStep: PollingStep) {
-        
+
         if storedPollingStep != nil {
-            if pollingStep.pollingProperties.status == PollingStatus.done || pollingStep.pollingProperties.status == PollingStatus.failed {
+
+            // On success the continue action runs
+            if pollingStep.pollingProperties.status == PollingStatus.done {
+                storedPollingStep = nil
+            }
+            
+            // On failure we must present error details
+            if pollingStep.pollingProperties.status == PollingStatus.failed {
                 storedPollingStep = nil
             }
         }
+    }
+    
+    private func getBankIdActionModel(pollingStep: PollingStep) -> BankIdClientOperationActionModel? {
+        
+        if let clientOperation = pollingStep.actions.first(
+            where: { $0 is ClientOperationAction }) as? ClientOperationAction {
+            if let bankIdActionModel = clientOperation.model as? BankIdClientOperationActionModel {
+                return bankIdActionModel
+            }
+        }
+        
+        return nil
     }
     
     private func processProblemRepresentation(_ problem: ProblemRepresentation) {
@@ -402,6 +417,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                        reason: authorizationProblem.errorDescription ?? authorizationProblem.error)
             }
         default:
+            storedPollingStep = nil
             DispatchQueue.main.async {
                 self.problemRepresentation = problem
             }
