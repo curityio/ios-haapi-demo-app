@@ -328,14 +328,14 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                parameterOverrides: [:],
                                completionHandler: {})
                 }
-            
-                startBankIdIfRequired(pollingStep: pollingStep)
+                
             } else {
 
                 // swiftlint:disable:next line_length
                 Logger.controllerFlow.debug("Ignoring new polling step: \(pollingStep.pollingProperties.status.rawValue)")
             }
-            
+
+            startBankIdIfRequired(pollingStep: pollingStep)
             endBankIdIfRequired(pollingStep: pollingStep)
             
         case let genericRepresentationStep as GenericRepresentationStep:
@@ -353,7 +353,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     // Logic to start interaction with BankID in version 8.0 or later of the Curity Identity Server
     private func startBankIdIfRequired(pollingStep: PollingStep) {
         
-        if storedPollingStep != nil {
+        if storedPollingStep != nil || pollingStep.pollingProperties.status != PollingStatus.pending {
             return
         }
         
