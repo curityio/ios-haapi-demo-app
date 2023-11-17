@@ -26,8 +26,7 @@ struct Profile: Codable, Identifiable, Hashable {
         static let defaultName = "Default"
         static let scopes = ["openid", "profile"]
 
-        //static let baseUrl = Bundle.main.object(forInfoDictionaryKey: "CURITY_BASE_URL") as? String ?? "localhost:8443"
-        static let baseUrl = "https://e6b9-2a00-23c7-8ec3-2401-d440-bb55-fd2b-ef86.ngrok-free.app"
+        static let baseUrl = Bundle.main.object(forInfoDictionaryKey: "CURITY_BASE_URL") as? String ?? "localhost:8443"
         static let defaultAuthorizationEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-authorize"
         static let defaultTokenEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-token"
         static let defaultUserinfoEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-userinfo"
