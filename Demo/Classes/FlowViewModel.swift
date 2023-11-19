@@ -72,7 +72,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     private let notificationCenter: NotificationCenter
     
     private var pollingStatus: PollingStatus?
-    private var storedPollingStep: PollingStep?
+    private var pendingOperation: ClientOperationAction?
     
     // MARK: Support UI
     
@@ -315,28 +315,47 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             }
         case let pollingStep as PollingStep:
             
-            if pollingStatus != pollingStep.pollingProperties.status {
-                title = "Polling"
-                pollingStatus = pollingStep.pollingProperties.status
-                pollingViewModel = PollingViewModel(pollingStep: pollingStep,
-                                                    submitter: self,
-                                                    automaticPolling: profile?.automaticPolling == true)
-                if pollingStatus == .done,
-                   profile?.followRedirects == true
-                {
-                    submitForm(form: pollingStep.mainAction.model,
-                               parameterOverrides: [:],
-                               completionHandler: {})
-                }
+            title = "Polling"
+            pollingStatus = pollingStep.pollingProperties.status
+            pollingViewModel = PollingViewModel(pollingStep: pollingStep,
+                                                submitter: self,
+                                                automaticPolling: profile?.automaticPolling == true)
+            
+            if pollingStatus == .done || pollingStatus == .failed,
+               profile?.followRedirects == true
+            {
+                pendingOperation = nil
+                submitForm(form: pollingStep.mainAction.model,
+                           parameterOverrides: [:],
+                           completionHandler: {})
+            } else if pendingOperation == nil {
                 
-            } else {
-
-                // swiftlint:disable:next line_length
-                Logger.controllerFlow.debug("Ignoring new polling step: \(pollingStep.pollingProperties.status.rawValue)")
+                // Logic to start and end interaction with BankID in version 8.0 or later of the Curity Identity Server
+                if let clientOperation = pollingStep.actions.first(
+                    where: { $0 is ClientOperationAction }) as? ClientOperationAction {
+                    if let bankIdActionModel = clientOperation.model as? BankIdClientOperationActionModel {
+                        
+                        pendingOperation = clientOperation
+                        guard let redirect = Bundle.main.haapiRedirectURI,
+                              let bankIDURL = bankIdActionModel.urlToLaunch(redirectTo: redirect) else {
+                            Logger.clientApp.debug("No external URL")
+                            return
+                        }
+                        
+                        DispatchQueue.main.async {
+                            UIApplication.shared.open(bankIDURL, options: [:]) { succeed in
+                                if succeed {
+                                    self.prepareFormViewModelsForActions(bankIdActionModel.continueActions,
+                                                                         defaultTitle: "Bank ID operation")
+                                } else {
+                                    self.prepareFormViewModelsForActions(bankIdActionModel.errorActions,
+                                                                         defaultTitle: "Bank ID operation error")
+                                }
+                            }
+                        }
+                    }
+                }
             }
-
-            startBankIdIfRequired(pollingStep: pollingStep)
-            endBankIdIfRequired(pollingStep: pollingStep)
             
         case let genericRepresentationStep as GenericRepresentationStep:
             if genericRepresentationStep.actions.count == 1 {
@@ -347,53 +366,6 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             genericHaapiViewModel = GenericHaapiViewModel(genericRepresentationStep: genericRepresentationStep,
                                                           submitter: self)
         default: break
-        }
-    }
-
-    // Logic to start interaction with BankID in version 8.0 or later of the Curity Identity Server
-    private func startBankIdIfRequired(pollingStep: PollingStep) {
-        
-        if storedPollingStep != nil || pollingStep.pollingProperties.status != PollingStatus.pending {
-            return
-        }
-        
-        if let bankIdActionModel = getBankIdActionModel(pollingStep: pollingStep) {
-            
-            guard let redirect = Bundle.main.haapiRedirectURI,
-                  let bankIDURL = bankIdActionModel.urlToLaunch(redirectTo: redirect) else {
-                    Logger.clientApp.debug("No external URL")
-                    return
-            }
-            
-            storedPollingStep = pollingStep
-            DispatchQueue.main.async {
-                UIApplication.shared.open(bankIDURL, options: [:]) { succeed in
-                    if succeed {
-                        self.prepareFormViewModelsForActions(bankIdActionModel.continueActions,
-                                                             defaultTitle: "Bank ID operation")
-                    } else {
-                        self.prepareFormViewModelsForActions(bankIdActionModel.errorActions,
-                                                             defaultTitle: "Bank ID operation error")
-                    }
-                }
-            }
-        }
-    }
-
-    // Logic to end interaction with BankID in version 8.0 or later of the Curity Identity Server
-    private func endBankIdIfRequired(pollingStep: PollingStep) {
-
-        if storedPollingStep != nil {
-
-            // On success the continue action runs
-            if pollingStep.pollingProperties.status == PollingStatus.done {
-                storedPollingStep = nil
-            }
-            
-            // On failure we must present error details
-            if pollingStep.pollingProperties.status == PollingStatus.failed {
-                storedPollingStep = nil
-            }
         }
     }
     
@@ -417,7 +389,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                        reason: authorizationProblem.errorDescription ?? authorizationProblem.error)
             }
         default:
-            storedPollingStep = nil
+            pendingOperation = nil
             DispatchQueue.main.async {
                 self.problemRepresentation = problem
             }
