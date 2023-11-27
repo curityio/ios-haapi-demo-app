@@ -327,13 +327,15 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                                 submitter: self,
                                                 automaticPolling: profile?.automaticPolling == true)
 
-            if pollingStatus == .done || pollingStatus == .failed,
-               profile?.followRedirects == true
-            {
+            if pollingStatus == .done || pollingStatus == .failed {
+
                 isBankIdLaunched = false
-                submitForm(formAction: pollingStep.mainAction,
-                           parameterOverrides: [:],
-                           completionHandler: {})
+                if profile?.followRedirects == true {
+                    submitForm(formAction: pollingStep.mainAction,
+                               parameterOverrides: [:],
+                               completionHandler: {})
+                }
+
             } else if !isBankIdLaunched,
                 
                 // Logic to start and end interaction with BankID in version 8.0 or later of the Curity Identity Server
@@ -347,7 +349,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                     }
                     
                     // Run the BankID launch on the first polling step, then store state to avoid launching BankID again
-                    // The variables is reset on completion, timeout, cancellation or error
+                    // This flag is reset on completion, timeout, cancellation or error
                     isBankIdLaunched = true
 
                     DispatchQueue.main.async {
@@ -388,6 +390,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     }
     
     private func processProblemRepresentation(_ problem: ProblemRepresentation) {
+        isBankIdLaunched = false
         switch problem {
         case let authorizationProblem as AuthorizationProblem:
             DispatchQueue.main.async {
@@ -395,7 +398,6 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                        reason: authorizationProblem.errorDescription ?? authorizationProblem.error)
             }
         default:
-            isBankIdLaunched = false
             DispatchQueue.main.async {
                 self.problemRepresentation = problem
             }
