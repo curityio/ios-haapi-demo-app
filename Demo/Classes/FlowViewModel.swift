@@ -20,7 +20,12 @@ import os
 import UIKit
 
 protocol FlowViewModelSubmitable: AnyObject {
+    
     func submitForm(form: FormActionModel,
+                    parameterOverrides: [String: Any],
+                    completionHandler: @escaping () -> Void)
+    
+    func submitForm(formAction: FormAction,
                     parameterOverrides: [String: Any],
                     completionHandler: @escaping () -> Void)
 }
@@ -72,8 +77,8 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     private let notificationCenter: NotificationCenter
     
     private var pollingStatus: PollingStatus?
-    private var pendingOperation: ClientOperationAction?
-    
+    private var isBankIdLaunched = false
+
     // MARK: Support UI
     
     var messageBundles: [MessageBundle] {
@@ -118,6 +123,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         switch haapiResult {
         case .representation(let representation):
             if let clientOperationStep = representation as? ClientOperationStep {
+                
                 Logger.controllerFlow.debug("Received an operation: \(String(describing: clientOperationStep))")
                 processOperationStep(clientOperationStep, updateState: {
                     DispatchQueue.main.async {
@@ -227,7 +233,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         }
     }
 
-    // swiftlint:disable:next cyclomatic_complexity
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     private func processHaapiRepresentation(_ representation: HaapiRepresentation) {
         selectorViewModel = nil
         formViewModels.removeAll()
@@ -320,43 +326,43 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             pollingViewModel = PollingViewModel(pollingStep: pollingStep,
                                                 submitter: self,
                                                 automaticPolling: profile?.automaticPolling == true)
-            
+
             if pollingStatus == .done || pollingStatus == .failed,
                profile?.followRedirects == true
             {
-                pendingOperation = nil
-                submitForm(form: pollingStep.mainAction.model,
+                isBankIdLaunched = false
+                submitForm(formAction: pollingStep.mainAction,
                            parameterOverrides: [:],
                            completionHandler: {})
-            } else if pendingOperation == nil {
+            } else if !isBankIdLaunched,
                 
                 // Logic to start and end interaction with BankID in version 8.0 or later of the Curity Identity Server
-                if let clientOperation = pollingStep.actions.first(
-                    where: { $0 is ClientOperationAction }) as? ClientOperationAction {
-                    if let bankIdActionModel = clientOperation.model as? BankIdClientOperationActionModel {
-                        
-                        pendingOperation = clientOperation
-                        guard let redirect = Bundle.main.haapiRedirectURI,
-                              let bankIDURL = bankIdActionModel.urlToLaunch(redirectTo: redirect) else {
-                            Logger.clientApp.debug("No external URL")
-                            return
-                        }
-                        
-                        DispatchQueue.main.async {
-                            UIApplication.shared.open(bankIDURL, options: [:]) { succeed in
-                                if succeed {
-                                    self.prepareFormViewModelsForActions(bankIdActionModel.continueActions,
-                                                                         defaultTitle: "Bank ID operation")
-                                } else {
-                                    self.prepareFormViewModelsForActions(bankIdActionModel.errorActions,
-                                                                         defaultTitle: "Bank ID operation error")
-                                }
+                let clientOperation = pollingStep.actions.first(where: { $0 is ClientOperationAction }) as? ClientOperationAction,
+                let bankIdActionModel = clientOperation.model as? BankIdClientOperationActionModel {
+
+                    guard let redirect = Bundle.main.haapiRedirectURI,
+                          let bankIDURL = bankIdActionModel.urlToLaunch(redirectTo: redirect) else {
+                        Logger.clientApp.debug("No external URL")
+                        return
+                    }
+                    
+                    // Run the BankID launch on the first polling step, then store state to avoid launching BankID again
+                    // The variables is reset on completion, timeout, cancellation or error
+                    isBankIdLaunched = true
+
+                    DispatchQueue.main.async {
+                        UIApplication.shared.open(bankIDURL, options: [:]) { succeed in
+                            if succeed {
+                                self.prepareFormViewModelsForActions(bankIdActionModel.continueActions,
+                                                                     defaultTitle: "Bank ID operation")
+                            } else {
+                                self.prepareFormViewModelsForActions(bankIdActionModel.errorActions,
+                                                                     defaultTitle: "Bank ID operation error")
                             }
                         }
                     }
                 }
-            }
-            
+
         case let genericRepresentationStep as GenericRepresentationStep:
             if genericRepresentationStep.actions.count == 1 {
                 title = genericRepresentationStep.actions.first?.title?.literal ?? "Generic step"
@@ -389,7 +395,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                        reason: authorizationProblem.errorDescription ?? authorizationProblem.error)
             }
         default:
-            pendingOperation = nil
+            isBankIdLaunched = false
             DispatchQueue.main.async {
                 self.problemRepresentation = problem
             }
@@ -515,7 +521,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         
         let errorAction = {
             if modelErrorAction?.kind == ActionKind.redirect, let formAction = modelErrorAction as? FormAction {
-                self.submitForm(form: formAction.model, parameterOverrides: [:]) {
+                self.submitForm(formAction: formAction, parameterOverrides: [:]) {
                     self.selectedWebauthnAuthenticator = nil
                 }
             }
@@ -648,26 +654,49 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         }
         self.profile = profile
         
-        // swiftlint:disable force_try
-        haapiManager = try! HaapiManager(haapiConfiguration: haapiConfiguration)
-        // swiftlint:enable force_try
         
-        oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: haapiConfiguration)
-        haapiManager?.start(completionHandler:
+        do {
+            haapiManager = try HaapiManager(haapiConfiguration: haapiConfiguration)
+            oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: haapiConfiguration)
+            haapiManager?.start(completionHandler:
                                 { haapiResult in
-            self.processHaapiResult(haapiResult)
-            switch haapiResult {
-            case .error, .problem:
-                completionHandler(false)
-            default:
-                completionHandler(true)
-            }
-        })
+                self.processHaapiResult(haapiResult)
+                switch haapiResult {
+                case .error, .problem:
+                    completionHandler(false)
+                default:
+                    completionHandler(true)
+                }
+            })
+        } catch {
+            Logger.controllerFlow.debug("Cannot start HAAPI because of \(error.localizedDescription)")
+            completionHandler(false)
+        }
     }
     
     /**
-     Submits a `FormModel`with a dictionary `parameterOverrides` and invokes the `completionHandler`.
-     - Parameter form: A `FormModel`
+     Submits a `FormAction`with a dictionary `parameterOverrides` and calls an override`.
+     - Parameter formAction: A `FormAction`
+     - Parameter parametersOverrides: A dictionary of String that will override any possible keys from `FormModel`.
+     - Parameter completionHAndler: A closure of `HaapiCompletionHandler` that returns an optional `HaapiState`.
+     */
+    func submitForm(formAction: FormAction,
+                    parameterOverrides: [String: Any],
+                    completionHandler: @escaping () -> Void)
+    {
+        if isBankIdLaunched && formAction.kind == ActionKind.cancel {
+            isBankIdLaunched = false
+        }
+        
+        submitForm(
+            form: formAction.model,
+            parameterOverrides: parameterOverrides,
+            completionHandler: completionHandler)
+    }
+
+    /**
+     Submits a `FormActionModel`with a dictionary `parameterOverrides` and invokes the `completionHandler`.
+     - Parameter formAction: A `FormActionModel`
      - Parameter parametersOverrides: A dictionary of String that will override any possible keys from `FormModel`.
      - Parameter completionHAndler: A closure of `HaapiCompletionHandler` that returns an optional `HaapiState`.
      */
@@ -679,7 +708,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         DispatchQueue.main.async {
             self.isProcessing = true
         }
-        
+
         haapiManager?.submitForm(form,
                                  parameters: parameterOverrides,
                                  completionHandler:

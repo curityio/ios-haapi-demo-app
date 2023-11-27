@@ -133,7 +133,7 @@ class FormViewModel: NSObject, ObservableObject {
         let parameters = notNilValues.reduce(into: [String: String]()) {
             $0[$1.name] = $1.value
         }
-        submitter?.submitForm(form: formAction.model,
+        submitter?.submitForm(formAction: formAction,
                               parameterOverrides: parameters)
         {
             completion()

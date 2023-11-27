@@ -26,7 +26,9 @@ struct ClientApp: App {
     @StateObject var imageLoader = ImageLoader(with: .dev)
     
     init() {
+        HaapiLogger.followUpTags = SdkFollowUpTag.allCases
         HaapiLogger.isInfoEnabled = true
+        HaapiLogger.isSensitiveValueMasked = true
         HaapiLogger.isDebugEnabled = false
     }
     
