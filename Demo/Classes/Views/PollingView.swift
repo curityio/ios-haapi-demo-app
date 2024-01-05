@@ -69,7 +69,7 @@ class PollingViewModel: ObservableObject {
         self.pollingStatus = pollingStep.pollingProperties.status
         self.automaticPolling = automaticPolling
         self.interval = interval
-
+        
         var formAction: FormAction
         if let cancelAction = pollingStep.cancelAction {
             formAction = cancelAction
@@ -93,8 +93,7 @@ class PollingViewModel: ObservableObject {
 
     func polling() {
         invalidate()
-
-        submitter?.submitForm(form: pollingStep.mainAction.model,
+        submitter?.submitForm(formAction: pollingStep.mainAction,
                               parameterOverrides: [:])
         {
             DispatchQueue.main.async {

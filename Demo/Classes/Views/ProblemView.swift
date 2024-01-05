@@ -29,9 +29,9 @@ struct ProblemView: View {
                     .padding([.top, .bottom], 11)
             }
 
-            if let messages = viewModel.messages {
+            if !viewModel.messages.isEmpty {
                 VStack {
-                    ForEach(messages, id: \.text) { message in
+                    ForEach(viewModel.messages, id: \.text) { message in
                         MessageView(text: message.text,
                                     messageType: message.messageType)
                     }

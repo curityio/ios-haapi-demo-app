@@ -20,7 +20,12 @@ import os
 import UIKit
 
 protocol FlowViewModelSubmitable: AnyObject {
+    
     func submitForm(form: FormActionModel,
+                    parameterOverrides: [String: Any],
+                    completionHandler: @escaping () -> Void)
+    
+    func submitForm(formAction: FormAction,
                     parameterOverrides: [String: Any],
                     completionHandler: @escaping () -> Void)
 }
@@ -72,7 +77,8 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     private let notificationCenter: NotificationCenter
     
     private var pollingStatus: PollingStatus?
-    
+    private var isBankIdLaunched = false
+
     // MARK: Support UI
     
     var messageBundles: [MessageBundle] {
@@ -117,6 +123,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         switch haapiResult {
         case .representation(let representation):
             if let clientOperationStep = representation as? ClientOperationStep {
+                
                 Logger.controllerFlow.debug("Received an operation: \(String(describing: clientOperationStep))")
                 processOperationStep(clientOperationStep, updateState: {
                     DispatchQueue.main.async {
@@ -196,6 +203,8 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                 }
             }
         case let bankIdStep as BankIdClientOperationStep:
+            
+            // BankID logic in versions of the Curity Identity Server older than 8.0
             guard let redirect = Bundle.main.haapiRedirectURI,
                   let bankIDURL = bankIdStep.urlToLaunch(redirectTo: redirect) else {
                 Logger.clientApp.debug("No external URL")
@@ -223,8 +232,8 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
             Logger.clientApp.debug("No behaviour defined for: \(String(describing: operationStep))")
         }
     }
-    
-    // swiftlint:disable:next cyclomatic_complexity
+
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     private func processHaapiRepresentation(_ representation: HaapiRepresentation) {
         selectorViewModel = nil
         formViewModels.removeAll()
@@ -311,23 +320,51 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                                                           tokenServices: self)
             }
         case let pollingStep as PollingStep:
-            if pollingStatus != pollingStep.pollingProperties.status {
-                title = "Polling"
-                pollingStatus = pollingStep.pollingProperties.status
-                pollingViewModel = PollingViewModel(pollingStep: pollingStep,
-                                                    submitter: self,
-                                                    automaticPolling: profile?.automaticPolling == true)
-                if pollingStatus == .done,
-                   profile?.followRedirects == true
-                {
-                    submitForm(form: pollingStep.mainAction.model,
+            
+            title = "Polling"
+            pollingStatus = pollingStep.pollingProperties.status
+            pollingViewModel = PollingViewModel(pollingStep: pollingStep,
+                                                submitter: self,
+                                                automaticPolling: profile?.automaticPolling == true)
+
+            if pollingStatus == .done || pollingStatus == .failed {
+
+                isBankIdLaunched = false
+                if profile?.followRedirects == true {
+                    submitForm(formAction: pollingStep.mainAction,
                                parameterOverrides: [:],
                                completionHandler: {})
                 }
-            } else {
-                // swiftlint:disable:next line_length
-                Logger.controllerFlow.debug("Ignoring new polling step: \(pollingStep.pollingProperties.status.rawValue)")
-            }
+
+            } else if !isBankIdLaunched,
+                
+                // Logic to start and end interaction with BankID in version 8.0 or later of the Curity Identity Server
+                let clientOperation = pollingStep.actions.first(where: { $0 is ClientOperationAction }) as? ClientOperationAction,
+                let bankIdActionModel = clientOperation.model as? BankIdClientOperationActionModel {
+
+                    guard let redirect = Bundle.main.haapiRedirectURI,
+                          let bankIDURL = bankIdActionModel.urlToLaunch(redirectTo: redirect) else {
+                        Logger.clientApp.debug("No external URL")
+                        return
+                    }
+                    
+                    // Run the BankID launch on the first polling step, then store state to avoid launching BankID again
+                    // This flag is reset on completion, timeout, cancellation or error
+                    isBankIdLaunched = true
+
+                    DispatchQueue.main.async {
+                        UIApplication.shared.open(bankIDURL, options: [:]) { succeed in
+                            if succeed {
+                                self.prepareFormViewModelsForActions(bankIdActionModel.continueActions,
+                                                                     defaultTitle: "Bank ID operation")
+                            } else {
+                                self.prepareFormViewModelsForActions(bankIdActionModel.errorActions,
+                                                                     defaultTitle: "Bank ID operation error")
+                            }
+                        }
+                    }
+                }
+
         case let genericRepresentationStep as GenericRepresentationStep:
             if genericRepresentationStep.actions.count == 1 {
                 title = genericRepresentationStep.actions.first?.title?.literal ?? "Generic step"
@@ -340,7 +377,20 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         }
     }
     
+    private func getBankIdActionModel(pollingStep: PollingStep) -> BankIdClientOperationActionModel? {
+        
+        if let clientOperation = pollingStep.actions.first(
+            where: { $0 is ClientOperationAction }) as? ClientOperationAction {
+            if let bankIdActionModel = clientOperation.model as? BankIdClientOperationActionModel {
+                return bankIdActionModel
+            }
+        }
+        
+        return nil
+    }
+    
     private func processProblemRepresentation(_ problem: ProblemRepresentation) {
+        isBankIdLaunched = false
         switch problem {
         case let authorizationProblem as AuthorizationProblem:
             DispatchQueue.main.async {
@@ -473,7 +523,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         
         let errorAction = {
             if modelErrorAction?.kind == ActionKind.redirect, let formAction = modelErrorAction as? FormAction {
-                self.submitForm(form: formAction.model, parameterOverrides: [:]) {
+                self.submitForm(formAction: formAction, parameterOverrides: [:]) {
                     self.selectedWebauthnAuthenticator = nil
                 }
             }
@@ -606,25 +656,49 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         }
         self.profile = profile
         
-        haapiManager = HaapiManager(haapiConfiguration: haapiConfiguration)
-        oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: haapiConfiguration)
         
-        haapiManager?.start(OAuthAuthorizationParameters(scopes: profile.selectedScopes ?? []),
-                            completionHandler:
+        do {
+            haapiManager = try HaapiManager(haapiConfiguration: haapiConfiguration)
+            oauthTokenManager = OAuthTokenManager(oauthTokenConfiguration: haapiConfiguration)
+            haapiManager?.start(completionHandler:
                                 { haapiResult in
-            self.processHaapiResult(haapiResult)
-            switch haapiResult {
-            case .error, .problem:
-                completionHandler(false)
-            default:
-                completionHandler(true)
-            }
-        })
+                self.processHaapiResult(haapiResult)
+                switch haapiResult {
+                case .error, .problem:
+                    completionHandler(false)
+                default:
+                    completionHandler(true)
+                }
+            })
+        } catch {
+            Logger.controllerFlow.debug("Cannot start HAAPI because of \(error.localizedDescription)")
+            completionHandler(false)
+        }
     }
     
     /**
-     Submits a `FormModel`with a dictionary `parameterOverrides` and invokes the `completionHandler`.
-     - Parameter form: A `FormModel`
+     Submits a `FormAction`with a dictionary `parameterOverrides` and calls an override`.
+     - Parameter formAction: A `FormAction`
+     - Parameter parametersOverrides: A dictionary of String that will override any possible keys from `FormModel`.
+     - Parameter completionHAndler: A closure of `HaapiCompletionHandler` that returns an optional `HaapiState`.
+     */
+    func submitForm(formAction: FormAction,
+                    parameterOverrides: [String: Any],
+                    completionHandler: @escaping () -> Void)
+    {
+        if isBankIdLaunched && formAction.kind == ActionKind.cancel {
+            isBankIdLaunched = false
+        }
+        
+        submitForm(
+            form: formAction.model,
+            parameterOverrides: parameterOverrides,
+            completionHandler: completionHandler)
+    }
+
+    /**
+     Submits a `FormActionModel`with a dictionary `parameterOverrides` and invokes the `completionHandler`.
+     - Parameter formAction: A `FormActionModel`
      - Parameter parametersOverrides: A dictionary of String that will override any possible keys from `FormModel`.
      - Parameter completionHAndler: A closure of `HaapiCompletionHandler` that returns an optional `HaapiState`.
      */
@@ -636,7 +710,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         DispatchQueue.main.async {
             self.isProcessing = true
         }
-        
+
         haapiManager?.submitForm(form,
                                  parameters: parameterOverrides,
                                  completionHandler:

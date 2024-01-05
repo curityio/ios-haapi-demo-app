@@ -25,7 +25,7 @@ struct Profile: Codable, Identifiable, Hashable {
     private enum Constants {
         static let defaultName = "Default"
         static let scopes = ["openid", "profile"]
-
+        
         static let baseUrl = Bundle.main.object(forInfoDictionaryKey: "CURITY_BASE_URL") as? String ?? "localhost:8443"
         static let defaultAuthorizationEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-authorize"
         static let defaultTokenEndpointURI = "\(defaultBaseURLString)/oauth/v2/oauth-token"
@@ -135,6 +135,10 @@ extension Profile {
                                   tokenEndpointURL: tokenEndpointURL,
                                   authorizationEndpointURL: authorizationEndpointURL,
                                   appRedirect: appRedirect,
+                                  httpHeadersProvider: nil,
+                                  authorizationParametersProvider: {
+                                      OAuthAuthorizationParameters(scopes: selectedScopes ?? [])
+                                  },
                                   isAutoRedirect: followRedirects,
                                   urlSession: urlSession)
     }
