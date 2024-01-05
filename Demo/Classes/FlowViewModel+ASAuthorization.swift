@@ -216,12 +216,16 @@ extension FlowViewModel: ASAuthorizationControllerDelegate, ASAuthorizationContr
     }
     
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        guard let appWindow = UIApplication.shared.delegate?.window,
-              let window = appWindow
-        else {
-            fatalError("There is no window")
+        let presentationAnchor: ASPresentationAnchor
+        if let delegateWindow = UIApplication.shared.delegate?.window,
+            let aWindow = delegateWindow {
+            presentationAnchor = aWindow
+        } else if let firstWindow = UIApplication.shared.windows.first {
+            presentationAnchor = firstWindow
+        } else {
+            fatalError("There is no window..")
         }
-        return window
+        return presentationAnchor
     }
     
     @available(iOS 15.0, *)

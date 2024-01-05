@@ -76,6 +76,7 @@ class ProfileViewModel: ObservableObject {
         return true
     }
 
+    // swiftlint:disable large_tuple
     func pullMetaData(completion: @escaping () -> Void) {
         guard let url = profile.metaDataEndpointURL else {
             completion()
@@ -116,6 +117,7 @@ class ProfileViewModel: ObservableObject {
                 self?.updateScopeViewModel()
             }
     }
+    // swiftlint:enable large_tuple
 
     var errorBaseURLString: String? {
         return profile.baseURLString.errorInvalidURL
