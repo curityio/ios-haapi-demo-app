@@ -116,6 +116,7 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
     // MARK: - Process HaapiResult
     
     private func processHaapiResult(_ haapiResult: HaapiResult) {
+        
         DispatchQueue.main.async {
             self.isProcessing = false
         }
@@ -322,10 +323,12 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
         case let pollingStep as PollingStep:
             
             title = "Polling"
+            let pollingInterval: TimeInterval = 2
             pollingStatus = pollingStep.pollingProperties.status
             pollingViewModel = PollingViewModel(pollingStep: pollingStep,
                                                 submitter: self,
-                                                automaticPolling: profile?.automaticPolling == true)
+                                                automaticPolling: profile?.automaticPolling == true,
+                                                interval: pollingInterval)
 
             if pollingStatus == .done || pollingStatus == .failed {
 
@@ -334,8 +337,12 @@ final class FlowViewModel: NSObject, ObservableObject, FlowViewModelSubmitable, 
                     submitForm(formAction: pollingStep.mainAction,
                                parameterOverrides: [:],
                                completionHandler: {})
+                    
+                    // A polling view may be in progress so wait for it to complete to ensure state is reset
+                    DispatchQueue.main.asyncAfter(deadline: .now() + pollingInterval) {
+                        self.isProcessing = false
+                    }
                 }
-
             } else if !isBankIdLaunched,
                 
                 // Logic to start and end interaction with BankID in version 8.0 or later of the Curity Identity Server

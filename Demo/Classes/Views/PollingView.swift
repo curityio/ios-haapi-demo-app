@@ -105,8 +105,8 @@ class PollingViewModel: ObservableObject {
     func schedulePolling() {
         guard pollingStep.pollingProperties.status == .pending, automaticPolling else { return }
 
-        scheduler.schedule(withTimeInterval: interval) { [weak self] in
-            self?.polling()
+        scheduler.schedule(withTimeInterval: interval) {
+            self.polling()
         }
     }
 }
